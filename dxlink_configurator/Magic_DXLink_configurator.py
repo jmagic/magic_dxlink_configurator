@@ -26,7 +26,7 @@ class Unit(object):
     Model of the Unit
 
     Contains the following attributes:
-    'hostname','serial','firmware','device','mac','time'
+    model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway, subnet, master, system
     """
     #----------------------------------------------------------------------
     def __init__(self, model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway, subnet, master, system):
@@ -52,25 +52,18 @@ class MainPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY)
 
-        self.readConfigFile()  #pulls setting from settings file, and sets variables
-
         self.parent = parent
-
+        self.readConfigFile()
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v1.4.13"
+        self.version = "v1.5.0"
         self.setTitleBar()
 
         # Set up some variables
-        self.filter = True #disable the AMX filter by default
-        self.actionItems = []
-        self.rightclickselect = []
+        self.filter = False #disable the AMX filter by default
         self.errorlist = []
         self.completionlist = []
-        self.abort = False
-        self.clients = []
         self.mse_active_list = []
-        self.portError = False
 
         # Build the ObjectListView
         self.dataOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -111,15 +104,16 @@ class MainPanel(wx.Panel):
         self.SniffDHCPThread.start()
         self.DHCPListenerRunning = True
 
+        # create a telenetto thread pool and assign them to a queue
         self.telnettoqueue = Queue.Queue()
-        # create a thread pool and assign them to a queue
         for i in range(10):
             self.TelnettoThread = telnetto_class.TelnetToThread(self, self.telnettoqueue)
             self.TelnettoThread.setDaemon(True)
             self.TelnettoThread.start()
 
+
+        # create a telnetjob thread pool and assign them to a queue
         self.telnetjobqueue = Queue.Queue()
-        # create a thread pool and assign them to a queue
         for i in range(int(self.thread_number)):
             self.TelnetJobThread = telnet_class.Telnetjobs(self, self.telnetjobqueue)
             self.TelnetJobThread.setDaemon(True)
@@ -158,10 +152,8 @@ class MainPanel(wx.Panel):
     def collectCompletions(self, sender):
         self.completionlist.append(sender)
 
-
     def collectErrors(self, sender):
         self.errorlist.append(sender)
-
 
     def portErrors(self):
         dlg = wx.MessageDialog(self.parent,
@@ -251,7 +243,8 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-
+        self.dataOlv.RefreshObjects(self.actionItems)
+        self.dumpPickle()
         self.errorlist = []
         self.completionlist = []
         self.actionItems = []
@@ -273,12 +266,10 @@ class MainPanel(wx.Panel):
     def selectColumns(self):
 
         self.columns = []
-        #print self.columns_config
         for i in range(len(self.columns_setup)):
             self.columns.append((int(self.columns_config[i]),self.columns_setup[i]))
 
         todisplay = []
-        #print self.columns
         for item in self.columns:
             if item[0] == 1:
 
@@ -286,7 +277,6 @@ class MainPanel(wx.Panel):
 
         self.dataOlv.SetColumns(todisplay)
 
-        #self.setClients()
 
     def setClients(self, objects):
 
@@ -327,9 +317,6 @@ class MainPanel(wx.Panel):
         objects = self.dataOlv.GetObjects()
         self.dataOlv.DeselectAll()
         self.dataOlv.RefreshObjects(objects)
-
-
-
 
 
     def telnetTo( self, data=None ):
@@ -1162,24 +1149,13 @@ class MainPanel(wx.Panel):
     def updateStatusBar(self):
 
         self.parent.sb.SetFieldsCount(4)
-        #f = self.sb.GetFont()
-        #print f
-        #dc = wx.WindowDC(self.sb)
-        #dc.SetFont(f)
-        #print wx.ClientDC(self.sb).GetTextExtent(self.sb.GetStatusText(1))[0]
-        #master_width, master_hight = self.GetTextExtent(self.master_address)
-        #print master_width
         master_width = wx.ClientDC(self.parent.sb).GetTextExtent(self.master_address)[0] + 0
         device_width = wx.ClientDC(self.parent.sb).GetTextExtent(self.device_number)[0] + 0
-        #master_width = len(self.master_address) * 9
-        #device_width = len(self.device_number) * 11
         self.parent.sb.SetStatusWidths([-1,master_width,device_width,30])
         self.parent.sb.SetStatusText(self.master_address,1)
         self.parent.sb.SetStatusText(self.device_number,2)
 
     def onClose(self, data=None):
-        #self.tray.RemoveIcon()
-        #self.tray.Destroy()
         self.parent.Destroy()
 
     def OnAboutBox(self, e):
@@ -1235,27 +1211,25 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, parent=None, id=wx.ID_ANY,
                           title=self.title_text, size=(1100,600))
 
-        self.SetIcon(MDC_icon.GetIcon())
+        self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
         self.sb = self.CreateStatusBar()
 
-        panel = MainPanel(self)
-
-        self.panel = panel
+        self.panel = MainPanel(self)
 
         fileMenu = wx.Menu()
         fitem =  fileMenu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', 'Import CSV Spread Sheet')
-        self.Bind(wx.EVT_MENU, panel.importCSVfile, fitem)
+        self.Bind(wx.EVT_MENU, self.panel.importCSVfile, fitem)
 
         fitem =  fileMenu.Append(wx.ID_ANY, 'Import IP list','Import IP list')
-        self.Bind(wx.EVT_MENU, panel.importIPlist, fitem)
+        self.Bind(wx.EVT_MENU, self.panel.importIPlist, fitem)
 
         fitem =  fileMenu.Append(wx.ID_ANY, 'Import Plot','Import Plot')
-        self.Bind(wx.EVT_MENU, panel.importPlot, fitem)
+        self.Bind(wx.EVT_MENU, self.panel.importPlot, fitem)
 
         fitem = fileMenu.Append(wx.ID_ANY, 'Store Items in a CSV File','Store selected items in a CSV file')
-        self.Bind(wx.EVT_MENU, panel.removeAndStore, fitem)
+        self.Bind(wx.EVT_MENU, self.panel.removeAndStore, fitem)
 
         fitem = fileMenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
         self.Bind(wx.EVT_MENU, self.onQuit, fitem)
@@ -1266,49 +1240,49 @@ class MainFrame(wx.Frame):
 
         selectMenu = wx.Menu()
         sitem = selectMenu.Append(wx.ID_ANY, 'Select All', 'Select All')
-        self.Bind(wx.EVT_MENU, panel.onSelectAll, sitem)
+        self.Bind(wx.EVT_MENU, self.panel.onSelectAll, sitem)
 
         sitem = selectMenu.Append(wx.ID_ANY, 'Select None', 'Select None')
-        self.Bind(wx.EVT_MENU, panel.onSelectNone, sitem)
+        self.Bind(wx.EVT_MENU, self.panel.onSelectNone, sitem)
 
         menubar.Append(editMenu, '&Edit')
         editMenu.AppendMenu(wx.ID_ANY, 'Select', selectMenu)
 
         eitem = editMenu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
-        self.Bind(wx.EVT_MENU, panel.configurePrefs, eitem)
+        self.Bind(wx.EVT_MENU, self.panel.configurePrefs, eitem)
 
         actionMenu = wx.Menu()
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Update device information', 'Update details from selected devices')
-        self.Bind(wx.EVT_MENU, panel.getTelnetInfo, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
-        self.Bind(wx.EVT_MENU, panel.sendCommands, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.sendCommands, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Configure Items', 'Configure Items Connection')
-        self.Bind(wx.EVT_MENU, panel.configureDevice, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory Settings', 'Reset selected devices to factory settings')
-        self.Bind(wx.EVT_MENU, panel.resetFactory, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.resetFactory, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, panel.rebootUnit, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.rebootUnit, aitem)
 
         menubar.Append(actionMenu, '&Actions')
 
         toolsMenu = wx.Menu()
 
         titem = toolsMenu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
-        self.Bind(wx.EVT_MENU, panel.addLine, titem)
+        self.Bind(wx.EVT_MENU, self.panel.addLine, titem)
 
         titem = toolsMenu.Append(wx.ID_ANY, 'Generate IP List', 'Generate IP List')
-        self.Bind(wx.EVT_MENU, panel.generateList, titem)
+        self.Bind(wx.EVT_MENU, self.panel.generateList, titem)
 
         titem = toolsMenu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
-        self.Bind(wx.EVT_MENU, panel.turnOnLED, titem)
+        self.Bind(wx.EVT_MENU, self.panel.turnOnLED, titem)
 
         titem = toolsMenu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
-        self.Bind(wx.EVT_MENU, panel.turnOffLED, titem)
+        self.Bind(wx.EVT_MENU, self.panel.turnOffLED, titem)
 
         menubar.Append(toolsMenu, 'Tools')
 
@@ -1317,38 +1291,38 @@ class MainFrame(wx.Frame):
 
         self.listenDHCP = listenMenu.AppendCheckItem(wx.ID_ANY, "Listen for DHCP requests", "Listen for DHCP requests")
 
-        self.Bind(wx.EVT_MENU, panel.DHCPListen, self.listenDHCP)
+        self.Bind(wx.EVT_MENU, self.panel.DHCPListen, self.listenDHCP)
         self.listenDHCP.Check()
 
         self.listenfilter = listenMenu.AppendCheckItem(wx.ID_ANY, "Filter AMX devices DHCP requests", "Filter AMX devices DHCP requests")
 
-        self.Bind(wx.EVT_MENU, panel.filterAMX, self.listenfilter)
+        self.Bind(wx.EVT_MENU, self.panel.filterAMX, self.listenfilter)
 
         menubar.Append(listenMenu, 'Listen')
 
         deleteMenu = wx.Menu()
         ditem = deleteMenu.Append(wx.ID_ANY, '&Delete Item', 'Delete Item')
-        self.Bind(wx.EVT_MENU, panel.deleteItem, ditem)
+        self.Bind(wx.EVT_MENU, self.panel.deleteItem, ditem)
 
         ditem = deleteMenu.Append(wx.ID_ANY, '&Delete All Items', 'Delete All Items')
-        self.Bind(wx.EVT_MENU, panel.deleteAllItems, ditem)
+        self.Bind(wx.EVT_MENU, self.panel.deleteAllItems, ditem)
 
         menubar.Append(deleteMenu, '&Delete')
 
         helpMenu = wx.Menu()
         hitem = helpMenu.Append(wx.ID_ANY, 'About', 'About')
-        self.Bind(wx.EVT_MENU, panel.OnAboutBox, hitem)
+        self.Bind(wx.EVT_MENU, self.panel.OnAboutBox, hitem)
 
         hitem = helpMenu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        self.Bind(wx.EVT_MENU, panel.OnBeerBox, hitem)
+        self.Bind(wx.EVT_MENU, self.panel.OnBeerBox, hitem)
 
         menubar.Append(helpMenu, '&Help')
 
         self.SetMenuBar(menubar)
-        self.Bind(wx.EVT_CLOSE, panel.onClose)
+        self.Bind(wx.EVT_CLOSE, self.panel.onClose)
 
-        if panel.portError:
-            panel.portErrors()
+        #if self.panel.portError:
+        #    self.panel.portErrors()
 
     def onRightClick(self, event):
 
@@ -1388,6 +1362,8 @@ class MainFrame(wx.Frame):
         right_click_Menu.Destroy()
 
     def onQuit(self, e):
+        self.panel.dumpPickle()
+        print self.panel.dataOlv.GetObjects()
         self.Close()
 
 
