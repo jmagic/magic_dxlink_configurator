@@ -1235,12 +1235,7 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, parent=None, id=wx.ID_ANY,
                           title=self.title_text, size=(1100,600))
 
-
-        loc = wx.IconLocation(r'Magic_DXLink_Configurator.exe', 0)
-        self.SetIcon(wx.IconFromLocation(loc))
-        #ib = wx.IconBundle()
-        #ib.AddIconFromFile("icon/MDC_icon.ico", wx.BITMAP_TYPE_ANY)
-        #self.SetIcons(ib)
+        self.SetIcon(MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
         self.sb = self.CreateStatusBar()

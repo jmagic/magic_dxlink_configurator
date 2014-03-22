@@ -3,5 +3,6 @@ __all__=['config_menus',
          'multi_send',
          'plot_class',
          'telnet_class',
-         'telnetto_class'
+         'telnetto_class',
+         'icon'
          ]
