@@ -16,14 +16,14 @@ class Telnetjobs(Thread):
         while True:
             # gets the job from the queue
             job = self.queue.get()
- 
+
             # download the file
             #print job
-            
+
             self.type = job[0]
             self.timeout = int(job[2])
-            
-            if self.type == "GetTelnetInfo":    
+
+            if self.type == "GetTelnetInfo":
                 self.GetTelnetInfo(job)
             elif self.type == "SetDHCP":
                 self.SetDHCP(job)
@@ -38,7 +38,7 @@ class Telnetjobs(Thread):
             elif self.type == "SetSerialMAC":
                 self.SetSerialMAC(job)
             elif self.type == "DeviceConfig":
-                self.SetDeviceConfig(job) 
+                self.SetDeviceConfig(job)
             elif self.type == "FactoryAV":
                 self.FactoryAV(job)
             elif self.type == "SendCommand" :
@@ -49,37 +49,36 @@ class Telnetjobs(Thread):
                 self.SetTurnOffLED(job)
             elif self.type == "MSE" :
                 self.SetMSE(job)
-            elif self.type == "Ping" :
-                self.SetPing(job)
+
             # send a signal to the queue that the job is done
             self.queue.task_done()
 
 ########################################################################
     def GetTelnetInfo(self, job):
-            
+
         obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip, 23, self.timeout)
-        
+
             tn.read_until ('Welcome to' , self.timeout)
-            
+
             intro = tn.read_very_eager().split()
-            
+
             #if intro[0] == 'DXLINK':
             obj.model =  intro[0]
             obj.firmware = intro[1]
-                
-                
+
+
             tn.write ('get sn \r')
             tn.read_until ('Number:', self.timeout)
 
             obj.serial = tn.read_very_eager().split()[0]
-                
+
             tn.write ('get device \r')
             tn.read_until('Value:', self.timeout)
-                
+
             obj.device = tn.read_very_eager().split()[0]
 
             tn.write ('get ip \r')
@@ -87,24 +86,24 @@ class Telnetjobs(Thread):
             ip_info = tn.read_very_eager().split()
             if ip_info[0] == "Type:":
                 obj.hostname = " "
-                ip_info.insert(0, " ")               
+                ip_info.insert(0, " ")
             else:
                 obj.hostname = ip_info[0]
-            
+
             if ip_info[2] == "Static":
                 obj.ip_type = "s"
             if ip_info[2] == "DHCP":
                 obj.ip_type = "d"
             obj.subnet = ip_info[8]
-            obj.gateway = ip_info[11]                 
+            obj.gateway = ip_info[11]
             obj.mac = ip_info[14]
-                
-                
+
+
             #tn.read_until('>')
             tn.write ('get connection \r')
             tn.read_until('Mode:', self.timeout )
             connection_info = tn.read_very_eager().split()
-            #print connection_info            
+            #print connection_info
             if connection_info[0] == 'NDP':
                 if connection_info[7] == '(n/a)':
                     obj.master = 'not connected'
@@ -112,7 +111,7 @@ class Telnetjobs(Thread):
                 else:
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
-                    
+
             if connection_info[0] == 'TCP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
@@ -120,7 +119,7 @@ class Telnetjobs(Thread):
                 else:
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
-                
+
             #tn.read_until('>')
 
             '''if intro[0] == 'NXD-430':
@@ -139,28 +138,28 @@ class Telnetjobs(Thread):
                 system_info = tn.read_until('Address', self.timeout )
                 obj.serial = system_info.split()[23].split("'")[1]
                 #print test'''
-                    
+
             tn.write ('exit')
             tn.close()
 
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
-            
+
     def SetMaster(self, job):
-        
-        obj = job[1]     
+
+        obj = job[1]
         master = job[3]
         device = job[4]
         ip = obj.ip
         #print master, device, ip
-        
+
         try:
-            
+
             tn = telnetlib.Telnet(ip,23,self.timeout)
-        
+
             tn.read_until('>', self.timeout)
             tn.write ('set connection\r')
             tn.read_until('Enter:', self.timeout )
@@ -185,18 +184,18 @@ class Telnetjobs(Thread):
             tn.write ('reboot\r')
             tn.read_until('Rebooting....', self.timeout)
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
-            
-            
+
+
     def SetDHCP(self, job):
-    
+
         obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip,23, self.timeout)
             tn.read_until('>', self.timeout)
@@ -211,61 +210,61 @@ class Telnetjobs(Thread):
             tn.write ('reboot \r')
             tn.read_until('Rebooting....')
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
-        
+
 
 
     def SetFactory(self, job):
-        
+
         obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip,23, self.timeout)
             tn.read_until('>', self.timeout )
             tn.write ('reset factory\r')
             tn.read_until('>', self.timeout )
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
-    
+
     def SetReboot(self, job):
-            
-        obj = job[1]        
+
+        obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip,23, self.timeout)
             tn.read_until('>', self.timeout)
             tn.write ('reboot \r')
             tn.read_until('Rebooting....', self.timeout )
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
-            
+
     def SetStatic(self, job):
-            
-        #print job   
+
+        #print job
         obj = job[1]
         hostname = job[3]
         ip_org = job[4]
         ip_new = job[5]
-        subnet = job[6] 
-        gateway = job[7]       
-        
+        subnet = job[6]
+        gateway = job[7]
+
         try:
             tn = telnetlib.Telnet(ip_org,23,self.timeout)
-        
+
             tn.read_until('>',self.timeout)
             tn.write ('set ip \r')
             tn.read_until('Name:',self.timeout)
@@ -285,25 +284,25 @@ class Telnetjobs(Thread):
             tn.write ('reboot\r')
             tn.read_until('Rebooting....',self.timeout)
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
 
     def SetDeviceConfig(self, job):
-            
-        #print job   
+
+        #print job
         obj = job[1]
-        setdhcp = job[3]        
+        setdhcp = job[3]
         hostname = job[4]
         ip_org = job[5]
         ip_new = job[6]
-        subnet = job[7] 
+        subnet = job[7]
         gateway = job[8]
         master = job[9]
-        device = job[10]       
-        
+        device = job[10]
+
         if setdhcp == True:
             try:
                 tn = telnetlib.Telnet(ip_org,23,self.timeout)
@@ -338,21 +337,21 @@ class Telnetjobs(Thread):
                 tn.read_until('>',self.timeout)
                 tn.write ('set device ' + str(device) + '\r')
                 tn.read_until('device',self.timeout)
-                tn.read_until('>',self.timeout)                
+                tn.read_until('>',self.timeout)
 
                 tn.write ('reboot \r')
                 tn.read_until('Rebooting....', self.timeout )
                 tn.close()
-                
+
                 self.communicationSuccess(obj)
 
-            except Exception, error: 
+            except Exception, error:
                 self.errorProcessing(obj,error)
-   
+
         else:
             try:
                 tn = telnetlib.Telnet(ip_org,23,self.timeout)
-            
+
                 tn.read_until('>',self.timeout)
                 tn.write ('set ip \r')
                 tn.read_until('Name:',self.timeout)
@@ -369,7 +368,7 @@ class Telnetjobs(Thread):
                 tn.write ('y\r')
                 tn.read_until('settings.',self.timeout)
                 tn.read_until('>',self.timeout)
-                
+
                 tn.write ('set connection\r')
                 tn.read_until('Enter:', self.timeout )
                 tn.write ('t\r')
@@ -389,31 +388,31 @@ class Telnetjobs(Thread):
                 tn.read_until('>',self.timeout)
                 tn.write ('set device ' + str(device) + '\r')
                 tn.read_until('device',self.timeout)
-                tn.read_until('>',self.timeout)                
+                tn.read_until('>',self.timeout)
                 tn.write ('reboot\r')
                 tn.read_until('Rebooting....',self.timeout)
                 tn.close()
-                
+
                 self.communicationSuccess(obj)
 
-            except Exception, error: 
+            except Exception, error:
                 self.errorProcessing(obj,error)
-            
+
     def FactoryAV(self, job):
-        
+
         obj = job[1]
-        #command_sent = job[3]        
+        #command_sent = job[3]
         #port = job[4]
 
 
         try:
             tn = telnetlib.Telnet(obj.ip,23, self.timeout)
-            
+
             tn.read_until('>', self.timeout)
             tn.write ('get connection \r')
             tn.read_until('Mode:', self.timeout )
             connection_info = tn.read_very_eager().split()
-            #print connection_info            
+            #print connection_info
             if connection_info[0] == 'NDP':
                 if connection_info[7] == '(n/a)':
                     obj.master = 'not connected'
@@ -421,7 +420,7 @@ class Telnetjobs(Thread):
                 else:
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
-                    
+
             if connection_info[0] == 'TCP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
@@ -429,8 +428,8 @@ class Telnetjobs(Thread):
                 else:
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
-                  
-            
+
+
             #command =  command_sent  + "\r"
             command = "send_command " + str(obj.device) + ":" + "1" + ":" + str(obj.system) + " , " + "\"\'FACTORYAV\'\" \r"
             #print command
@@ -441,45 +440,45 @@ class Telnetjobs(Thread):
             #print result_raw
             if result[0] != 'command:':
                 raise Exception('Command not sent')
-            
+
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
-            self.errorProcessing(obj,error)    
+        except Exception, error:
+            self.errorProcessing(obj,error)
 
 
     def SendCommand(self, job):
-        
+
         obj = job[1]
-        command_sent = job[3]        
+        command_sent = job[3]
         port = job[4]
 
 
         try:
             tn = telnetlib.Telnet(obj.ip,23, self.timeout)
-            
+
             tn.read_until('>', self.timeout)
             tn.write ('get connection \r')
             tn.read_until('Mode:', self.timeout )
             connection_info = tn.read_very_eager().split()
-            #print connection_info            
+            #print connection_info
             if connection_info[0] == 'NDP':
                 if connection_info[7] == '(n/a)':
                     obj.master = 'not connected'
                     obj.system = 0
                 else:
                     obj.master = connection_info[7]
-                    
+
             if connection_info[0] == 'TCP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
                     obj.system = 0
                 else:
                     obj.master = connection_info[7]
-                  
-            
+
+
             command =  command_sent  + " \r"
             #print command
             tn.write(str(command))
@@ -491,29 +490,29 @@ class Telnetjobs(Thread):
                 raise Exception('Command not sent')
             else:
                 dispatcher.send( signal="send_command result", sender=('Sending' + str(result_raw[:-1])))
-                
-                
+
+
             #if command_sent == 'FACTORYAV':
             #    tn.write ('reboot \r')
             #    tn.read_until('Rebooting....', self.timeout )
             tn.close()
-                
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
+        except Exception, error:
             self.errorProcessing(obj,error)
 
-    def communicationSuccess(self, obj): 
+    def communicationSuccess(self, obj):
         data = [obj.ip, 'Success']
-        dispatcher.send( signal="Collect Completions", sender=data )       
+        dispatcher.send( signal="Collect Completions", sender=data )
 
     def errorProcessing(self, obj, error):
-        
+
         #print(error)
-        #print error.args 
+        #print error.args
         error = str(error.args)
-        #print error.split()[0] this is what we are matching ... so 
-        
+        #print error.split()[0] this is what we are matching ... so
+
         if error.split()[0] == '(113,' or  error.split()[0] == '(111,' or error.split()[0] == "('timed" or error.split()[0] == '(2,':
             data = (obj.ip, 'IP unreachable or offline')
         elif error.split()[0] =="('Not,'":
@@ -526,69 +525,69 @@ class Telnetjobs(Thread):
             data = (obj.ip, 'Unable to communicate with device')
         dispatcher.send( signal="Collect Errors", sender=data)
 
-        
+
     def SetTurnOnLED(self, job):
-            
-        obj = job[1]        
+
+        obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip,23, self.timeout)
             tn.read_until('>', self.timeout)
             tn.write ('led on \r')
             tn.read_until('ON', self.timeout )
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
-            self.errorProcessing(obj,error)        
-        
+        except Exception, error:
+            self.errorProcessing(obj,error)
+
 
     def SetTurnOffLED(self, job):
-            
-        obj = job[1]        
+
+        obj = job[1]
         ip = obj.ip
-        
+
         try:
             tn = telnetlib.Telnet(ip,23, self.timeout)
             tn.read_until('>', self.timeout)
             tn.write ('led off \r')
             tn.read_until('OFF', self.timeout )
             tn.close()
-            
+
             self.communicationSuccess(obj)
 
-        except Exception, error: 
-            self.errorProcessing(obj,error)   
-            
+        except Exception, error:
+            self.errorProcessing(obj,error)
+
     def SetMSE(self, job):
-        
+
         obj = job[1]
         ip = obj.ip
         #print current_thread().getName()
         try:
-            
-            tn = telnetlib.Telnet(ip, 23, self.timeout ) 
-            
-            tn.read_until ('Welcome to') 
-            
-            intro = tn.read_very_eager().split() 
-            
+
+            tn = telnetlib.Telnet(ip, 23, self.timeout )
+
+            tn.read_until ('Welcome to')
+
+            intro = tn.read_very_eager().split()
+
             mse = []
             data = []
-            
+
             while obj.mac in self.parent.mse_active_list: # only get if unit is currently being graphed
                 #True:
                 #print self.parent.mse_active_list
                 #for item in self.parent.mse_active_list:
                     #if obj.mac == item:
                         #while self.parent.mse_device_listactive:
-                
-                tn.write ('show vs100 stats \r') 
+
+                tn.write ('show vs100 stats \r')
                 stats = tn.read_until('MSE(db)').split()
                 #time.sleep(1)
-                
+
                 for i in range(len(stats)):
                 	if stats[i] == "ChA:":
                 		data.append(stats[i+1][:-1])
@@ -602,88 +601,14 @@ class Telnetjobs(Thread):
                     mse.append(mse_time)
                     mse.append(obj.ip)
                     mse.append(obj.mac)
-                    
+
                     dispatcher.send(signal="Incoming MSE", sender=mse)
                     mse = []
                     data = []
-                            
-                        
-            
-        except Exception, error: 
+
+
+
+        except Exception, error:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac)
-            
-    def SetPing(self, job):
-        
-        obj = job[1]
-        ip = obj.ip
-        
-        kwargs = {}
-        
-        params = dict()
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        params['startupinfo'] = startupinfo
 
-        '''p = subprocess.Popen("cmd.exe", **params)
-        if subprocess.mswindows:
-             su = subprocess.STARTUPINFO()
-             su.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-             su.wShowWindow = subprocess.SW_HIDE
-             kwargs['startupinfo'] = su 
-        #subprocess.Popen("cmd.exe", **kwargs)'''
-        ping = subprocess.Popen(['ping' , obj.ip , '-t'], shell=True, stdout = subprocess.PIPE)
-        #ping = subprocess.Popen("ping %s" % ip, shell=True, 
-        #                        stdout=subprocess.PIPE) 
-        while self.parent.ping_active:
-            for line in iter(ping.stdout.readline,''):
-                
-                
-                result = line.rstrip()
-                #print result
-                if len(result) < 10:
-                    continue
-                if result == '':
-                    continue
-                    #print 'blank'
-                    
-                elif result == '\n': 
-                    continue
-                    #print 'next line'
-                    
-                elif result[:7] == 'Pinging': 
-                    continue
-                    #print 'pinging'
-                    
-                
-                    
-                
-                elif result.split()[-1] == 'unreachable.' or result == 'Request timed out.':
-                    #print result 
-                    success = 'No'
-                    ms_delay = "N/A"
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
-                    dispatcher.send(signal="Incoming Ping", sender=data)
-                    
-                elif result.split()[-1][:3] == 'TTL':
-                    temp = result.split()[-2]
-                    ms_delay = ''.join([str(s) for s in temp if s.isdigit()])
-                    success = 'Yes'
-
-                                
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
-                    #print 'sending ping'
-                    #print "data: ", data
-                    dispatcher.send(signal="Incoming Ping", sender=data)
-                    #time.sleep(.5)
-                else:
-                    #print 'no matches', result
-                    success = 'No'
-                    ms_delay = "N/A"
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
-                    dispatcher.send(signal="Incoming Ping", sender=data)
-                if not self.parent.ping_active: break
-            
-        ping.kill()
-        
-        
