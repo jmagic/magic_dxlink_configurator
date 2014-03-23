@@ -60,7 +60,7 @@ class MainPanel(wx.Panel):
         self.setTitleBar()
 
         # Set up some variables
-        self.filter = False #disable the AMX filter by default
+        #self.AMX_only_filter = False #disable the AMX filter by default
         self.errorlist = []
         self.completionlist = []
         self.mse_active_list = []
@@ -162,7 +162,7 @@ class MainPanel(wx.Panel):
                                style = wx.ICON_INFORMATION
                                )
         dlg.ShowModal()
-        self.parent.listenfilter.Enable(False)
+        self.parent.listenfilter.Enable(self.AMX_only_filter)
         self.parent.listenDHCP.Enable(False)
         self.DHCPListenerRunning = False
 
@@ -280,7 +280,7 @@ class MainPanel(wx.Panel):
 
     def setClients(self, objects):
 
-        if self.filter:
+        if self.AMX_only_filter:
             filterclients = []
             for obj in objects:
                 if obj.mac[0:8] == '00:60:9f':
@@ -856,10 +856,10 @@ class MainPanel(wx.Panel):
 
 
     def filterAMX(self, data=None):
-        if self.filter == True:
-            self.filter = False
+        if self.AMX_only_filter == True:
+            self.AMX_only_filter = False
         else:
-            self.filter = True
+            self.AMX_only_filter = True
 
     def makeUnit(self, sender):
 
@@ -907,7 +907,7 @@ class MainPanel(wx.Panel):
         last_time = data.time.strftime('%I:%M%p')
         self.parent.sb.SetStatusText('%s -- %s %s %s' %(last_time,  data.hostname, data.ip, data.mac))
 
-        if self.filter:
+        if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
 
@@ -977,86 +977,73 @@ class MainPanel(wx.Panel):
             self.path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
         else:
             self.path = os.path.expanduser('~/Documents/Magic_DXLink_Configurator/')
+
         self.config = ConfigParser.RawConfigParser()
-        #if os.path.exists('settings.txt'):
         try:  # read the settings file
             self.config.read((self.path + "settings.txt"))
-            self.master_address = (self.config.get('Settings', 'master_address'))
-            self.device_number = (self.config.get('Settings', 'device_number'))
-            self.dhcp = (self.config.get('Settings', 'DHCP'))
-            self.thread_number = (self.config.get('Settings', 'thread_number'))
-            self.telnet_client = (self.config.get('Settings', 'telnet_client'))
-            self.telnet_timeout_seconds = (self.config.get('Settings', 'telnet_timeout_seconds'))
-            self.displaysuccess = (self.config.get('Settings', 'display_successful_connections'))
-            if self.displaysuccess == 'no':
-                self.displaysuccess = False
-            else:
-                self.displaysuccess = True
-            self.play_sounds = (self.config.get('Settings', 'play_sounds'))
-            if self.play_sounds == 'no':
-                self.play_sounds = False
-            else:
-                self.play_sounds = True
+            self.master_address = (self.config.get('Settings', 'default master address'))
+            self.device_number = (self.config.get('Settings', 'default device number'))
+            self.dhcp = (self.config.getboolean('Settings', 'default enable DHCP'))
+            self.thread_number = (self.config.get('Settings', 'number of threads'))
+            self.telnet_client = (self.config.get('Settings', 'telnet client executable'))
+            self.telnet_timeout_seconds = (self.config.get('Settings', 'telnet timeout in seconds'))
+            self.displaysuccess = (self.config.getboolean('Settings', 'display notification of successful connections'))
+            self.listen_dhcp_enable = (self.config.getboolean('Settings', 'DHCP sniffing enabled'))
+            self.AMX_only_filter = (self.config.getboolean('Settings', 'filter incoming DHCP for AMX only'))
+            self.play_sounds = (self.config.getboolean('Settings', 'play sounds'))
             self.columns_config = (self.config.get('Config', 'columns_config'))
 
         except:   # Make a new settings file, because we couldn't read the old one
-            if not os.path.exists(self.path):
-                os.makedirs(self.path)
-            try:
-                #os.path.exists(self.path + 'settings.txt'):
-                os.remove(self.path + 'settings.txt')
-            except:
-                pass
-            with open((self.path + "settings.txt"), 'w') as f:
-                f.write("")
-
-            self.config = ConfigParser.RawConfigParser()
-            self.master_address = '192.168.1.1'
-            self.device_number = '10001'
-            self.dhcp = "DHCP"
-            self.thread_number = '260'
-            self.telnet_client =  ('puttytel.exe')
-            self.telnet_timeout_seconds = '4'
-            self.displaysuccess = True
-            self.play_sounds = False
-            self.columns_config = '11111111110'
-
-            self.config.add_section('Settings')
-            self.config.set('Settings', 'master_address', self.master_address )
-            self.config.set('Settings', 'device_number', self.device_number )
-            self.config.set('Settings', 'dhcp', self.dhcp )
-            self.config.set('Settings', 'thread_number', self.thread_number )
-            self.config.set('Settings', 'telnet_client', self.telnet_client)
-            self.config.set('Settings', 'telnet_timeout_seconds', self.telnet_timeout_seconds)
-            self.config.set('Settings', 'display_successful_connections', 'yes')
-            self.config.set('Settings', 'play_sounds', 'no')
-            self.config.add_section('Config')
-            self.config.set('Config', 'Columns are with a 1 are displayed. ', ' unless you know what your doing, just change these in settings')
-            self.config.set('Config', 'columns_config', '11111111110')
-
-            # Writing our configuration file to 'settings.txt'
-            with open((self.path + "settings.txt"), 'w') as configfile:
-                self.config.write(configfile)
-
+            self.createConfigFile()
+            self.readConfigFile()
         return
 
+    def createConfigFile(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        try:
+            #os.path.exists(self.path + 'settings.txt'):
+            os.remove(self.path + 'settings.txt')
+        except:
+            pass
+        with open((self.path + "settings.txt"), 'w') as f:
+            f.write("")
+
+        self.config = ConfigParser.RawConfigParser()
+        self.config.add_section('Settings')
+        self.config.set('Settings', 'default master address', '192.168.1.1')
+        self.config.set('Settings', 'default device number', '10001')
+        self.config.set('Settings', 'default enable dhcp', True )
+        self.config.set('Settings', 'number of threads', 20 )
+        self.config.set('Settings', 'telnet client executable', ('puttytel.exe'))
+        self.config.set('Settings', 'telnet timeout in seconds', '4')
+        self.config.set('Settings', 'display notification of successful connections', True)
+        self.config.set('Settings', 'DHCP sniffing enabled', True)
+        self.config.set('Settings', 'filter incoming DHCP for AMX only', True)
+        self.config.set('Settings', 'play sounds', True)
+        self.config.add_section('Config')
+        self.config.set('Config', 'Columns are with a 1 are displayed. ', ' unless you know what your doing, please change these in the application')
+        self.config.set('Config', 'columns_config', '11111111110')
+
+        # Writing our configuration file to 'settings.txt'
+        with open((self.path + "settings.txt"), 'w') as configfile:
+            self.config.write(configfile)
 
     def writeConfigFile(self):
         self.config = ConfigParser.RawConfigParser()
         self.config.read((self.path + "settings.txt"))
-        self.config.set('Settings', 'master_address', self.master_address )
-        self.config.set('Settings', 'device_number', self.device_number )
-        if self.displaysuccess:
-            self.config.set('Settings', 'display_successful_connections', 'yes')
-        else:
-            self.config.set('Settings', 'display_successful_connections', 'no')
-        if self.play_sounds:
-            self.config.set('Settings', 'play_sounds', 'yes')
-        else:
-            self.config.set('Settings', 'play_sounds', 'no')
-        self.config.set('Settings', 'dhcp', self.dhcp )
+        self.config.set('Settings', 'default master address', self.master_address )
+        self.config.set('Settings', 'default device number', self.device_number )
+        self.config.set('Settings', 'default enable dhcp', self.dhcp)
+        self.config.set('Settings', 'number of threads', self.thread_number )
+        self.config.set('Settings', 'telnet client executable', self.telnet_client)
+        self.config.set('Settings', 'telnet timeout in seconds', self.telnet_timeout_seconds)
+        self.config.set('Settings', 'display notification of successful connections', self.displaysuccess)
+        self.config.set('Settings', 'DHCP sniffing enabled', self.dhcp)
+        self.config.set('Settings', 'filter incoming DHCP for AMX only', self.AMX_only_filter)
+        self.config.set('Settings', 'play sounds', self.play_sounds)
         self.config.set('Config', 'columns_config', self.columns_config)
-        self.config.set('Settings', 'thread_number', self.thread_number )
+
         with open((self.path + "settings.txt"), 'w') as configfile:
                 self.config.write(configfile)
         #print self.columns_config
@@ -1267,11 +1254,14 @@ class MainFrame(wx.Frame):
         self.listenDHCP = listenMenu.AppendCheckItem(wx.ID_ANY, "Listen for DHCP requests", "Listen for DHCP requests")
 
         self.Bind(wx.EVT_MENU, self.panel.DHCPListen, self.listenDHCP)
-        self.listenDHCP.Check()
+        self.listenDHCP.Check(self.panel.dhcp)
+        print self.panel.dhcp
 
         self.listenfilter = listenMenu.AppendCheckItem(wx.ID_ANY, "Filter AMX devices DHCP requests", "Filter AMX devices DHCP requests")
 
         self.Bind(wx.EVT_MENU, self.panel.filterAMX, self.listenfilter)
+        self.listenfilter.Check(self.panel.AMX_only_filter)
+        print self.panel.AMX_only_filter
 
         menubar.Append(listenMenu, 'Listen')
 
