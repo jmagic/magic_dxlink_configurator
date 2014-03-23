@@ -838,7 +838,7 @@ class MainPanel(wx.Panel):
 
 
     def makeUnit(self, sender):
-
+        # (hostname,mac,ip)
         data = Unit(    '',
                         sender[0],
                         '',
@@ -846,7 +846,7 @@ class MainPanel(wx.Panel):
                         '',
                         sender[1],
                         sender[2],
-                        datetime.datetime.now(),
+                        (datetime.datetime.now()),
                         '',
                         '',
                         '',
@@ -878,48 +878,38 @@ class MainPanel(wx.Panel):
         Receives dhcp requests with and adds them to objects to display
         """
 
-        data = self.makeUnit(sender)
-        objects = self.dataOlv.GetObjects()
-        last_time = data.arrival_time.strftime('%I:%M%p')
-        self.parent.sb.SetStatusText('%s -- %s %s %s' %(last_time,  data.hostname, data.ip, data.mac))
+        data = self.makeUnit(('hostname','mac','ip'))
+        self.parent.sb.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M%p'),  data.hostname, data.ip, data.mac))
 
         if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
 
-        selectedItems = self.dataOlv.GetSelectedObjects()
+        #selectedItems = self.dataOlv.GetSelectedObjects()
+        #objects = self.dataOlv.GetObjects()
+        if self.dataOlv.GetObjects() == []:
 
-        for obj in objects:
-            if obj.mac == data.mac:
-                data.model = obj.model
-                data.serial = obj.serial
-                data.firmware = obj.firmware
-                data.device = obj.device
-                data.ip_type = obj.ip_type
-                data.gateway = obj.gateway
-                data.subnet = obj.subnet
-                data.master = obj.master
-                data.system = obj.system
+            self.dataOlv.AddObject((data))
+        else:
+            for obj in self.dataOlv.GetObjects():
+                if obj.mac == data.mac:
+                    obj.ip = data.ip
+                    obj.hostname = data.hostname
+                else:
+                    self.dataOlv.AddObject(data)
 
-
-                self.dataOlv.RemoveObject(obj)
-
-
-        objects = self.dataOlv.GetObjects()
-        objects.append(data)
-        for object in objects:
+        self.dataOlv.RefreshObject(self)
+        for object in self.dataOlv.GetObjects():
             print object
+        #for obj in selectedItems:
+        #    if data.mac == obj.mac:
 
-        self.dataOlv.SetObjects(objects)
-        for obj in selectedItems:
-            if data.mac == obj.mac:
-
-                selectedItems.remove(obj)
-                selectedItems.append(data)
-                self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
+        #        selectedItems.remove(obj)
+        #       selectedItems.append(data)
+        #        self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
 
 
-        self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
+        #self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
 
         self.dumpPickle()
         self.playSound()
