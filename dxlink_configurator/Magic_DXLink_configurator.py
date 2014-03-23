@@ -873,10 +873,13 @@ class MainPanel(wx.Panel):
             self.dataOlv.SetObjects([data])
         else:
             for obj in self.dataOlv.GetObjects():
-                if obj.mac == data.mac:
+                if data.mac == obj.mac:
                     obj.ip = data.ip
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
+                    break
+            else:
+                self.dataOlv.AddObject(data)
 
         self.dataOlv.RepopulateList()
 
