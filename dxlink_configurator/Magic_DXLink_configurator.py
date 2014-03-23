@@ -1338,7 +1338,6 @@ class MainFrame(wx.Frame):
 
     def onQuit(self, e):
         self.panel.dumpPickle()
-        print self.panel.dataOlv.GetObjects()
         self.Close()
 
 
