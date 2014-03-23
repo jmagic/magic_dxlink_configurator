@@ -4,7 +4,6 @@ import datetime
 from pydispatch import dispatcher
 import wx
 
-
 ########################################################################
 class SniffDHCPThread(Thread):
 
@@ -94,7 +93,7 @@ class SniffDHCPThread(Thread):
 
                     #continue
 
-
+                '''
                 # lets pack that information into a dictionary
 
                 info = {}
@@ -121,13 +120,17 @@ class SniffDHCPThread(Thread):
                 info['ip_type'] = ''
                 info['gateway'] = ''
                 info['subnet'] = ''
-                info['system'] = ''
+                info['system'] = '' '''
+
+                if ip_address == '':
+                    continue
 
                 # check if we have been told to stop listening
                 if self.parent.dhcp_sniffing == True:
 
                     #send it processed packet to the main loop
-                    wx.CallAfter(self.postTime, info)
+                    wx.CallAfter(self.postTime, (hostname, mac_address,ip_address ))
+
 
     def readData(self, data_length):
 
@@ -152,23 +155,13 @@ class SniffDHCPThread(Thread):
 
         return(data_length)
 
-    '''def stop(self, sender):
-
-        if sender == "start":
-            self.listen = True
-            #dispatcher.send(signal='tray_status', sender='dchp_listen_true')
-
-        if sender == "stop":
-            self.listen = False
-            #dispatcher.send(signal='tray_status', sender='dchp_listen_false')'''
-
 
     #----------------------------------------------------------------------
     def postTime(self, info):
         """
         Send data to GUI
         """
-        #dispatcher.send(signal="tray_status", sender="dhcp_incoming")
+
         dispatcher.send( signal="Incoming Packet", sender=info )
 
 ########################################################################

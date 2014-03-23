@@ -29,7 +29,7 @@ class Unit(object):
     model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway, subnet, master, system
     """
     #----------------------------------------------------------------------
-    def __init__(self, model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway, subnet, master, system):
+    def __init__(self, model, hostname, serial ,firmware, device, mac, ip, arrival_time, ip_type, gateway, subnet, master, system):
 
         self.model = model
         self.hostname = hostname
@@ -38,7 +38,7 @@ class Unit(object):
         self.device = device
         self.mac = mac
         self.ip = ip
-        self.time = time
+        self.arrival_time = arrival_time
         self.ip_type = ip_type
         self.gateway = gateway
         self.subnet = subnet
@@ -502,25 +502,9 @@ class MainPanel(wx.Panel):
 
 
     def dumpPickle(self):
-        #data = []
-        objects = self.dataOlv.GetObjects()
-        #for obj in objects:
-        #    client = [obj.model,
-        #              obj.hostname,
-        #              obj.serial,
-        #              obj.firmware,
-        #              obj.device,
-        #              obj.mac,
-        #              obj.ip,
-        #              obj.time,
-        #              obj.ip_type,
-        #              obj.gateway,
-        #              obj.subnet,
-        #              obj.master,
-        #              obj.system
-        #              ]
 
-        #   data.append(client)
+        objects = self.dataOlv.GetObjects()
+
         pickle.dump(objects, open((self.path + 'data.pkl') , 'wb'))
 
 
@@ -564,7 +548,7 @@ class MainPanel(wx.Panel):
                         obj.device,
                         obj.mac,
                         obj.ip,
-                        obj.time,
+                        obj.arrival_time,
                         obj.ip_type,
                         obj.gateway,
                         obj.subnet,
@@ -622,7 +606,7 @@ class MainPanel(wx.Panel):
 
 
             #self.clients = objects
-            #print type(self.clients[0].time)
+            #print type(self.clients[0].arrival_time)
             self.dataOlv.SetObjects(objects)
             self.dumpPickle()
         else:
@@ -856,6 +840,22 @@ class MainPanel(wx.Panel):
     def makeUnit(self, sender):
 
         data = Unit(    '',
+                        sender[0],
+                        '',
+                        '',
+                        '',
+                        sender[1],
+                        sender[2],
+                        datetime.datetime.now(),
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''
+                    )
+        return(data)
+        '''
+        data = Unit(    '',
                         sender['hostname'],
                         '',
                         '',
@@ -870,32 +870,66 @@ class MainPanel(wx.Panel):
                         ''
                     )
 
-
-        '''Unit(sender['model'],
-                     sender['hostname'],
-                     sender['serial'],
-                     sender['firmware'],
-                     sender['device'],
-                     sender['mac'],
-                     sender['ip'],
-                     sender['time'],
-                     sender['ip_type'],
-                     sender['gateway'],
-                     sender['subnet'],
-                     sender['master'],
-                     sender['system']
-                    )
-        '''
-        return(data)
+        return(data) '''
 
 
     def updateInfo(self, sender):
         """
         Receives dhcp requests with and adds them to objects to display
         """
+
         data = self.makeUnit(sender)
+        objects = self.dataOlv.GetObjects()
+        last_time = data.arrival_time.strftime('%I:%M%p')
+        self.parent.sb.SetStatusText('%s -- %s %s %s' %(last_time,  data.hostname, data.ip, data.mac))
+
+        if self.AMX_only_filter:
+            if data.mac[0:8] != '00:60:9f':
+                    return
+
+        selectedItems = self.dataOlv.GetSelectedObjects()
+
+        for obj in objects:
+            if obj.mac == data.mac:
+                data.model = obj.model
+                data.serial = obj.serial
+                data.firmware = obj.firmware
+                data.device = obj.device
+                data.ip_type = obj.ip_type
+                data.gateway = obj.gateway
+                data.subnet = obj.subnet
+                data.master = obj.master
+                data.system = obj.system
+
+
+                self.dataOlv.RemoveObject(obj)
+
 
         objects = self.dataOlv.GetObjects()
+        objects.append(data)
+        for object in objects:
+            print object
+
+        self.dataOlv.SetObjects(objects)
+        for obj in selectedItems:
+            if data.mac == obj.mac:
+
+                selectedItems.remove(obj)
+                selectedItems.append(data)
+                self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
+
+
+        self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
+
+        self.dumpPickle()
+        self.playSound()
+
+
+
+        '''
+
+        data = self.makeUnit(sender)
+
         last_time = data.time.strftime('%I:%M%p')
         self.parent.sb.SetStatusText('%s -- %s %s %s' %(last_time,  data.hostname, data.ip, data.mac))
 
@@ -939,7 +973,7 @@ class MainPanel(wx.Panel):
         self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
 
         self.dumpPickle()
-        self.playSound()
+        self.playSound() '''
 
     def flashObject(self, obj, selected):
         print "selected: " + str(selected)
