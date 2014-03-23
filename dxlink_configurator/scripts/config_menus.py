@@ -618,31 +618,8 @@ class IpListGen(wx.Dialog):
 
     def on_add(self, event):
         self.gen_list()
-        new_obj = []
         for item in self.data:
-            info = ()
-            info['ip'] = str(item)
-            info['hostname'] = ' '
-            info['serial'] = ' '
-            info['firmware'] = ' '
-            info['device'] = ' '
-            info['model'] = ' '
-            info['mac'] = ' '
-            info['time'] = datetime.datetime.now()
-            info['ip_type'] = ' '
-            info['gateway'] = ' '
-            info['subnet'] = ' '
-            info['master'] = ' '
-            info['ip_type'] = ' '
-            info['gateway'] = ' '
-            info['subnet'] = ' '
-            info['system'] = ' '
-            new_obj.append(self.parent.makeUnit(info))
-        objects = self.parent.dataOlv.GetObjects()
-        for obj in new_obj:
-            objects.append(obj)
-        self.parent.dataOlv.SetObjects(objects)
-        self.parent.dataOlv.RepopulateList()
+            self.parent.dataOlv.AddObject(self.parent.makeUnit(('','',str(item))))
         self.parent.dumpPickle()
         self.Destroy()
 

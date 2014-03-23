@@ -595,15 +595,12 @@ class MainPanel(wx.Panel):
                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if openFileDialog.ShowModal() == wx.ID_OK:
-
-            path = openFileDialog.GetPath()
             openFileDialog.Destroy()
-
-            with open( path ,'rb') as csvfile:
+            with open( openFileDialog.GetPath() ,'rb') as csvfile:
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plotObject = []
-                data = [Unit(
+                data = Unit(
                          '',
                          '',
                          '',
@@ -618,8 +615,7 @@ class MainPanel(wx.Panel):
                          '',
                          ''
                         )
-                    ]
-                plotObject.append(data[0])
+                plotObject.append(data)
                 obj =  plotObject[0]
 
                 row_count = (sum(1 for row in csv_data)-1)*-1
@@ -666,22 +662,18 @@ class MainPanel(wx.Panel):
         else:
             openFileDialog.Destroy()
 
-    def importIPlist(self, data=None):
-
-        #self.clients = []
-
+    def importIPlist(self):
         openFileDialog = wx.FileDialog(
-                       self, message="Open IP List",
-                       defaultDir=self.path,
-                       defaultFile= "",
-                       wildcard="CSV files (*.csv)|*.csv",
-                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+                                       self, message="Open IP List",
+                                       defaultDir=self.path,
+                                       defaultFile= "",
+                                       wildcard="CSV files (*.csv)|*.csv",
+                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+                                       )
 
         if openFileDialog.ShowModal() == wx.ID_OK:
-            path = openFileDialog.GetPath()
             self.dataOlv.DeleteAllItems()
-            objects = []
-            with open(path,'rb') as csvfile:
+            with open(openFileDialog.GetPath(),'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
@@ -699,28 +691,20 @@ class MainPanel(wx.Panel):
                          ' ',
                          ' '
                         )
-
-
-                    objects.append(data)
-
-            #self.clients = objects
-
-            self.dataOlv.SetObjects(objects)
+                self.dataOlv.AddObject(data)
             self.dumpPickle()
             openFileDialog.Destroy()
-
         else:
             openFileDialog.Destroy()
 
 
-    def generateList(self, data=None):
-
+    def generateList(self, event):
         dia = config_menus.IpListGen(self)
         dia.ShowModal()
         dia.Destroy()
 
-    def addLine(self, data=None):
 
+    def addLine(self, data=None):
         data =  Unit(
                          ' ',
                          ' ',
@@ -736,61 +720,28 @@ class MainPanel(wx.Panel):
                          ' ',
                          ' '
                         )
-
-        objects = self.dataOlv.GetObjects()
-        objects.append(data)
-
-
-        self.dataOlv.SetObjects(objects)
-        self.dataOlv.RepopulateList()
+        self.dataOlv.AddObject(data)
         self.dumpPickle()
 
 
     def deleteItem(self, data=None):
-
-        self.getRowInfo()
-        total = len(self.actionItems)
-        if total == len(self.dataOlv.GetObjects()):
+        if len(self.dataOlv.GetSelectedObjects()) == len(self.dataOlv.GetObjects()):
             self.dataOlv.DeleteAllItems()
             self.dumpPickle()
             return
-        if total == 0:
+        if len(self.dataOlv.GetSelectedObjects()) == 0:
             return
-
+        '''
         dlg = wx.ProgressDialog("Deleting Items","Deleting Items",
-                                    maximum = total,
+                                    maximum = len(self.dataOlv.GetSelectedObjects()),
                                     parent = self,
                                     style =  wx.PD_APP_MODAL
                                      | wx.PD_AUTO_HIDE
                                      #| wx.PD_CAN_ABORT
                                      | wx.PD_ELAPSED_TIME
                                      )
-        count = 0
-
-        #for obj in self.actionItems:
-        unselected = []
-        for obj in self.dataOlv.GetObjects():
-
-            if obj not in self.actionItems:
-
-                unselected.append(obj)
-            else:
-                count +=1
-                dlg.Update(count)
-        #if len(self.actionItems) >= len(unselected):
-        self.dataOlv.DeleteAllItems()
-        self.dataOlv.SetObjects(unselected)
-        #else:
-        ##   self.dataOlv.SetObjects(self.actionItems)
-
-
-
-            #count += 1
-            #dlg.Update(count)
-
-            #self.dataOlv.RemoveObject(obj)
-
-        self.dataOlv.RepopulateList()
+        count = 0 '''
+        self.dataOlv.RemoveObjects(self.dataOlv.GetSelectedObjects())
         self.dumpPickle()
 
 
