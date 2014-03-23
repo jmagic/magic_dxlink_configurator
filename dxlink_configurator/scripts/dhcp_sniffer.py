@@ -30,9 +30,6 @@ class SniffDHCPThread(Thread):
             self.parent.portError = True
 
 
-        #dispatcher.connect(self.stop, signal="start_stop_dhcp", sender=dispatcher.Any) #listen for pubsub to stop this thread
-        #dispatcher.send(signal="tray_status", sender="dhcp_listen_true")
-
         while True:
 
             ''' receive packets from port 67
@@ -73,54 +70,19 @@ class SniffDHCPThread(Thread):
 
                     # requested IP
                     if opt == '\x32':
-
                         #We need to move to the data, and read the length of it
-                        ip_address = '.'.join(str(ord(c)) for c in (self.readData(self.getToData())))  # convert what we got from hex to decimal and put into string with dots
+                        # convert what we got from hex to decimal and put into string with dots
+                        ip_address = '.'.join(str(ord(c)) for c in (self.readData(self.getToData())))
                         continue
 
                     # hostname
                     if opt == '\x0c':
-
-                        hostname = ''.join((c) for c in (self.readData(self.getToData()))) # convert what we got to a string
+                        # convert what we got to a string
+                        hostname = ''.join((c) for c in (self.readData(self.getToData())))
                         continue
-
-                    # if we have made it this far this is an dhcp_option we can skip
-
-                    #print " ".join(hex(ord(n)) for n in opt)
-                    #print " ".join(hex(ord(n)) for n in self.dhcp_options)
 
                     self.readData(self.getToData())
 
-                    #continue
-
-                '''
-                # lets pack that information into a dictionary
-
-                info = {}
-
-                info['ip'] = ip_address
-                if ip_address == '':
-                    continue
-
-                if hostname != []:
-                    info['hostname'] = hostname
-                else:
-                    info['hostname'] = ''
-
-                info['serial'] = ''
-                info['firmware'] = ''
-                info['device'] = ''
-                info['model'] = ''
-                info['mac'] = mac_address
-                info['time'] = datetime.datetime.now()
-                info['ip_type'] = ''
-                info['gateway'] = ''
-                info['subnet'] = ''
-                info['master'] = ''
-                info['ip_type'] = ''
-                info['gateway'] = ''
-                info['subnet'] = ''
-                info['system'] = '' '''
 
                 if ip_address == '':
                     continue
@@ -135,24 +97,22 @@ class SniffDHCPThread(Thread):
     def readData(self, data_length):
 
         read_data = []
-
         for i in range(0, data_length):
             read_data.append(self.dhcp_options[0])
             self.dhcp_options = self.dhcp_options[1:]
         return(read_data)
 
+
     def dumpByte(self):
 
         self.dhcp_options = self.dhcp_options[1:] #move one byte
 
+
     def getToData(self):
 
         self.dumpByte() # move to data length
-
         data_length = ord(self.dhcp_options[0]) # get data length
-
         self.dumpByte() #move to start of data
-
         return(data_length)
 
 
@@ -161,7 +121,6 @@ class SniffDHCPThread(Thread):
         """
         Send data to GUI
         """
-
         dispatcher.send( signal="Incoming Packet", sender=info )
 
 ########################################################################
