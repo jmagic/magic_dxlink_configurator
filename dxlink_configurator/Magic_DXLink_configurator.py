@@ -304,17 +304,11 @@ class MainPanel(wx.Panel):
             dlg.Destroy()
 
     def onSelectAll(self, data=None):
-
-        objects = self.dataOlv.GetObjects()
         self.dataOlv.SelectAll()
-        self.dataOlv.RefreshObjects(objects)
 
 
     def onSelectNone(self, data=None):
-
-        objects = self.dataOlv.GetObjects()
         self.dataOlv.DeselectAll()
-        self.dataOlv.RefreshObjects(objects)
 
 
     def telnetTo( self, data=None ):
@@ -502,18 +496,11 @@ class MainPanel(wx.Panel):
 
 
     def dumpPickle(self):
-
-        objects = self.dataOlv.GetObjects()
-
-        pickle.dump(objects, open((self.path + 'data.pkl') , 'wb'))
+        pickle.dump(self.dataOlv.GetObjects(), open((self.path + 'data.pkl') , 'wb'))
 
 
     def removeAndStore( self, data=None ):
-
-        self.getRowInfo()
-
-        total = len(self.actionItems)
-        if total == 0:
+        if len(self.dataOlv.GetSelectedObjects()) == 0:
             return
         saveFileDialog = wx.FileDialog(
                        self, message="Select file to add units to or create a new file",
@@ -525,44 +512,38 @@ class MainPanel(wx.Panel):
         if saveFileDialog.ShowModal() == wx.ID_OK:
 
             path = saveFileDialog.GetPath()
-
-
             dlg = wx.ProgressDialog("Storing Device Information","Storing Device Information",
-                                    maximum = total,
+                                    maximum = len(self.dataOlv.GetSelectedObjects()),
                                     parent = self,
                                     style =  wx.PD_APP_MODAL
                                      | wx.PD_AUTO_HIDE
-                                     #| wx.PD_CAN_ABORT
                                      | wx.PD_ELAPSED_TIME
                                      )
             count = 0
-            f = open( path ,'a')
-            for obj in self.actionItems:
-                count += 1
-                dlg.Update(count)
+            with open(path, 'a') as f:
+                for obj in self.dataOlv.GetSelectedObjects():
+                    count += 1
+                    dlg.Update(count)
 
-                data = [obj.model,
-                        obj.hostname,
-                        obj.serial,
-                        obj.firmware,
-                        obj.device,
-                        obj.mac,
-                        obj.ip,
-                        obj.arrival_time,
-                        obj.ip_type,
-                        obj.gateway,
-                        obj.subnet,
-                        obj.master,
-                        obj.system
-                        ]
+                    data = [obj.model,
+                            obj.hostname,
+                            obj.serial,
+                            obj.firmware,
+                            obj.device,
+                            obj.mac,
+                            obj.ip,
+                            obj.arrival_time,
+                            obj.ip_type,
+                            obj.gateway,
+                            obj.subnet,
+                            obj.master,
+                            obj.system
+                            ]
 
-                w = csv.writer(f, quoting=csv.QUOTE_ALL)
-                w.writerow(data)
+                    w = csv.writer(f, quoting=csv.QUOTE_ALL)
+                    w.writerow(data)
 
-                self.dataOlv.RemoveObject(obj)
-                #self.clients.remove(obj)
-
-            f.close()
+            self.dataOlv.RemoveObjects(self.dataOlv.GetSelectedObjects())
             self.dataOlv.RepopulateList()
             self.dumpPickle()
 
@@ -577,40 +558,32 @@ class MainPanel(wx.Panel):
                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if openFileDialog.ShowModal() == wx.ID_OK:
-
-            path = openFileDialog.GetPath()
             openFileDialog.Destroy()
-            #self.clients = []
             self.dataOlv.DeleteAllItems()
-            objects = []
-            with open( path ,'rb') as csvfile:
+            with open( openFileDialog.GetPath() ,'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = [Unit(
-                         item[0],
-                         item[1],
-                         item[2],
-                         item[3],
-                         item[4],
-                         item[5],
-                         item[6],
-                         datetime.datetime.strptime((item[7]),"%Y-%m-%d %H:%M:%S.%f"),
-                         item[8],
-                         item[9],
-                         item[10],
-                         item[11],
-                         item[12]
-                        )
-                    ]
-                    objects.append(data[0])
-
-
-            #self.clients = objects
-            #print type(self.clients[0].arrival_time)
-            self.dataOlv.SetObjects(objects)
+                    data = Unit(
+                                 item[0],
+                                 item[1],
+                                 item[2],
+                                 item[3],
+                                 item[4],
+                                 item[5],
+                                 item[6],
+                                 datetime.datetime.strptime(
+                                    (item[7]),"%Y-%m-%d %H:%M:%S.%f"),
+                                 item[8],
+                                 item[9],
+                                 item[10],
+                                 item[11],
+                                 item[12]
+                                )
+                    self.dataOlv.AddObject(data)
             self.dumpPickle()
         else:
             openFileDialog.Destroy()
+
 
     def importPlot(self, data=None):
 
