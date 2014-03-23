@@ -504,26 +504,26 @@ class MainPanel(wx.Panel):
 
 
     def dumpPickle(self):
-        data = []
+        #data = []
         objects = self.dataOlv.GetObjects()
-        for obj in objects:
-            client = [obj.model,
-                      obj.hostname,
-                      obj.serial,
-                      obj.firmware,
-                      obj.device,
-                      obj.mac,
-                      obj.ip,
-                      obj.time,
-                      obj.ip_type,
-                      obj.gateway,
-                      obj.subnet,
-                      obj.master,
-                      obj.system
-                      ]
+        #for obj in objects:
+        #    client = [obj.model,
+        #              obj.hostname,
+        #              obj.serial,
+        #              obj.firmware,
+        #              obj.device,
+        #              obj.mac,
+        #              obj.ip,
+        #              obj.time,
+        #              obj.ip_type,
+        #              obj.gateway,
+        #              obj.subnet,
+        #              obj.master,
+        #              obj.system
+        #              ]
 
-            data.append(client)
-        pickle.dump(data, open((self.path + 'data.pkl') , 'wb'))
+        #   data.append(client)
+        pickle.dump(objects, open((self.path + 'data.pkl') , 'wb'))
 
 
     def removeAndStore( self, data=None ):
@@ -1094,43 +1094,18 @@ class MainPanel(wx.Panel):
 
     def loadDataPickle(self, data=None):
 
-        objects = []
         if os.path.exists((self.path + 'data.pkl')):
             try:
-                datafile = pickle.load(open((self.path + 'data.pkl'), 'rb'))
+                objects = pickle.load(open((self.path + 'data.pkl'), 'rb'))
+                self.dataOlv.SetObjects(objects)
 
-                for item in datafile:
-                    data = [Unit(
-                         item[0],
-                         item[1],
-                         item[2],
-                         item[3],
-                         item[4],
-                         item[5],
-                         item[6],
-                         item[7],
-                         item[8],
-                         item[9],
-                         item[10],
-                         item[11],
-                         item[12]
-
-                        )
-                    ]
-
-                    objects = self.dataOlv.GetObjects()
-
-                    objects.append(data[0])
-
-
-
-                self.setClients(objects)
             except:
-                #self.clients = []
-                self.setClients(objects)
-        else:
-            #self.clients = []
-            self.setClients(objects)
+
+                pass
+        #else:
+        #    #self.clients = []
+        #    #self.setClients(objects)
+        #    pass
         self.dataOlv.SetSortColumn(0, resortNow = True)
 
     def resizeFrame(self):
