@@ -26,12 +26,12 @@ class SniffDHCPThread(Thread):
             self.s.bind(("", port))
 
         except:
-            # something has already blocked the port, multiple instances can run without error because we used SO_REUSEADDR
-            #self.parent.portError = True
-            while True:
-                pass
+            # something has already blocked the port, its probably not us because
+            # multiple instances can run without error due to SO_REUSEADDR
+            self.parent.portError = True
 
-        dispatcher.connect(self.stop, signal="start_stop_dhcp", sender=dispatcher.Any) #listen for pubsub to stop this thread
+
+        #dispatcher.connect(self.stop, signal="start_stop_dhcp", sender=dispatcher.Any) #listen for pubsub to stop this thread
         #dispatcher.send(signal="tray_status", sender="dhcp_listen_true")
 
         while True:
@@ -124,7 +124,7 @@ class SniffDHCPThread(Thread):
                 info['system'] = ''
 
                 # check if we have been told to stop listening
-                if self.listen == True:
+                if self.parent.dhcp_sniffing == True:
 
                     #send it processed packet to the main loop
                     wx.CallAfter(self.postTime, info)
@@ -152,7 +152,7 @@ class SniffDHCPThread(Thread):
 
         return(data_length)
 
-    def stop(self, sender):
+    '''def stop(self, sender):
 
         if sender == "start":
             self.listen = True
@@ -160,7 +160,7 @@ class SniffDHCPThread(Thread):
 
         if sender == "stop":
             self.listen = False
-            #dispatcher.send(signal='tray_status', sender='dchp_listen_false')
+            #dispatcher.send(signal='tray_status', sender='dchp_listen_false')'''
 
 
     #----------------------------------------------------------------------

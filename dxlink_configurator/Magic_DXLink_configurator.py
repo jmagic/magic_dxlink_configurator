@@ -64,6 +64,7 @@ class MainPanel(wx.Panel):
         self.errorlist = []
         self.completionlist = []
         self.mse_active_list = []
+        self.portError = False
 
         # Build the ObjectListView
         self.dataOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -102,7 +103,6 @@ class MainPanel(wx.Panel):
         self.SniffDHCPThread = dhcp_sniffer.SniffDHCPThread(self)
         self.SniffDHCPThread.setDaemon(True)
         self.SniffDHCPThread.start()
-        self.DHCPListenerRunning = True
 
         # create a telenetto thread pool and assign them to a queue
         self.telnettoqueue = Queue.Queue()
@@ -162,9 +162,8 @@ class MainPanel(wx.Panel):
                                style = wx.ICON_INFORMATION
                                )
         dlg.ShowModal()
-        self.parent.listenfilter.Enable(self.AMX_only_filter)
+        self.parent.listenfilter.Enable(False)
         self.parent.listenDHCP.Enable(False)
-        self.DHCPListenerRunning = False
 
 
     def displayProgress(self, data=None):
@@ -251,17 +250,16 @@ class MainPanel(wx.Panel):
         self.singleSelect = []
 
 
-    def DHCPListen(self, data=None):
+    def toggleDHCPsniffing(self, event):
 
-        if self.DHCPListenerRunning == True:
-            dispatcher.send( signal="start_stop_dhcp", sender="stop" )
-            self.DHCPListenerRunning = False
+        self.dhcp_sniffing = not self.dhcp_sniffing
+        self.writeConfigFile()
 
-        else:
-            self.parent.sb.SetStatusText('Listening for DHCP requests')
-            dispatcher.send( signal="start_stop_dhcp", sender="start" )
-            self.DHCPListenerRunning = True
 
+    def togglefilterAMX(self, data=None):
+
+        self.AMX_only_filter = not self.AMX_only_filter
+        self.writeConfigFile()
 
     def selectColumns(self):
 
@@ -855,12 +853,6 @@ class MainPanel(wx.Panel):
             return
 
 
-    def filterAMX(self, data=None):
-        if self.AMX_only_filter == True:
-            self.AMX_only_filter = False
-        else:
-            self.AMX_only_filter = True
-
     def makeUnit(self, sender):
 
         data = Unit(    '',
@@ -983,12 +975,12 @@ class MainPanel(wx.Panel):
             self.config.read((self.path + "settings.txt"))
             self.master_address = (self.config.get('Settings', 'default master address'))
             self.device_number = (self.config.get('Settings', 'default device number'))
-            self.dhcp = (self.config.getboolean('Settings', 'default enable DHCP'))
+            self.default_dhcp = (self.config.getboolean('Settings', 'default enable DHCP'))
             self.thread_number = (self.config.get('Settings', 'number of threads'))
             self.telnet_client = (self.config.get('Settings', 'telnet client executable'))
             self.telnet_timeout_seconds = (self.config.get('Settings', 'telnet timeout in seconds'))
             self.displaysuccess = (self.config.getboolean('Settings', 'display notification of successful connections'))
-            self.listen_dhcp_enable = (self.config.getboolean('Settings', 'DHCP sniffing enabled'))
+            self.dhcp_sniffing = (self.config.getboolean('Settings', 'DHCP sniffing enabled'))
             self.AMX_only_filter = (self.config.getboolean('Settings', 'filter incoming DHCP for AMX only'))
             self.play_sounds = (self.config.getboolean('Settings', 'play sounds'))
             self.columns_config = (self.config.get('Config', 'columns_config'))
@@ -1034,12 +1026,12 @@ class MainPanel(wx.Panel):
         self.config.read((self.path + "settings.txt"))
         self.config.set('Settings', 'default master address', self.master_address )
         self.config.set('Settings', 'default device number', self.device_number )
-        self.config.set('Settings', 'default enable dhcp', self.dhcp)
+        self.config.set('Settings', 'default enable dhcp', self.default_dhcp)
         self.config.set('Settings', 'number of threads', self.thread_number )
         self.config.set('Settings', 'telnet client executable', self.telnet_client)
         self.config.set('Settings', 'telnet timeout in seconds', self.telnet_timeout_seconds)
         self.config.set('Settings', 'display notification of successful connections', self.displaysuccess)
-        self.config.set('Settings', 'DHCP sniffing enabled', self.dhcp)
+        self.config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
         self.config.set('Settings', 'filter incoming DHCP for AMX only', self.AMX_only_filter)
         self.config.set('Settings', 'play sounds', self.play_sounds)
         self.config.set('Config', 'columns_config', self.columns_config)
@@ -1253,15 +1245,13 @@ class MainFrame(wx.Frame):
 
         self.listenDHCP = listenMenu.AppendCheckItem(wx.ID_ANY, "Listen for DHCP requests", "Listen for DHCP requests")
 
-        self.Bind(wx.EVT_MENU, self.panel.DHCPListen, self.listenDHCP)
-        self.listenDHCP.Check(self.panel.dhcp)
-        print self.panel.dhcp
+        self.Bind(wx.EVT_MENU, self.panel.toggleDHCPsniffing, self.listenDHCP)
+        self.listenDHCP.Check(self.panel.dhcp_sniffing)
 
         self.listenfilter = listenMenu.AppendCheckItem(wx.ID_ANY, "Filter AMX devices DHCP requests", "Filter AMX devices DHCP requests")
 
-        self.Bind(wx.EVT_MENU, self.panel.filterAMX, self.listenfilter)
+        self.Bind(wx.EVT_MENU, self.panel.togglefilterAMX, self.listenfilter)
         self.listenfilter.Check(self.panel.AMX_only_filter)
-        print self.panel.AMX_only_filter
 
         menubar.Append(listenMenu, 'Listen')
 
@@ -1286,8 +1276,8 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_CLOSE, self.panel.onClose)
 
-        #if self.panel.portError:
-        #    self.panel.portErrors()
+        if self.panel.portError:
+            self.panel.portErrors()
 
     def onRightClick(self, event):
 
