@@ -227,7 +227,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-        elif (len(self.completionlist) == len(self.actionItems)):
+        elif (len(self.completionlist) == len(self.dataOlv.GetSelectedObjects())):
             if self.displaysuccess:
                 dlg = wx.MessageDialog(parent=self,
                                        message= 'Successfully connected to: \n======================= \n%s' % completiontext ,
@@ -249,7 +249,6 @@ class MainPanel(wx.Panel):
         self.dumpPickle()
         self.errorlist = []
         self.completionlist = []
-        self.actionItems = []
         self.singleSelect = []
 
 
@@ -693,9 +692,7 @@ class MainPanel(wx.Panel):
         Receives dhcp requests with and adds them to objects to display
         """
         data = self.makeUnit(sender)
-        self.parent.sb.SetStatusText('%s -- %s %s %s'
-                                      %(data.arrival_time.strftime('%I:%M:%S%p'),
-                                        data.hostname, data.ip, data.mac))
+        self.parent.sb.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip, data.mac))
         if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
@@ -704,7 +701,7 @@ class MainPanel(wx.Panel):
             self.dataOlv.SetObjects([data])
         else:
             for obj in self.dataOlv.GetObjects():
-                if data.mac == obj.mac:
+                if obj.mac == data.mac:
                     obj.ip = data.ip
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
