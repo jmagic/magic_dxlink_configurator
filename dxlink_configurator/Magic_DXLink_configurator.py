@@ -549,7 +549,7 @@ class MainPanel(wx.Panel):
                 row_count = (sum(1 for row in csv_data)-1)*-1
                 dia = plot_class.Multi_Plot(self, obj, row_count)
                 dia.Show()
-            with open( path ,'rb') as csvfile:  # opening it again to start at top
+            with open( openFileDialog.GetPath() ,'rb') as csvfile:  # opening it again to start at top
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plotObject = []
@@ -617,7 +617,7 @@ class MainPanel(wx.Panel):
                                  ' ',
                                  ' '
                                 )
-                self.dataOlv.AddObject(data)
+                    self.dataOlv.AddObject(data)
             self.dumpPickle()
             openFileDialog.Destroy()
         else:
@@ -998,34 +998,34 @@ class MainFrame(wx.Frame):
 
         right_click_Menu = wx.Menu()
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Update Info', 'Update Info')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Update device information')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Configure Item', 'Configure Item')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Configure Device')
         self.Bind(wx.EVT_MENU, self.panel.configureDevice, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reset Factory', 'Reset Factory')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reset Factory')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Delete Item', 'Delete Item')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Delete')
         self.Bind(wx.EVT_MENU, self.panel.deleteItem, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Telnet', 'Telnet to this device')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Telnet to Device')
         self.Bind(wx.EVT_MENU, self.panel.telnetTo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'FactoryAV', 'FactoryAV')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'FactoryAV')
         self.Bind(wx.EVT_MENU, self.panel.factoryAV, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot Unit device')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reboot Device')
         self.Bind(wx.EVT_MENU, self.panel.rebootUnit, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE values')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Plot MSE')
         self.Bind(wx.EVT_MENU, self.panel.plotMSE, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Open as URL', 'Open Device as webpage')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Open device in webbrowser')
         self.Bind(wx.EVT_MENU, self.panel.openURL, rcitem)
 
         self.PopupMenu(right_click_Menu)
