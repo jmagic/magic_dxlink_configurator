@@ -503,8 +503,7 @@ class MainPanel(wx.Panel):
                                  item[4],
                                  item[5],
                                  item[6],
-                                 datetime.datetime.strptime(
-                                    (item[7]),"%Y-%m-%d %H:%M:%S.%f"),
+                                 datetime.datetime.strptime((item[7]),"%Y-%m-%d %H:%M:%S.%f"), #will not wrap
                                  item[8],
                                  item[9],
                                  item[10],
@@ -589,7 +588,7 @@ class MainPanel(wx.Panel):
         else:
             openFileDialog.Destroy()
 
-    def importIPlist(self):
+    def importIPlist(self, event):
         openFileDialog = wx.FileDialog(
                                        self, message="Open IP List",
                                        defaultDir=self.path,
@@ -604,20 +603,20 @@ class MainPanel(wx.Panel):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         item[0],
-                         datetime.datetime.now(),
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' '
-                        )
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 item[0],
+                                 datetime.datetime.now(),
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' '
+                                )
                 self.dataOlv.AddObject(data)
             self.dumpPickle()
             openFileDialog.Destroy()
