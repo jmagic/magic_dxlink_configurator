@@ -56,7 +56,7 @@ class MainPanel(wx.Panel):
         self.readConfigFile()
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v1.5.0"
+        self.version = "v1.5.1"
         self.setTitleBar()
 
         # Set up some variables
@@ -925,13 +925,13 @@ class MainFrame(wx.Frame):
         aitem = actionMenu.Append(wx.ID_ANY, 'Update device information', 'Update details from selected devices')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, aitem)
 
+        aitem = actionMenu.Append(wx.ID_ANY, 'Configure Device', 'Configure Devices Connection')
+        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
+
         aitem = actionMenu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Configure Items', 'Configure Items Connection')
-        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
-
-        aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory Settings', 'Reset selected devices to factory settings')
+        aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory', 'Reset selected devices to factory settings')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot selected devices')
