@@ -57,6 +57,7 @@ class MainPanel(wx.Panel):
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
         self.version = "v1.5.2"
+
         self.setTitleBar()
 
         # Set up some variables
@@ -249,7 +250,6 @@ class MainPanel(wx.Panel):
         self.dumpPickle()
         self.errorlist = []
         self.completionlist = []
-        self.actionItems = []
         self.singleSelect = []
 
 
@@ -504,8 +504,7 @@ class MainPanel(wx.Panel):
                                  item[4],
                                  item[5],
                                  item[6],
-                                 datetime.datetime.strptime(
-                                    (item[7]),"%Y-%m-%d %H:%M:%S.%f"),
+                                 datetime.datetime.strptime((item[7]),"%Y-%m-%d %H:%M:%S.%f"), #will not wrap
                                  item[8],
                                  item[9],
                                  item[10],
@@ -605,21 +604,21 @@ class MainPanel(wx.Panel):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         item[0],
-                         datetime.datetime.now(),
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' ',
-                         ' '
-                        )
-                self.dataOlv.AddObject(data)
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 item[0],
+                                 datetime.datetime.now(),
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' ',
+                                 ' '
+                                )
+                    self.dataOlv.AddObject(data)
             self.dumpPickle()
             openFileDialog.Destroy()
         else:
@@ -693,9 +692,7 @@ class MainPanel(wx.Panel):
         Receives dhcp requests with and adds them to objects to display
         """
         data = self.makeUnit(sender)
-        self.parent.sb.SetStatusText('%s -- %s %s %s'
-                                      %(data.arrival_time.strftime('%I:%M:%S%p'),
-                                        data.hostname, data.ip, data.mac))
+        self.parent.sb.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip, data.mac))
         if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
@@ -704,7 +701,7 @@ class MainPanel(wx.Panel):
             self.dataOlv.SetObjects([data])
         else:
             for obj in self.dataOlv.GetObjects():
-                if data.mac == obj.mac:
+                if obj.mac == data.mac:
                     obj.ip = data.ip
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
@@ -884,7 +881,10 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, parent=None, id=wx.ID_ANY,
                           title=self.title_text, size=(1100,600))
 
-        self.SetIcon(icon.MDC_icon.GetIcon())
+        ib = wx.IconBundle()
+        ib.AddIconFromFile("icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(ib)
+        #self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
         self.sb = self.CreateStatusBar()
@@ -929,13 +929,13 @@ class MainFrame(wx.Frame):
         aitem = actionMenu.Append(wx.ID_ANY, 'Update device information', 'Update details from selected devices')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, aitem)
 
+        aitem = actionMenu.Append(wx.ID_ANY, 'Configure Device', 'Configure Devices Connection')
+        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
+
         aitem = actionMenu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Configure Items', 'Configure Items Connection')
-        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
-
-        aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory Settings', 'Reset selected devices to factory settings')
+        aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory', 'Reset selected devices to factory settings')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, aitem)
 
         aitem = actionMenu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot selected devices')
@@ -1002,34 +1002,34 @@ class MainFrame(wx.Frame):
 
         right_click_Menu = wx.Menu()
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Update Info', 'Update Info')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Update device information')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Configure Item', 'Configure Item')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Configure Device')
         self.Bind(wx.EVT_MENU, self.panel.configureDevice, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reset Factory', 'Reset Factory')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reset Factory')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Delete Item', 'Delete Item')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Delete')
         self.Bind(wx.EVT_MENU, self.panel.deleteItem, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Telnet', 'Telnet to this device')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Telnet to Device')
         self.Bind(wx.EVT_MENU, self.panel.telnetTo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'FactoryAV', 'FactoryAV')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'FactoryAV')
         self.Bind(wx.EVT_MENU, self.panel.factoryAV, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot Unit device')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reboot Device')
         self.Bind(wx.EVT_MENU, self.panel.rebootUnit, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE values')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Plot MSE')
         self.Bind(wx.EVT_MENU, self.panel.plotMSE, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Open as URL', 'Open Device as webpage')
+        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Open device in webbrowser')
         self.Bind(wx.EVT_MENU, self.panel.openURL, rcitem)
 
         self.PopupMenu(right_click_Menu)
