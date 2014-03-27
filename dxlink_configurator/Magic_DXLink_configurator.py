@@ -56,7 +56,7 @@ class MainPanel(wx.Panel):
         self.readConfigFile()
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v1.5.0"
+        self.version = "v1.5.2"
         self.setTitleBar()
 
         # Set up some variables
@@ -227,7 +227,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-        elif (len(self.completionlist) == len(self.actionItems)):
+        elif (len(self.completionlist) == len(self.dataOlv.GetSelectedObjects())):
             if self.displaysuccess:
                 dlg = wx.MessageDialog(parent=self,
                                        message= 'Successfully connected to: \n======================= \n%s' % completiontext ,
