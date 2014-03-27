@@ -56,7 +56,7 @@ class MainPanel(wx.Panel):
         self.readConfigFile()
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v1.5.0"
+        self.version = "v1.5.2"
         self.setTitleBar()
 
         # Set up some variables
@@ -227,7 +227,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-        elif (len(self.completionlist) == len(self.actionItems)):
+        elif (len(self.completionlist) == len(self.dataOlv.GetSelectedObjects())):
             if self.displaysuccess:
                 dlg = wx.MessageDialog(parent=self,
                                        message= 'Successfully connected to: \n======================= \n%s' % completiontext ,
@@ -551,7 +551,7 @@ class MainPanel(wx.Panel):
                 row_count = (sum(1 for row in csv_data)-1)*-1
                 dia = plot_class.Multi_Plot(self, obj, row_count)
                 dia.Show()
-            with open( path ,'rb') as csvfile:  # opening it again to start at top
+            with open( openFileDialog.GetPath() ,'rb') as csvfile:  # opening it again to start at top
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plotObject = []
@@ -590,7 +590,7 @@ class MainPanel(wx.Panel):
         else:
             openFileDialog.Destroy()
 
-    def importIPlist(self):
+    def importIPlist(self, event):
         openFileDialog = wx.FileDialog(
                                        self, message="Open IP List",
                                        defaultDir=self.path,

@@ -200,25 +200,25 @@ class Multi_Plot ( wx.Dialog ):
         self.cb_xlab.SetValue(True)
         
         self.cb_cha = wx.CheckBox(self.panel, -1, 
-            "Show ChA",
+            "Show Green ChA",
             style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.cb_cha)        
         self.cb_cha.SetValue(True)
         
         self.cb_chb = wx.CheckBox(self.panel, -1, 
-            "Show ChB",
+            "Show Brown ChB",
             style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.cb_chb)        
         self.cb_chb.SetValue(True)
         
         self.cb_chc = wx.CheckBox(self.panel, -1, 
-            "Show ChC",
+            "Show Blue ChC",
             style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.cb_chc)        
         self.cb_chc.SetValue(True)
         
         self.cb_chd = wx.CheckBox(self.panel, -1, 
-            "Show ChD",
+            "Show Orange ChD",
             style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.cb_chd)        
         self.cb_chd.SetValue(True)
@@ -278,25 +278,26 @@ class Multi_Plot ( wx.Dialog ):
         self.plot_data0 = self.axes.plot(
             [], 
             linewidth=1,
-            color=("blue"),
+            color=("green"),
             )[0]
         self.plot_data1 = self.axes.plot(
             [],
             linewidth=1,
-            color=("red"),
+            color=("brown"),
             )[0]
         self.plot_data2 = self.axes.plot(
             [],
             linewidth=1,
-            color=("green"),
+            color=("blue"),
             )[0]
         self.plot_data3 = self.axes.plot(
             [],
             linewidth=1,
-            color=("white"),
+            color=("orange"),
             )[0]
             
-        legend = self.fig.legend([self.plot_data0,self.plot_data1,self.plot_data2,self.plot_data3],['ChA','ChB','ChC','ChD'],'upper center',ncol=4,bbox_to_anchor=(0, 0, 1, 1), borderaxespad=0.)
+        legend = self.fig.legend([self.plot_data0,self.plot_data1,self.plot_data2,self.plot_data3],
+                                 ['ChA','ChB','ChC','ChD'],'upper center',ncol=4,bbox_to_anchor=(0, 0, 1, 1), borderaxespad=0.)
         box = self.axes.get_position()
         self.axes.set_position([box.x0 - box.width * .11 , box.y0, box.width * 1.2, box.height])
         frame = legend.get_frame()
