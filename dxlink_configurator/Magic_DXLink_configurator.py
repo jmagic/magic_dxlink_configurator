@@ -880,7 +880,10 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, parent=None, id=wx.ID_ANY,
                           title=self.title_text, size=(1100,600))
 
-        self.SetIcon(icon.MDC_icon.GetIcon())
+        ib = wx.IconBundle()
+        ib.AddIconFromFile("icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(ib)
+        #self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
         self.sb = self.CreateStatusBar()

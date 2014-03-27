@@ -1,6 +1,6 @@
 # -*- mode: python -*-
 a = Analysis(['Magic_DXLink_configurator.py'],
-             pathex=['C:\\Users\\jim.maciejewski\\Dropbox\\python_projects\\release\\dxlink_configurator\\dxlink_configurator'],
+             pathex=['C:\\Users\\jim.maciejewski\\Documents\\GitHub\\configurator\\dxlink_configurator'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
