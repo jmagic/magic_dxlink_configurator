@@ -796,11 +796,11 @@ class MainPanel(wx.Panel):
             dia.ShowModal()
             dia.Destroy()
             if self.abort == True:
-                self.actionItems = []
+                #self.actionItems = []
                 return
-        self.actionItems = self.staticItems
-        if self.actionItems != []:
-            self.displayProgress()
+        #self.actionItems = self.staticItems
+        #if self.actionItems != []:
+        #    self.displayProgress()
 
     def configurePrefs( self, event ):
         dia = config_menus.PreferencesConfig(self)
