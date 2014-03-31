@@ -66,6 +66,8 @@ class MainPanel(wx.Panel):
         self.completionlist = []
         self.mse_active_list = []
         self.portError = False
+        self.ping_objects = []
+        self.ping_active = False
 
         # Build the ObjectListView
         self.dataOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -352,6 +354,25 @@ class MainPanel(wx.Panel):
             dia = plot_class.Multi_Plot(self, obj, '-1500')
             dia.Show()
 
+    def multiPing(self, data=None):
+        
+        self.getRowInfo()
+        if len(self.actionItems) == 0:return
+        if self.ping_active:
+            dlg = wx.MessageDialog(parent=self, message= 'You already have a ping window open', 
+                                       caption = 'Are you crazy?',
+                                       style = wx.OK
+                                       )
+            dlg.ShowModal()
+            dlg.Destroy()
+            return    
+            
+        self.ping_active = True
+        #for obj in self.actionItems:
+            
+        #self.telnetjobqueue.put(['MSE', obj, self.telnet_timeout_seconds])
+        dia = multi_ping.MultiPing(self, self.actionItems)
+        dia.Show()
 
     def factoryAV(self, event):
         if len(self.dataOlv.GetSelectedObjects()) == 0: return
@@ -963,6 +984,9 @@ class MainFrame(wx.Frame):
         menubar.Append(actionMenu, '&Actions')
 
         toolsMenu = wx.Menu()
+
+        titem = toolsMenu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
+        self.Bind(wx.EVT_MENU, self.panel.multiPing, titem)
 
         titem = toolsMenu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
         self.Bind(wx.EVT_MENU, self.panel.addLine, titem)

@@ -49,6 +49,8 @@ class Telnetjobs(Thread):
                 self.SetTurnOffLED(job)
             elif self.type == "MSE" :
                 self.SetMSE(job)
+            elif self.type == "Ping" :
+                self.SetPing(job)
 
             # send a signal to the queue that the job is done
             self.queue.task_done()
@@ -606,9 +608,77 @@ class Telnetjobs(Thread):
                     mse = []
                     data = []
 
-
-
         except Exception, error:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac)
 
+           
+    def SetPing(self, job):
+        
+        obj = job[1]
+        ip = obj.ip
+        
+        #kwargs = {}
+        
+        #params = dict()
+        #startupinfo = subprocess.STARTUPINFO()
+        #startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        #params['startupinfo'] = startupinfo
+
+        '''p = subprocess.Popen("cmd.exe", **params)
+        if subprocess.mswindows:
+             su = subprocess.STARTUPINFO()
+             su.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+             su.wShowWindow = subprocess.SW_HIDE
+             kwargs['startupinfo'] = su 
+        #subprocess.Popen("cmd.exe", **kwargs)'''
+        ping = subprocess.Popen(['ping' , obj.ip , '-t'], shell=True, stdout = subprocess.PIPE)
+        #ping = subprocess.Popen("ping %s" % ip, shell=True, 
+        #                        stdout=subprocess.PIPE) 
+        while self.parent.ping_active:
+            for line in iter(ping.stdout.readline,''):
+                
+                
+                result = line.rstrip()
+                #print result
+                if len(result) < 10:
+                    continue
+                if result == '':
+                    continue
+                    #print 'blank'
+                    
+                elif result == '\n': 
+                    continue
+                    #print 'next line'
+                    
+                elif result[:7] == 'Pinging': 
+                    continue
+                    #print 'pinging'
+
+                elif result.split()[-1] == 'unreachable.' or result == 'Request timed out.':
+                    #print result 
+                    success = 'No'
+                    ms_delay = "N/A"
+                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
+                    dispatcher.send(signal="Incoming Ping", sender=data)
+                    
+                elif result.split()[-1][:3] == 'TTL':
+                    temp = result.split()[-2]
+                    ms_delay = ''.join([str(s) for s in temp if s.isdigit()])
+                    success = 'Yes'
+
+                                
+                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
+                    #print 'sending ping'
+                    #print "data: ", data
+                    dispatcher.send(signal="Incoming Ping", sender=data)
+                    #time.sleep(.5)
+                else:
+                    #print 'no matches', result
+                    success = 'No'
+                    ms_delay = "N/A"
+                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
+                    dispatcher.send(signal="Incoming Ping", sender=data)
+                if not self.parent.ping_active: break
+            
+        ping.kill()
