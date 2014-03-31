@@ -212,7 +212,8 @@ class MainPanel(wx.Panel):
         for i in xrange(len(self.errorlist)):
             while (len(self.errorlist[i][0]) + (len(phil) - 1)) < 15:
                 phil = phil + " "
-            errortext = errortext + self.errorlist[i][0] + " " + phil + " " +  self.errorlist[i][1] + "\n"
+            errortext = errortext + self.errorlist[i][0] + " " + phil + " " +  \
+                        self.errorlist[i][1] + "\n"
             phil = " "
 
         completiontext = ""
@@ -221,7 +222,8 @@ class MainPanel(wx.Panel):
         #print errortext
         if (len(self.errorlist) == len(self.dataOlv.GetSelectedObjects())):
             dlg = wx.MessageDialog(parent=self,
-                                   message= 'Failed to connect to \n======================= \n%s ' % errortext ,
+                                   message= 'Failed to connect to \n===========\
+                                             ============ \n%s ' % errortext ,
                                    caption = 'Failed connection list',
                                    style = wx.OK
                                    )
