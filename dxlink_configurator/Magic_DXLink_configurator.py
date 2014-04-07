@@ -969,24 +969,28 @@ class MainFrame(wx.Frame):
         eitem = edit_menu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
         self.Bind(wx.EVT_MENU, self.panel.configurePrefs, eitem)
 
-        actionMenu = wx.Menu()
+        action_menu = wx.Menu()
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Update device information', 'Update details from selected devices')
+        aitem = action_menu.Append(wx.ID_ANY, 'Update device information', \
+                                   'Update details from selected devices')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Configure Device', 'Configure Devices Connection')
+        aitem = action_menu.Append(wx.ID_ANY, 'Configure Device', \
+                                   'Configure Devices Connection')
         self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
+        aitem = action_menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Reset Factory', 'Reset selected devices to factory settings')
+        aitem = action_menu.Append(wx.ID_ANY, 'Reset Factory', \
+                                   'Reset selected devices to factory settings')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, aitem)
 
-        aitem = actionMenu.Append(wx.ID_ANY, 'Reboot Unit', 'Reboot selected devices')
+        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Unit', \
+                                   'Reboot selected devices')
         self.Bind(wx.EVT_MENU, self.panel.rebootUnit, aitem)
 
-        menubar.Append(actionMenu, '&Actions')
+        menubar.Append(action_menu, '&Actions')
 
         toolsMenu = wx.Menu()
 
