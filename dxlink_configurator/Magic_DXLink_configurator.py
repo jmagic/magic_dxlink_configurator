@@ -95,7 +95,7 @@ class MainPanel(wx.Panel):
         self.selectColumns()
         #reload last known data set
         self.loadDataPickle()
-        self.updateStatusBar()
+        self.update_status_bar()
 
         # Create some sizers
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -842,6 +842,7 @@ class MainPanel(wx.Panel):
         self.dataOlv.SetSortColumn(0, resortNow = True)
 
     def resizeFrame(self):
+        """Resizes the Frame"""
         panel_width = 30
         for i in range(len(self.columns_config)):
             columns_width = [90,130,130,100,130,150,80,80,60,100,80]
@@ -851,18 +852,22 @@ class MainPanel(wx.Panel):
             panel_width = 400
         self.parent.SetSize((panel_width,600))
 
-    def updateStatusBar(self):
+    def update_status_bar(self):
+        """Updates the status bar."""
         self.parent.status_bar.SetFieldsCount(4)
-        master_width = wx.ClientDC(self.parent.status_bar).GetTextExtent(self.master_address)[0] + 0
-        device_width = wx.ClientDC(self.parent.status_bar).GetTextExtent(self.device_number)[0] + 0
-        self.parent.status_bar.SetStatusWidths([-1,master_width,device_width,30])
-        self.parent.status_bar.SetStatusText(self.master_address,1)
-        self.parent.status_bar.SetStatusText(self.device_number,2)
+        master_width = wx.ClientDC(self.parent.status_bar).\
+                       GetTextExtent(self.master_address)[0] + 0
+        device_width = wx.ClientDC(self.parent.status_bar).\
+                       GetTextExtent(self.device_number)[0] + 0
+        self.parent.status_bar.SetStatusWidths([-1, master_width, \
+                                                device_width, 30])
+        self.parent.status_bar.SetStatusText(self.master_address, 1)
+        self.parent.status_bar.SetStatusText(self.device_number, 2)
 
     def onClose(self, data=None):
         self.parent.Destroy()
 
-    def OnAboutBox(self, e):
+    def OnAboutBox(self, event):
 
         description = """Magic DXLink Configurator is an tool for configuring
 DXLINK Devices. Features include a DHCP monitor,
@@ -903,11 +908,9 @@ SOFTWARE."""
 
     def OnBeerBox(self, event):
         dlg = wx.MessageDialog(parent=self, message='If you enjoy this ' + \
-                                                    'program \n Click Ok to ' +\
-                                                    'Buy me a beer', \
-                                       caption = 'Buy me a beer', \
-                                       style = wx.OK|wx.CANCEL
-                                       )
+                               'program \n Click Ok to Buy me a beer', \
+                               caption='Buy me a beer', \
+                               style=wx.OK|wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
             url = 'http://ornear.com/give_a_beer'
             # Open URL in a new tab, if a browser window is already open.
