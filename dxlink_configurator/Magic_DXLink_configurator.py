@@ -716,7 +716,7 @@ class MainPanel(wx.Panel):
         Receives dhcp requests with and adds them to objects to display
         """
         data = self.makeUnit(sender)
-        self.parent.sb.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip, data.mac))
+        self.parent.status_bar.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip, data.mac))
         if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
@@ -852,12 +852,12 @@ class MainPanel(wx.Panel):
         self.parent.SetSize((panel_width,600))
 
     def updateStatusBar(self):
-        self.parent.sb.SetFieldsCount(4)
-        master_width = wx.ClientDC(self.parent.sb).GetTextExtent(self.master_address)[0] + 0
-        device_width = wx.ClientDC(self.parent.sb).GetTextExtent(self.device_number)[0] + 0
-        self.parent.sb.SetStatusWidths([-1,master_width,device_width,30])
-        self.parent.sb.SetStatusText(self.master_address,1)
-        self.parent.sb.SetStatusText(self.device_number,2)
+        self.parent.status_bar.SetFieldsCount(4)
+        master_width = wx.ClientDC(self.parent.status_bar).GetTextExtent(self.master_address)[0] + 0
+        device_width = wx.ClientDC(self.parent.status_bar).GetTextExtent(self.device_number)[0] + 0
+        self.parent.status_bar.SetStatusWidths([-1,master_width,device_width,30])
+        self.parent.status_bar.SetStatusText(self.master_address,1)
+        self.parent.status_bar.SetStatusText(self.device_number,2)
 
     def onClose(self, data=None):
         self.parent.Destroy()
@@ -930,42 +930,43 @@ class MainFrame(wx.Frame):
         #self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
-        self.sb = self.CreateStatusBar()
+        self.status_bar = self.CreateStatusBar()
 
         self.panel = MainPanel(self)
 
-        fileMenu = wx.Menu()
-        _fitem = fileMenu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', \
+        file_menu = wx.Menu()
+        fitem = file_menu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', \
                                  'Import CSV Spread Sheet')
-        self.Bind(wx.EVT_MENU, self.panel.importCSVfile, _fitem)
+        self.Bind(wx.EVT_MENU, self.panel.importCSVfile, fitem)
 
-        fitem =  fileMenu.Append(wx.ID_ANY, 'Import IP list','Import IP list')
+        fitem = file_menu.Append(wx.ID_ANY, 'Import IP list', 'Import IP list')
         self.Bind(wx.EVT_MENU, self.panel.importIPlist, fitem)
 
-        fitem =  fileMenu.Append(wx.ID_ANY, 'Import Plot','Import Plot')
+        fitem = file_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
         self.Bind(wx.EVT_MENU, self.panel.importPlot, fitem)
 
-        fitem = fileMenu.Append(wx.ID_ANY, 'Store Items in a CSV File','Store selected items in a CSV file')
+        fitem = file_menu.Append(wx.ID_ANY, 'Store Items in a CSV File', \
+                                 'Store selected items in a CSV file')
         self.Bind(wx.EVT_MENU, self.panel.removeAndStore, fitem)
 
-        fitem = fileMenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
+        fitem = file_menu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
         self.Bind(wx.EVT_MENU, self.onQuit, fitem)
 
-        menubar.Append(fileMenu, '&File')
+        menubar.Append(file_menu, '&File')
 
-        editMenu = wx.Menu()
+        edit_menu = wx.Menu()
 
-        selectMenu = wx.Menu()
-        sitem = selectMenu.Append(wx.ID_ANY, 'Select All', 'Select All')
+        select_menu = wx.Menu()
+        sitem = select_menu.Append(wx.ID_ANY, 'Select All', 'Select All')
         self.Bind(wx.EVT_MENU, self.panel.onSelectAll, sitem)
 
-        sitem = selectMenu.Append(wx.ID_ANY, 'Select None', 'Select None')
+        sitem = select_menu.Append(wx.ID_ANY, 'Select None', 'Select None')
         self.Bind(wx.EVT_MENU, self.panel.onSelectNone, sitem)
 
-        menubar.Append(editMenu, '&Edit')
-        editMenu.AppendMenu(wx.ID_ANY, 'Select', selectMenu)
+        menubar.Append(edit_menu, '&Edit')
+        edit_menu.AppendMenu(wx.ID_ANY, 'Select', select_menu)
 
-        eitem = editMenu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
+        eitem = edit_menu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
         self.Bind(wx.EVT_MENU, self.panel.configurePrefs, eitem)
 
         actionMenu = wx.Menu()
