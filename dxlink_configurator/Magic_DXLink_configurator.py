@@ -901,9 +901,11 @@ SOFTWARE."""
         info.AddDeveloper('Jim Maciejewski')
         wx.AboutBox(info)
 
-    def OnBeerBox(self, e):
-        dlg = wx.MessageDialog(parent=self, message= 'If you enjoy this program \nBuy me a beer',
-                                       caption = 'Buy me a beer',
+    def OnBeerBox(self, event):
+        dlg = wx.MessageDialog(parent=self, message='If you enjoy this ' + \
+                                                    'program \n Click Ok to ' +\
+                                                    'Buy me a beer', \
+                                       caption = 'Buy me a beer', \
                                        style = wx.OK|wx.CANCEL
                                        )
         if dlg.ShowModal() == wx.ID_OK:
@@ -992,57 +994,63 @@ class MainFrame(wx.Frame):
 
         menubar.Append(action_menu, '&Actions')
 
-        toolsMenu = wx.Menu()
+        tools_menu = wx.Menu()
 
-        titem = toolsMenu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
+        titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
         self.Bind(wx.EVT_MENU, self.panel.multiPing, titem)
 
-        titem = toolsMenu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
+        titem = tools_menu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
         self.Bind(wx.EVT_MENU, self.panel.addLine, titem)
 
-        titem = toolsMenu.Append(wx.ID_ANY, 'Generate IP List', 'Generate IP List')
+        titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
+                                  'Generate IP List')
         self.Bind(wx.EVT_MENU, self.panel.generateList, titem)
 
-        titem = toolsMenu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
+        titem = tools_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
         self.Bind(wx.EVT_MENU, self.panel.turnOnLED, titem)
 
-        titem = toolsMenu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
+        titem = tools_menu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
         self.Bind(wx.EVT_MENU, self.panel.turnOffLED, titem)
 
-        menubar.Append(toolsMenu, 'Tools')
+        menubar.Append(tools_menu, 'Tools')
 
-        listenMenu = wx.Menu()
+        listen_menu = wx.Menu()
 
 
-        self.listenDHCP = listenMenu.AppendCheckItem(wx.ID_ANY, "Listen for DHCP requests", "Listen for DHCP requests")
+        self.listen_dhcp = listen_menu.AppendCheckItem(wx.ID_ANY, \
+                                                   "Listen for DHCP requests", \
+                                                   "Listen for DHCP requests")
 
-        self.Bind(wx.EVT_MENU, self.panel.toggleDHCPsniffing, self.listenDHCP)
-        self.listenDHCP.Check(self.panel.dhcp_sniffing)
+        self.Bind(wx.EVT_MENU, self.panel.toggleDHCPsniffing, self.listen_dhcp)
+        self.listen_dhcp.Check(self.panel.dhcp_sniffing)
 
-        self.listenfilter = listenMenu.AppendCheckItem(wx.ID_ANY, "Filter AMX devices DHCP requests", "Filter AMX devices DHCP requests")
+        self.listen_filter = listen_menu.AppendCheckItem(wx.ID_ANY, \
+                                           "Filter AMX devices DHCP requests", \
+                                           "Filter AMX devices DHCP requests")
 
-        self.Bind(wx.EVT_MENU, self.panel.togglefilterAMX, self.listenfilter)
-        self.listenfilter.Check(self.panel.AMX_only_filter)
+        self.Bind(wx.EVT_MENU, self.panel.togglefilterAMX, self.listen_filter)
+        self.listen_filter.Check(self.panel.AMX_only_filter)
 
-        menubar.Append(listenMenu, 'Listen')
+        menubar.Append(listen_menu, 'Listen')
 
-        deleteMenu = wx.Menu()
-        ditem = deleteMenu.Append(wx.ID_ANY, '&Delete Item', 'Delete Item')
+        delete_menu = wx.Menu()
+        ditem = delete_menu.Append(wx.ID_ANY, '&Delete Item', 'Delete Item')
         self.Bind(wx.EVT_MENU, self.panel.deleteItem, ditem)
 
-        ditem = deleteMenu.Append(wx.ID_ANY, '&Delete All Items', 'Delete All Items')
+        ditem = delete_menu.Append(wx.ID_ANY, '&Delete All Items', \
+                                   'Delete All Items')
         self.Bind(wx.EVT_MENU, self.panel.deleteAllItems, ditem)
 
-        menubar.Append(deleteMenu, '&Delete')
+        menubar.Append(delete_menu, '&Delete')
 
-        helpMenu = wx.Menu()
-        hitem = helpMenu.Append(wx.ID_ANY, 'About', 'About')
+        help_menu = wx.Menu()
+        hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
         self.Bind(wx.EVT_MENU, self.panel.OnAboutBox, hitem)
 
-        hitem = helpMenu.Append(wx.ID_ANY, 'Beer', 'Beer')
+        hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
         self.Bind(wx.EVT_MENU, self.panel.OnBeerBox, hitem)
 
-        menubar.Append(helpMenu, '&Help')
+        menubar.Append(help_menu, '&Help')
 
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_CLOSE, self.panel.onClose)
@@ -1052,42 +1060,42 @@ class MainFrame(wx.Frame):
 
     def onRightClick(self, event):
 
-        rcMenu = wx.Menu()
+        rc_menu = wx.Menu()
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Update device information')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Update device information')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Configure Device')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Configure Device')
         self.Bind(wx.EVT_MENU, self.panel.configureDevice, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Send Commands')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Reset Factory')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Reset Factory')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Delete')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Delete')
         self.Bind(wx.EVT_MENU, self.panel.deleteItem, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Telnet to Device')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Telnet to Device')
         self.Bind(wx.EVT_MENU, self.panel.telnetTo, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'FactoryAV')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'FactoryAV')
         self.Bind(wx.EVT_MENU, self.panel.factoryAV, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Reboot Device')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
         self.Bind(wx.EVT_MENU, self.panel.rebootUnit, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Plot MSE')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Plot MSE')
         self.Bind(wx.EVT_MENU, self.panel.plotMSE, rcitem)
 
-        rcitem = rcMenu.Append(wx.ID_ANY, 'Open device in webbrowser')
+        rcitem = rc_menu.Append(wx.ID_ANY, 'Open device in webbrowser')
         self.Bind(wx.EVT_MENU, self.panel.openURL, rcitem)
 
-        self.PopupMenu(rcMenu)
-        rcMenu.Destroy()
+        self.PopupMenu(rc_menu)
+        rc_menu.Destroy()
 
-    def onQuit(self, e):
+    def onQuit(self, event):
         self.panel.dumpPickle()
         self.Close()
 
