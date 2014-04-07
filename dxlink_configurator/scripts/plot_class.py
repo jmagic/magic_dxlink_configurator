@@ -4,7 +4,7 @@ import wx
 from pydispatch import dispatcher
 
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import \
     FigureCanvasWxAgg as FigCanvas, \

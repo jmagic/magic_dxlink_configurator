@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Magic DXLink Configurator"
-#define MyAppVersion "1.5.2"
+#define MyAppVersion "1.5.3"
 #define MyAppPublisher "ItsMagic"
 #define MyAppURL "http://www.ornear.com/give_a_beer"
 #define MyAppExeName "Magic_DXLink_Configurator.exe"
@@ -22,11 +22,11 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=C:\Windows\SoftwareDistribution\DataStore\Output
-OutputBaseFilename=Magic_DXLink_Configurator_Setup_1.5.2
+OutputBaseFilename=Magic_DXLink_Configurator_Setup_1.5.3
 SetupIconFile=C:\Users\jim.maciejewski\Documents\GitHub\configurator\dxlink_configurator\icon\MDC_icon.ico
 Compression=lzma
 SolidCompression=yes
-VersionInfoVersion=1.5.2
+VersionInfoVersion=1.5.3
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

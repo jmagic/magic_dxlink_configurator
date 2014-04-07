@@ -56,7 +56,7 @@ class MainPanel(wx.Panel):
         self.readConfigFile()
         self.resizeFrame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v1.5.2"
+        self.version = "v1.5.3"
 
         self.setTitleBar()
 
@@ -224,8 +224,9 @@ class MainPanel(wx.Panel):
         #print errortext
         if (len(self.errorlist) == len(self.dataOlv.GetSelectedObjects())):
             dlg = wx.MessageDialog(parent=self,
-                                   message= 'Failed to connect to \n===========\
-                                             ============ \n%s ' % errortext ,
+                                   message= ('Failed to connect to' + \
+                                              'n=======================' + \
+                                              ' \n%s ') % errortext ,
                                    caption = 'Failed connection list',
                                    style = wx.OK
                                    )
@@ -460,7 +461,7 @@ class MainPanel(wx.Panel):
             dlg.Destroy()
 
     def dumpPickle(self):
-        pickle.dump(self.dataOlv.GetObjects(), open((self.path + 'data.pkl') , 'wb'))
+        pickle.dump(self.dataOlv.GetObjects(), open((self.path + 'data_store.pkl') , 'wb'))
 
     def removeAndStore( self, event):
         if len(self.dataOlv.GetSelectedObjects()) == 0:
@@ -832,9 +833,9 @@ class MainPanel(wx.Panel):
 
 
     def loadDataPickle(self, data=None):
-        if os.path.exists((self.path + 'data.pkl')):
+        if os.path.exists((self.path + 'data_store.pkl')):
             try:
-                objects = pickle.load(open((self.path + 'data.pkl'), 'rb'))
+                objects = pickle.load(open((self.path + 'data_store.pkl'), 'rb'))
                 self.dataOlv.SetObjects(objects)
             except:
                 pass
@@ -920,12 +921,12 @@ class MainFrame(wx.Frame):
     def __init__(self):
 
         self.title_text = "Starting up"
-        wx.Frame.__init__(self, parent=None, id=wx.ID_ANY,
-                          title=self.title_text, size=(1100,600))
+        wx.Frame.__init__(self, parent=None, id=wx.ID_ANY, 
+                          title=self.title_text, size=(1100, 600))
 
-        ib = wx.IconBundle()
-        ib.AddIconFromFile("icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
-        self.SetIcons(ib)
+        _ib = wx.IconBundle()
+        _ib.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(_ib)
         #self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
@@ -934,8 +935,9 @@ class MainFrame(wx.Frame):
         self.panel = MainPanel(self)
 
         fileMenu = wx.Menu()
-        fitem =  fileMenu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', 'Import CSV Spread Sheet')
-        self.Bind(wx.EVT_MENU, self.panel.importCSVfile, fitem)
+        _fitem = fileMenu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', \
+                                 'Import CSV Spread Sheet')
+        self.Bind(wx.EVT_MENU, self.panel.importCSVfile, _fitem)
 
         fitem =  fileMenu.Append(wx.ID_ANY, 'Import IP list','Import IP list')
         self.Bind(wx.EVT_MENU, self.panel.importIPlist, fitem)
@@ -1045,40 +1047,40 @@ class MainFrame(wx.Frame):
 
     def onRightClick(self, event):
 
-        right_click_Menu = wx.Menu()
+        rcMenu = wx.Menu()
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Update device information')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Update device information')
         self.Bind(wx.EVT_MENU, self.panel.getTelnetInfo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Configure Device')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Configure Device')
         self.Bind(wx.EVT_MENU, self.panel.configureDevice, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Send Commands')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.sendCommands, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reset Factory')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Reset Factory')
         self.Bind(wx.EVT_MENU, self.panel.resetFactory, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Delete')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Delete')
         self.Bind(wx.EVT_MENU, self.panel.deleteItem, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Telnet to Device')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Telnet to Device')
         self.Bind(wx.EVT_MENU, self.panel.telnetTo, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'FactoryAV')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'FactoryAV')
         self.Bind(wx.EVT_MENU, self.panel.factoryAV, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Reboot Device')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Reboot Device')
         self.Bind(wx.EVT_MENU, self.panel.rebootUnit, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Plot MSE')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Plot MSE')
         self.Bind(wx.EVT_MENU, self.panel.plotMSE, rcitem)
 
-        rcitem = right_click_Menu.Append(wx.ID_ANY, 'Open device in webbrowser')
+        rcitem = rcMenu.Append(wx.ID_ANY, 'Open device in webbrowser')
         self.Bind(wx.EVT_MENU, self.panel.openURL, rcitem)
 
-        self.PopupMenu(right_click_Menu)
-        right_click_Menu.Destroy()
+        self.PopupMenu(rcMenu)
+        rcMenu.Destroy()
 
     def onQuit(self, e):
         self.panel.dumpPickle()
