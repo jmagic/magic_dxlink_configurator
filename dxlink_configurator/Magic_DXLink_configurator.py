@@ -1,3 +1,29 @@
+"""Configurator is a program that integrates unit discovery and telnet commands 
+to ease configuration and management of AMX DXLink devices.
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Jim Maciejewski
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE."""
+
+
 import ConfigParser
 import wx
 import pickle
@@ -11,11 +37,12 @@ import webbrowser
 
 from pydispatch import dispatcher
 
-from scripts import *
+from scripts import (config_menus, dhcp_sniffer, multi_send, multi_ping, \
+                    plot_class, telnet_class, telnetto_class)
 
 try:
     import winsound
-except:
+except ImportError:
     pass
 
 
@@ -26,10 +53,12 @@ class Unit(object):
     Model of the Unit
 
     Contains the following attributes:
-    model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway, subnet, master, system
+    model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway,
+    subnet, master, system
     """
     #----------------------------------------------------------------------
-    def __init__(self, model, hostname, serial ,firmware, device, mac, ip, arrival_time, ip_type, gateway, subnet, master, system):
+    def __init__(self,  model, hostname, serial ,firmware, device, mac, ip_ad, \
+                 arrival_time, ip_type, gateway, subnet, master, system):
 
         self.model = model
         self.hostname = hostname
@@ -37,7 +66,7 @@ class Unit(object):
         self.firmware = firmware
         self.device = device
         self.mac = mac
-        self.ip = ip
+        self.ip = ip_ad
         self.arrival_time = arrival_time
         self.ip_type = ip_type
         self.gateway = gateway

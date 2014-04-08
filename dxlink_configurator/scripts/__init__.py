@@ -4,6 +4,5 @@ __all__=['config_menus',
          'multi_ping',
          'plot_class',
          'telnet_class',
-         'telnetto_class',
-         'icon'
+         'telnetto_class'
          ]
