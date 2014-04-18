@@ -613,13 +613,13 @@ class IpListGen(wx.Dialog):
 
 
     def on_replace(self, event):
-        self.parent.dataOlv.DeleteAllItems()
+        self.parent.main_list.DeleteAllItems()
         self.on_add(None)
 
     def on_add(self, event):
         self.gen_list()
         for item in self.data:
-            self.parent.dataOlv.AddObject(self.parent.makeUnit(('','',str(item))))
+            self.parent.main_list.AddObject(self.parent.makeUnit(('','',str(item))))
         self.parent.dumpPickle()
         self.Destroy()
 

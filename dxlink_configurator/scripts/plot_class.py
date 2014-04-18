@@ -108,7 +108,7 @@ class Multi_Plot ( wx.Dialog ):
 
         self.parent = parent
         self.obj = obj
-        self.SetTitle('MSE values plotted over time ' + obj.ip + '  ' + obj.device)
+        self.SetTitle('MSE values plotted over time ' + obj.ip_address + '  ' + obj.device)
         self.plotObjects = []
         self.set_objects(device_list)
         self.paused = False
@@ -132,8 +132,8 @@ class Multi_Plot ( wx.Dialog ):
         for obj in device_list:
             data = [PlotUnit(
                              [],
-                             obj.ip,
-                             obj.mac
+                             obj.ip_address,
+                             obj.mac_address
                              )]
             self.plotObjects.append(data[0])
 
@@ -155,7 +155,7 @@ class Multi_Plot ( wx.Dialog ):
         for obj in self.plotObjects:
 
             if not self.paused:
-                if sender[2] == obj.mac:
+                if sender[2] == obj.mac_address:
 
                     if obj.mse_data == []:
                         obj.mse_data = self.set_mse_data(sender[0])
@@ -475,10 +475,10 @@ class Multi_Plot ( wx.Dialog ):
         # if paused do not add data, but still redraw the plot
         # (to respond to scale modifications, grid change, etc.)
 
-        if self.error[0] and self.obj.mac == self.error[1]:
+        if self.error[0] and self.obj.mac_address == self.error[1]:
             self.redraw_timer.Stop()
-            dlg = wx.MessageDialog(parent=self, message= 'No connection to device ' + self.obj.ip,
-                                       caption = 'No %s' % self.obj.ip,
+            dlg = wx.MessageDialog(parent=self, message= 'No connection to device ' + self.obj.ip_address,
+                                       caption = 'No %s' % self.obj.ip_address,
                                        style = wx.OK
                                        )
             dlg.ShowModal()
@@ -491,7 +491,7 @@ class Multi_Plot ( wx.Dialog ):
 
     def on_close(self, event):
         self.redraw_timer.Stop()
-        self.parent.mse_active_list.remove(self.obj.mac)
+        self.parent.mse_active_list.remove(self.obj.mac_address)
         self.obj.mse_data = []
         self.Destroy()
 
