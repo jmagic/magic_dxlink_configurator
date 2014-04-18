@@ -94,7 +94,7 @@ class MainPanel(wx.Panel):
         self.errorlist = []
         self.completionlist = []
         self.mse_active_list = []
-        self.portError = False
+        self.port_error = False
         self.ping_objects = []
         self.ping_active = False
 
@@ -1088,7 +1088,7 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_CLOSE, self.panel.onClose)
 
-        if self.panel.portError:
+        if self.panel.port_error:
             self.panel.portErrors()
 
     def onRightClick(self, event):
