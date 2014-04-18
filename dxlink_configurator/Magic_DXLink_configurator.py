@@ -108,18 +108,19 @@ class MainPanel(wx.Panel):
         # Select columns displayed
         self.columns = []
 
-        self.columns_setup = [  ColumnDefn("Time", "center", 90, "arrival_time",
-                                           stringConverter="%I:%M:%S%p"),
-                                ColumnDefn("Model", "center", 130, "model"),
-                                ColumnDefn("MAC", "center", 130, "mac"),
-                                ColumnDefn("IP", "center", 100, "ip"),
-                                ColumnDefn("Hostname", "left", 130, "hostname"),
-                                ColumnDefn("Serial Number","center", 150, "serial"),
-                                ColumnDefn("Firmware", "center", 80, "firmware"),
-                                ColumnDefn("Device", "center", 80, "device"),
-                                ColumnDefn("Static", "center", 60, "ip_type"),
-                                ColumnDefn("Master", "center", 100, "master"),
-                                ColumnDefn("System", "center", 80, "system")
+        self.columns_setup = [ColumnDefn("Time", "center", 9, "arrival_time", 
+                                         stringConverter="%I:%M:%S%p"),
+                              ColumnDefn("Model", "center", 130, "model"),
+                              ColumnDefn("MAC", "center", 130, "mac"),
+                              ColumnDefn("IP", "center", 100, "ip"),
+                              ColumnDefn("Hostname", "left", 130, "hostname"),
+                              ColumnDefn("Serial Number", "center", 150, 
+                                         "serial"),
+                              ColumnDefn("Firmware", "center", 80, "firmware"),
+                              ColumnDefn("Device", "center", 80, "device"),
+                              ColumnDefn("Static", "center", 60, "ip_type"),
+                              ColumnDefn("Master", "center", 100, "master"),
+                              ColumnDefn("System", "center", 80, "system")
                              ]
 
         self.selectColumns()
