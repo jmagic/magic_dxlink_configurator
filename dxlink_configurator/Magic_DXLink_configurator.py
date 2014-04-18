@@ -99,10 +99,11 @@ class MainPanel(wx.Panel):
         self.ping_active = False
 
         # Build the ObjectListView
-        self.dataOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.dataOlv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.dataOlv.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.onRightClick)
-        self.dataOlv.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        self.main_list = ObjectListView(self, wx.ID_ANY, 
+                                      style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.onRightClick)
+        self.main_list.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
 
         # Select columns displayed
         self.columns = []
@@ -128,7 +129,7 @@ class MainPanel(wx.Panel):
 
         # Create some sizers
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(self.dataOlv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(mainSizer)
 
         # Create DHCP listening thread
@@ -199,11 +200,11 @@ class MainPanel(wx.Panel):
 
 
     def displayProgress(self, data=None):
-        if len(self.dataOlv.GetSelectedObjects()) == 1:
+        if len(self.main_list.GetSelectedObjects()) == 1:
 
             dlg = wx.ProgressDialog("Attempting connect to selected device",
                                     'Attempting connection to selected device',
-                                    maximum = len(self.dataOlv.GetSelectedObjects()),
+                                    maximum = len(self.main_list.GetSelectedObjects()),
                                     parent = self.parent,
                                     style =  wx.PD_APP_MODAL
                                      | wx.PD_AUTO_HIDE
@@ -212,14 +213,14 @@ class MainPanel(wx.Panel):
                                      )
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                                    len(self.dataOlv.GetSelectedObjects())):
+                                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
                 dlg.Pulse()
         else:
             dlg = wx.ProgressDialog("Attempting connect to selected devices",
                                   'Attempting connection to all selected devices',
-                                maximum = len(self.dataOlv.GetSelectedObjects()),
+                                maximum = len(self.main_list.GetSelectedObjects()),
                                 parent = self.parent,
                                 style =  wx.PD_APP_MODAL
                                  | wx.PD_AUTO_HIDE
@@ -228,13 +229,13 @@ class MainPanel(wx.Panel):
                                  )
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                                        len(self.dataOlv.GetSelectedObjects())):
+                                        len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 dlg.Update (count,"Attempting connection to %s of %s devices" %
-                            ((count + 1),len(self.dataOlv.GetSelectedObjects())))
+                            ((count + 1),len(self.main_list.GetSelectedObjects())))
 
         dlg.Destroy()
-        self.dataOlv.RefreshObjects(self.dataOlv.GetSelectedObjects())
+        self.main_list.RefreshObjects(self.main_list.GetSelectedObjects())
         self.dumpPickle()
 
         errortext = ""
@@ -251,7 +252,7 @@ class MainPanel(wx.Panel):
         for i in xrange(len(self.completionlist)):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         #print errortext
-        if (len(self.errorlist) == len(self.dataOlv.GetSelectedObjects())):
+        if (len(self.errorlist) == len(self.main_list.GetSelectedObjects())):
             dlg = wx.MessageDialog(parent=self,
                                    message= ('Failed to connect to' + \
                                               'n=======================' + \
@@ -262,7 +263,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-        elif (len(self.completionlist) == len(self.dataOlv.GetSelectedObjects())):
+        elif (len(self.completionlist) == len(self.main_list.GetSelectedObjects())):
             if self.displaysuccess:
                 dlg = wx.MessageDialog(parent=self,
                                        message= 'Successfully connected to: \n======================= \n%s' % completiontext ,
@@ -280,7 +281,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
 
-        #self.dataOlv.RefreshObjects(self.actionItems)
+        #self.main_list.RefreshObjects(self.actionItems)
         self.dumpPickle()
         self.errorlist = []
         self.completionlist = []
@@ -310,10 +311,10 @@ class MainPanel(wx.Panel):
 
                 todisplay.append(item[1])
 
-        self.dataOlv.SetColumns(todisplay)
+        self.main_list.SetColumns(todisplay)
 
     def getRowInfo(self):
-        self.actionItems = self.dataOlv.GetSelectedObjects()
+        self.actionItems = self.main_list.GetSelectedObjects()
 
         if self.actionItems == []:
 
@@ -326,16 +327,16 @@ class MainPanel(wx.Panel):
             dlg.Destroy()
 
     def onSelectAll(self, data=None):
-        self.dataOlv.SelectAll()
+        self.main_list.SelectAll()
 
 
     def onSelectNone(self, data=None):
-        self.dataOlv.DeselectAll()
+        self.main_list.DeselectAll()
 
 
     def telnetTo( self, data=None ):
-        if len(self.dataOlv.GetSelectedObjects()) == 0:return
-        if len(self.dataOlv.GetSelectedObjects()) > 10:
+        if len(self.main_list.GetSelectedObjects()) == 0:return
+        if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(parent=self, message= 'I can only telnet to 10 devices at a time \nPlease select less than ten devices at once',
                                    caption = 'How many telnets?',
                                    style = wx.OK
@@ -346,7 +347,7 @@ class MainPanel(wx.Panel):
         if self.os_type == 'nt':
             if os.path.exists((self.path + self.telnet_client)):
 
-                for obj in self.dataOlv.GetSelectedObjects():
+                for obj in self.main_list.GetSelectedObjects():
                     self.telnettoqueue.put(obj)
             else:
                 dlg = wx.MessageDialog(parent=self, message= 'Could not find telnet client \nPlease put %s in \n%s' % (self.telnet_client, self.path),
@@ -358,12 +359,12 @@ class MainPanel(wx.Panel):
             return
 
         if self.os_type == 'posix':
-            for obj in self.dataOlv.GetSelectedObjects():
+            for obj in self.main_list.GetSelectedObjects():
                 self.telnettoqueue.put(obj)
 
     def plotMSE(self, data=None):
-        if len(self.dataOlv.GetSelectedObjects()) == 0:return
-        if len(self.dataOlv.GetSelectedObjects()) > 10:
+        if len(self.main_list.GetSelectedObjects()) == 0:return
+        if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(parent=self, message= 'I can only graph 10 devices at a time \nPlease select less than ten devices at once',
                                    caption = 'How many graphs?',
                                    style = wx.OK
@@ -372,7 +373,7 @@ class MainPanel(wx.Panel):
             dlg.Destroy()
             return
 
-        for obj in self.dataOlv.GetSelectedObjects():
+        for obj in self.main_list.GetSelectedObjects():
             if (obj.mac in self.mse_active_list):
                 dlg = wx.MessageDialog(parent=self, message= 'You are already graphing this MAC address',
                                        caption = 'Are you crazy?',
@@ -407,16 +408,16 @@ class MainPanel(wx.Panel):
         dia.Show()
 
     def factoryAV(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
+        if len(self.main_list.GetSelectedObjects()) == 0: return
 
-        for obj in self.dataOlv.GetSelectedObjects():
+        for obj in self.main_list.GetSelectedObjects():
             self.telnetjobqueue.put(['FactoryAV', obj, self.telnet_timeout_seconds, 'FACTORYAV', 1])
         self.displayProgress()
 
 
     def resetFactory(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             dlg = wx.MessageDialog(parent=self, message= 'Are you sure? \n This will reset %s' % obj.ip,
                                    caption = 'Factory Reset',
                                    style = wx.OK|wx.CANCEL
@@ -430,43 +431,43 @@ class MainPanel(wx.Panel):
 
 
     def rebootUnit(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             self.telnetjobqueue.put(['SetReboot', obj, self.telnet_timeout_seconds])
         self.displayProgress()
 
 
     def openURL(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             url = 'http://' + obj.ip
             # Open URL in a new tab, if a browser window is already open.
             webbrowser.open_new_tab(url)
 
 
     def getTelnetInfo( self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             self.telnetjobqueue.put(['GetTelnetInfo', obj,  self.telnet_timeout_seconds])
         self.displayProgress()
 
     def turnOnLED(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             self.telnetjobqueue.put(['TurnOnLED', obj,  self.telnet_timeout_seconds])
         self.displayProgress()
 
     def turnOffLED(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
-        for obj in self.dataOlv.GetSelectedObjects():
+        if len(self.main_list.GetSelectedObjects()) == 0: return
+        for obj in self.main_list.GetSelectedObjects():
             self.telnetjobqueue.put(['TurnOffLED', obj,  self.telnet_timeout_seconds])
         self.displayProgress()
 
     def sendCommands(self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
+        if len(self.main_list.GetSelectedObjects()) == 0: return
         self.tx_devices = []
         self.rx_devices = []
-        for obj in self.dataOlv.GetSelectedObjects():
+        for obj in self.main_list.GetSelectedObjects():
             if obj.model[12:14] == 'TX' or obj.model[12:14] == 'WP'or obj.model[12:15] == 'DWP'or obj.model[12:16] == 'MFTX':
                 self.tx_devices.append(obj)
             elif obj.model[12:14] == 'RX':
@@ -490,10 +491,10 @@ class MainPanel(wx.Panel):
             dlg.Destroy()
 
     def dumpPickle(self):
-        pickle.dump(self.dataOlv.GetObjects(), open((self.path + 'data_store.pkl') , 'wb'))
+        pickle.dump(self.main_list.GetObjects(), open((self.path + 'data_store.pkl') , 'wb'))
 
     def removeAndStore( self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0:
+        if len(self.main_list.GetSelectedObjects()) == 0:
             return
         saveFileDialog = wx.FileDialog(
                        self, message="Select file to add units to or create a new file",
@@ -505,7 +506,7 @@ class MainPanel(wx.Panel):
         if saveFileDialog.ShowModal() == wx.ID_OK:
             path = saveFileDialog.GetPath()
             dlg = wx.ProgressDialog("Storing Device Information","Storing Device Information",
-                                    maximum = len(self.dataOlv.GetSelectedObjects()),
+                                    maximum = len(self.main_list.GetSelectedObjects()),
                                     parent = self,
                                     style =  wx.PD_APP_MODAL
                                      | wx.PD_AUTO_HIDE
@@ -513,7 +514,7 @@ class MainPanel(wx.Panel):
                                      )
             count = 0
             with open(path, 'a') as f:
-                for obj in self.dataOlv.GetSelectedObjects():
+                for obj in self.main_list.GetSelectedObjects():
                     count += 1
                     dlg.Update(count)
                     data = [obj.model,
@@ -532,8 +533,8 @@ class MainPanel(wx.Panel):
                             ]
                     w = csv.writer(f, quoting=csv.QUOTE_ALL)
                     w.writerow(data)
-            self.dataOlv.RemoveObjects(self.dataOlv.GetSelectedObjects())
-            self.dataOlv.RepopulateList()
+            self.main_list.RemoveObjects(self.main_list.GetSelectedObjects())
+            self.main_list.RepopulateList()
             self.dumpPickle()
 
     def importCSVfile( self, event):
@@ -545,7 +546,7 @@ class MainPanel(wx.Panel):
                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if openFileDialog.ShowModal() == wx.ID_OK:
             openFileDialog.Destroy()
-            self.dataOlv.DeleteAllItems()
+            self.main_list.DeleteAllItems()
             with open( openFileDialog.GetPath() ,'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
@@ -564,7 +565,7 @@ class MainPanel(wx.Panel):
                                  item[11],
                                  item[12]
                                 )
-                    self.dataOlv.AddObject(data)
+                    self.main_list.AddObject(data)
             self.dumpPickle()
         else:
             openFileDialog.Destroy()
@@ -652,7 +653,7 @@ class MainPanel(wx.Panel):
                                        )
 
         if openFileDialog.ShowModal() == wx.ID_OK:
-            self.dataOlv.DeleteAllItems()
+            self.main_list.DeleteAllItems()
             with open(openFileDialog.GetPath(),'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
@@ -671,7 +672,7 @@ class MainPanel(wx.Panel):
                                  ' ',
                                  ' '
                                 )
-                    self.dataOlv.AddObject(data)
+                    self.main_list.AddObject(data)
             self.dumpPickle()
             openFileDialog.Destroy()
         else:
@@ -698,17 +699,17 @@ class MainPanel(wx.Panel):
                          ' ',
                          ' '
                         )
-        self.dataOlv.AddObject(data)
+        self.main_list.AddObject(data)
         self.dumpPickle()
 
     def deleteItem(self, data=None):
-        if len(self.dataOlv.GetSelectedObjects()) == len(self.dataOlv.GetObjects()):
-            self.dataOlv.DeleteAllItems()
+        if len(self.main_list.GetSelectedObjects()) == len(self.main_list.GetObjects()):
+            self.main_list.DeleteAllItems()
             self.dumpPickle()
             return
-        if len(self.dataOlv.GetSelectedObjects()) == 0:
+        if len(self.main_list.GetSelectedObjects()) == 0:
             return
-        self.dataOlv.RemoveObjects(self.dataOlv.GetSelectedObjects())
+        self.main_list.RemoveObjects(self.main_list.GetSelectedObjects())
         self.dumpPickle()
 
     def deleteAllItems(self, data=None):
@@ -717,7 +718,7 @@ class MainPanel(wx.Panel):
                                    style = wx.OK|wx.CANCEL
                                    )
         if dlg.ShowModal() == wx.ID_OK:
-            self.dataOlv.DeleteAllItems()
+            self.main_list.DeleteAllItems()
             self.dumpPickle()
         else:
             return
@@ -749,20 +750,20 @@ class MainPanel(wx.Panel):
         if self.AMX_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
-        selectedItems = self.dataOlv.GetSelectedObjects()
-        if self.dataOlv.GetObjects() == []:
-            self.dataOlv.SetObjects([data])
+        selectedItems = self.main_list.GetSelectedObjects()
+        if self.main_list.GetObjects() == []:
+            self.main_list.SetObjects([data])
         else:
-            for obj in self.dataOlv.GetObjects():
+            for obj in self.main_list.GetObjects():
                 if obj.mac == data.mac:
                     obj.ip = data.ip
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
                     break
             else:
-                self.dataOlv.AddObject(data)
-        self.dataOlv.RepopulateList()
-        self.dataOlv.SelectObjects(selectedItems, deselectOthers=True)
+                self.main_list.AddObject(data)
+        self.main_list.RepopulateList()
+        self.main_list.SelectObjects(selectedItems, deselectOthers=True)
         self.dumpPickle()
         self.playSound()
 
@@ -841,10 +842,10 @@ class MainPanel(wx.Panel):
         self.parent.SetTitle(self.name + " " + self.version)
 
     def configureDevice( self, event):
-        if len(self.dataOlv.GetSelectedObjects()) == 0: return
+        if len(self.main_list.GetSelectedObjects()) == 0: return
         self.staticItems = []
         self.abort = False
-        for obj in self.dataOlv.GetSelectedObjects():
+        for obj in self.main_list.GetSelectedObjects():
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
             dia.Destroy()
@@ -865,10 +866,10 @@ class MainPanel(wx.Panel):
         if os.path.exists((self.path + 'data_store.pkl')):
             try:
                 objects = pickle.load(open((self.path + 'data_store.pkl'), 'rb'))
-                self.dataOlv.SetObjects(objects)
+                self.main_list.SetObjects(objects)
             except:
                 pass
-        self.dataOlv.SetSortColumn(0, resortNow = True)
+        self.main_list.SetSortColumn(0, resortNow = True)
 
     def resizeFrame(self):
         """Resizes the Frame"""
