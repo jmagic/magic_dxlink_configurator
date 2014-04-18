@@ -262,7 +262,7 @@ class MainPanel(wx.Panel):
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
             dlg = wx.MessageDialog(parent=self,
                                    message='Failed to connect to' + 
-                                              'n=======================' + 
+                                              '\n=======================' + 
                                               ' \n%s ' % errortext,
                                    caption='Failed connection list',
                                    style=wx.OK)
@@ -321,14 +321,16 @@ class MainPanel(wx.Panel):
         self.main_list.SetColumns(todisplay)
 
     def check_for_none_selected(self):
+        """Checks if nothing is selected"""
         if len(self.main_list.GetSelectedObjects()) == 0:
-            dlg = wx.MessageDialog(parent=self, message= 'Nothing selected.... \nPlease click on the device you want to select',
-                                   caption = 'Nothing Selected',
-                                   style = wx.OK
-                                   )
+            dlg = wx.MessageDialog(parent=self, message='Nothing selected...' +
+                                   '\nPlease click on the device you want ' + 
+                                   'to select',
+                                   caption='Nothing Selected',
+                                   style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
-            return(True)
+            return True
 
     def onSelectAll(self, data=None):
         self.main_list.SelectAll()
@@ -339,7 +341,7 @@ class MainPanel(wx.Panel):
 
 
     def telnetTo( self, data=None ):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(parent=self, message= 'I can only telnet to 10 devices at a time \nPlease select less than ten devices at once',
                                    caption = 'How many telnets?',
@@ -367,7 +369,7 @@ class MainPanel(wx.Panel):
                 self.telnettoqueue.put(obj)
 
     def plotMSE(self, data=None):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(parent=self, message= 'I can only graph 10 devices at a time \nPlease select less than ten devices at once',
                                    caption = 'How many graphs?',
@@ -393,7 +395,7 @@ class MainPanel(wx.Panel):
 
     def multiPing(self, _):
         
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         if self.ping_active:
             dlg = wx.MessageDialog(parent=self, message= 'You already have a ping window open', 
                                        caption = 'Are you crazy?',
@@ -408,15 +410,15 @@ class MainPanel(wx.Panel):
         dia.Show()
 
     def factoryAV(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
 
         for obj in self.main_list.GetSelectedObjects():
-            self.telnetjobqueue.put(['FactoryAV', obj, self.telnet_timeout_seconds, 'FACTORYAV', 1])
+            self.telnet_job_queue.put(['FactoryAV', obj, self.telnet_timeout_seconds, 'FACTORYAV', 1])
         self.display_progress()
 
 
     def resetFactory(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
             dlg = wx.MessageDialog(parent=self, message= 'Are you sure? \n This will reset %s' % obj.ip_address,
                                    caption = 'Factory Reset',
@@ -424,21 +426,21 @@ class MainPanel(wx.Panel):
                                    )
             if dlg.ShowModal() == wx.ID_OK:
                 dlg.Destroy()
-                self.telnetjobqueue.put(['SetFactory', obj, self.telnet_timeout_seconds])
+                self.telnet_job_queue.put(['SetFactory', obj, self.telnet_timeout_seconds])
             else:
                 return
         self.display_progress()
 
 
     def rebootUnit(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnetjobqueue.put(['SetReboot', obj, self.telnet_timeout_seconds])
+            self.telnet_job_queue.put(['SetReboot', obj, self.telnet_timeout_seconds])
         self.display_progress()
 
 
     def openURL(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
             url = 'http://' + obj.ip_address
             # Open URL in a new tab, if a browser window is already open.
@@ -446,25 +448,25 @@ class MainPanel(wx.Panel):
 
 
     def getTelnetInfo( self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnetjobqueue.put(['GetTelnetInfo', obj,  self.telnet_timeout_seconds])
+            self.telnet_job_queue.put(['GetTelnetInfo', obj,  self.telnet_timeout_seconds])
         self.display_progress()
 
     def turnOnLED(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnetjobqueue.put(['TurnOnLED', obj,  self.telnet_timeout_seconds])
+            self.telnet_job_queue.put(['TurnOnLED', obj,  self.telnet_timeout_seconds])
         self.display_progress()
 
     def turnOffLED(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnetjobqueue.put(['TurnOffLED', obj,  self.telnet_timeout_seconds])
+            self.telnet_job_queue.put(['TurnOffLED', obj,  self.telnet_timeout_seconds])
         self.display_progress()
 
     def sendCommands(self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         self.tx_devices = []
         self.rx_devices = []
         for obj in self.main_list.GetSelectedObjects():
@@ -842,7 +844,7 @@ class MainPanel(wx.Panel):
         self.parent.SetTitle(self.name + " " + self.version)
 
     def configureDevice( self, event):
-        if check_for_none_selected(): return
+        if self.check_for_none_selected(): return
         self.staticItems = []
         self.abort = False
         for obj in self.main_list.GetSelectedObjects():
