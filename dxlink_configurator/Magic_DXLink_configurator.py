@@ -108,14 +108,10 @@ class MainPanel(wx.Panel):
         # Select columns displayed
         self.columns = []
 
-        self.columns_setup = [ColumnDefn("Time", "center", 9, "arrival_time", 
-                                         stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
-                              ColumnDefn("MAC", "center", 130, "mac"),
-                              ColumnDefn("IP", "center", 100, "ip"),
+                              ColumnDefn("MAC", "center", 130, "mac_address"),
+                              ColumnDefn("IP", "center", 100, "ip_address"),
                               ColumnDefn("Hostname", "left", 130, "hostname"),
-                              ColumnDefn("Serial Number", "center", 150, 
-                                         "serial"),
                               ColumnDefn("Firmware", "center", 80, "firmware"),
                               ColumnDefn("Device", "center", 80, "device"),
                               ColumnDefn("Static", "center", 60, "ip_type"),
@@ -382,7 +378,7 @@ class MainPanel(wx.Panel):
             return
 
         for obj in self.main_list.GetSelectedObjects():
-            if (obj.mac in self.mse_active_list):
+            if (obj.mac_address in self.mse_active_list):
                 dlg = wx.MessageDialog(parent=self, message= 'You are already graphing this MAC address',
                                        caption = 'Are you crazy?',
                                        style = wx.OK
@@ -390,8 +386,8 @@ class MainPanel(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
                 return
-            self.mse_active_list.append(obj.mac)
-            self.telnetjobqueue.put(['MSE', obj, self.telnet_timeout_seconds])
+            self.mse_active_list.append(obj.mac_address)
+            self.telnet_job_queue.put(['MSE', obj, self.telnet_timeout_seconds])
             dia = plot_class.Multi_Plot(self, obj, '-1500')
             dia.Show()
 
@@ -750,7 +746,7 @@ class MainPanel(wx.Panel):
         Receives dhcp requests with and adds them to objects to display
         """
         data = self.makeUnit(sender)
-        self.parent.status_bar.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip, data.mac))
+        self.parent.status_bar.SetStatusText('%s -- %s %s %s' %(data.arrival_time.strftime('%I:%M:%S%p'), data.hostname, data.ip_address, data.mac_address))
         if self.amx_only_filter:
             if data.mac[0:8] != '00:60:9f':
                     return
@@ -759,8 +755,8 @@ class MainPanel(wx.Panel):
             self.main_list.SetObjects([data])
         else:
             for obj in self.main_list.GetObjects():
-                if obj.mac == data.mac:
-                    obj.ip_address = data.ip
+                if obj.mac_address == data.mac_address:
+                    obj.ip_address = data.ip_address
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
                     break
