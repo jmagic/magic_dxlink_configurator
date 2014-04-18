@@ -141,7 +141,8 @@ class MainPanel(wx.Panel):
         # create a telenetto thread pool and assign them to a queue
         self.telnettoqueue = Queue.Queue()
         for i in range(10):
-            self.TelnettoThread = telnetto_class.TelnetToThread(self, self.telnettoqueue)
+            self.TelnettoThread = telnetto_class.TelnetToThread(self, 
+                                                            self.telnettoqueue)
             self.TelnettoThread.setDaemon(True)
             self.TelnettoThread.start()
 
@@ -149,14 +150,21 @@ class MainPanel(wx.Panel):
         # create a telnetjob thread pool and assign them to a queue
         self.telnetjobqueue = Queue.Queue()
         for i in range(int(self.thread_number)):
-            self.TelnetJobThread = telnet_class.Telnetjobs(self, self.telnetjobqueue)
+            self.TelnetJobThread = telnet_class.Telnetjobs(self, 
+                                                           self.telnetjobqueue)
             self.TelnetJobThread.setDaemon(True)
             self.TelnetJobThread.start()
 
         # Setup our dispatcher listeners for the threads
-        dispatcher.connect(self.updateInfo, signal="Incoming Packet", sender = dispatcher.Any)
-        dispatcher.connect(self.collectCompletions, signal="Collect Completions", sender = dispatcher.Any)
-        dispatcher.connect(self.collectErrors, signal="Collect Errors", sender = dispatcher.Any)
+        dispatcher.connect(self.updateInfo, 
+                           signal="Incoming Packet", 
+                           sender = dispatcher.Any)
+        dispatcher.connect(self.collectCompletions,
+                           signal="Collect Completions", 
+                           sender = dispatcher.Any)
+        dispatcher.connect(self.collectErrors, 
+                           signal="Collect Errors", 
+                           sender = dispatcher.Any)
     #----------------------------------------------------------------------
 
     def onKeyDown(self,event):
