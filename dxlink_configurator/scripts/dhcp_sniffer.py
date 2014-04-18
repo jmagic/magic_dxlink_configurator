@@ -5,7 +5,7 @@ from pydispatch import dispatcher
 import wx
 
 ########################################################################
-class SniffDHCPThread(Thread):
+class dhcp_listener(Thread):
 
     #----------------------------------------------------------------------
     def __init__(self, parent):

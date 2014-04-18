@@ -1,7 +1,7 @@
 import threading 
 import subprocess
 
-class TelnetToThread(threading.Thread):
+class telnet_to_thread(threading.Thread):
 
     def __init__(self, parent, queue):
         threading.Thread.__init__(self)

@@ -103,7 +103,7 @@ class MainPanel(wx.Panel):
                                       style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
         self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.onRightClick)
-        self.main_list.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
         # Select columns displayed
         self.columns = []
@@ -129,52 +129,53 @@ class MainPanel(wx.Panel):
         self.update_status_bar()
 
         # Create some sizers
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(mainSizer)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
+        self.SetSizer(main_sizer)
 
         # Create DHCP listening thread
-        self.SniffDHCPThread = dhcp_sniffer.SniffDHCPThread(self)
-        self.SniffDHCPThread.setDaemon(True)
-        self.SniffDHCPThread.start()
+        self.dhcp_listener = dhcp_sniffer.dhcp_listener(self)
+        self.dhcp_listener.setDaemon(True)
+        self.dhcp_listener.start()
 
         # create a telenetto thread pool and assign them to a queue
-        self.telnettoqueue = Queue.Queue()
-        for i in range(10):
-            self.TelnettoThread = telnetto_class.TelnetToThread(self, 
-                                                            self.telnettoqueue)
-            self.TelnettoThread.setDaemon(True)
-            self.TelnettoThread.start()
+        self.telnet_to_queue = Queue.Queue()
+        for _ in range(10):
+            self.telnet_to_thread = telnetto_class.telnet_to_thread(self, 
+                                                        self.telnet_to_queue)
+            self.telnet_to_thread.setDaemon(True)
+            self.telnet_to_thread.start()
 
 
         # create a telnetjob thread pool and assign them to a queue
-        self.telnetjobqueue = Queue.Queue()
-        for i in range(int(self.thread_number)):
-            self.TelnetJobThread = telnet_class.Telnetjobs(self, 
-                                                           self.telnetjobqueue)
-            self.TelnetJobThread.setDaemon(True)
-            self.TelnetJobThread.start()
+        self.telnet_job_queue = Queue.Queue()
+        for _ in range(int(self.thread_number)):
+            self.telnet_job_thread = telnet_class.Telnetjobs(self, 
+                                                        self.telnet_job_queue)
+            self.telnet_job_thread.setDaemon(True)
+            self.telnet_job_thread.start()
 
         # Setup our dispatcher listeners for the threads
         dispatcher.connect(self.updateInfo, 
                            signal="Incoming Packet", 
-                           sender = dispatcher.Any)
-        dispatcher.connect(self.collectCompletions,
+                           sender=dispatcher.Any)
+        dispatcher.connect(self.collect_completions,
                            signal="Collect Completions", 
-                           sender = dispatcher.Any)
-        dispatcher.connect(self.collectErrors, 
+                           sender=dispatcher.Any)
+        dispatcher.connect(self.collect_errors, 
                            signal="Collect Errors", 
-                           sender = dispatcher.Any)
+                           sender=dispatcher.Any)
     #----------------------------------------------------------------------
 
-    def onKeyDown(self,event):
+    def on_key_down(self, event):
+        """Grab Delete key presses"""
         key = event.GetKeyCode()
         if key == wx.WXK_DELETE:
             dlg = wx.MessageDialog(parent=self,
                   message=
             'Are you sure? \n\nThis will delete all selected items in the list',
-                                   caption = 'Delete All Selected Items',
-                                   style = wx.OK|wx.CANCEL
+                                   caption='Delete All Selected Items',
+                                   style=wx.OK|wx.CANCEL
                                    )
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -184,25 +185,28 @@ class MainPanel(wx.Panel):
                 return
         event.Skip()
 
-    def playSound(self):
+    def play_sound(self):
+        """Plays a barking sound"""
         if self.play_sounds:
             try:
                 winsound.PlaySound("woof.wav", winsound.SND_FILENAME)
-            except:
+            except IOError:
                 pass
 
-    def collectCompletions(self, sender):
+    def collect_completions(self, sender):
+        """Creates a list of completed connections"""
         self.completionlist.append(sender)
 
-    def collectErrors(self, sender):
+    def collect_errors(self, sender):
+        """Creates a list of incomplete connections"""
         self.errorlist.append(sender)
 
-    def portErrors(self):
+    def port_errors(self):
+        """Shows when the listening port is in use"""
         dlg = wx.MessageDialog(self.parent,
-                               message= 'Unable to use port 67\n No DHCP requests will be added.',
-                               caption = 'Port in use',
-                               style = wx.ICON_INFORMATION
-                               )
+           message='Unable to use port 67\n No DHCP requests will be added.',
+           caption='Port in use',
+           style=wx.ICON_INFORMATION)
         dlg.ShowModal()
         self.parent.listenfilter.Enable(False)
         self.parent.listenDHCP.Enable(False)
@@ -774,7 +778,7 @@ class MainPanel(wx.Panel):
         self.main_list.RepopulateList()
         self.main_list.SelectObjects(selectedItems, deselectOthers=True)
         self.dumpPickle()
-        self.playSound()
+        self.play_sound()
 
     def readConfigFile(self):
         self.os_type = os.name
@@ -1098,7 +1102,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.panel.onClose)
 
         if self.panel.port_error:
-            self.panel.portErrors()
+            self.panel.port_errors()
 
     def onRightClick(self, event):
 
