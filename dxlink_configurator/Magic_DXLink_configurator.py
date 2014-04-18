@@ -65,8 +65,8 @@ class Unit(object):
         self.serial = serial
         self.firmware = firmware
         self.device = device
-        self.mac = mac
-        self.ip = ip_ad
+        self.mac_address = mac
+        self.ip_address = ip_ad
         self.arrival_time = arrival_time
         self.ip_type = ip_type
         self.gateway = gateway
