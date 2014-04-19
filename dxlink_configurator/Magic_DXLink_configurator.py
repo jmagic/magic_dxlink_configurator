@@ -82,15 +82,26 @@ class MainPanel(wx.Panel):
         wx.Panel.__init__(self, parent, id=wx.ID_ANY)
 
         self.parent = parent
+
+        self.master_address = None
+        self.device_number = None
+        self.default_dhcp = None
+        self.thread_number = None
+        self.telnet_client = None
+        self.telnet_timeout_seconds = None
+        self.displaysuccess = None
+        self.dhcp_sniffing = None
+        self.amx_only_filter = None
+        self.play_sounds = None
+        self.columns_config = None
+
         self.read_config_file()
-        self.resizeFrame()
+        self.resize_frame()
         self.name = "Magic DXLink Configurator"
         self.version = "v2.0.0"
 
-        self.setTitleBar()
+        self.set_title_bar()
 
-        # Set up some variables
-        #self.amx_only_filter = False #disable the AMX filter by default
         self.errorlist = []
         self.completionlist = []
         self.mse_active_list = []
@@ -98,17 +109,15 @@ class MainPanel(wx.Panel):
         self.ping_objects = []
         self.ping_active = False
         self.path = ""
+        self.abort = False
 
-        # Build the ObjectListView
         self.main_list = ObjectListView(self, wx.ID_ANY, 
                                       style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
         self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.on_right_click)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
-        # Select columns displayed
         self.columns = []
-
         self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
@@ -123,8 +132,7 @@ class MainPanel(wx.Panel):
                              ]
 
         self.select_columns()
-        #reload last known data set
-        self.loadDataPickle()
+        self.load_data_pickle()
         self.update_status_bar()
 
         # Create some sizers
@@ -154,7 +162,6 @@ class MainPanel(wx.Panel):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
-        # Setup our dispatcher listeners for the threads
         dispatcher.connect(self.update_info, 
                            signal="Incoming Packet", 
                            sender=dispatcher.Any)
@@ -178,7 +185,7 @@ class MainPanel(wx.Panel):
                                    )
 
             if dlg.ShowModal() == wx.ID_OK:
-                self.delete_item()
+                self.delete_item(None)
                 self.dump_pickle()
             else:
                 return
@@ -301,14 +308,14 @@ class MainPanel(wx.Panel):
         """Turns sniffing on and off"""
 
         self.dhcp_sniffing = not self.dhcp_sniffing
-        self.writeConfigFile()
+        self.write_config_file()
 
 
     def toggle_filter_amx(self, _):
         """Turns amx filtering on and off"""
 
         self.amx_only_filter = not self.amx_only_filter
-        self.writeConfigFile()
+        self.write_config_file()
 
     def select_columns(self):
         """Sets the columns to be displayed"""
@@ -357,7 +364,7 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if self.os_type == 'nt':
+        if os.name == 'nt':
             if os.path.exists((self.path + self.telnet_client)):
 
                 for obj in self.main_list.GetSelectedObjects():
@@ -373,7 +380,7 @@ class MainPanel(wx.Panel):
                 dlg.Destroy()
             return
 
-        if self.os_type == 'posix':
+        if os.name == 'posix':
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put(obj)
 
@@ -590,7 +597,7 @@ class MainPanel(wx.Panel):
                                          | wx.FD_FILE_MUST_EXIST)
         if open_file_dialog.ShowModal() == wx.ID_OK:
             open_file_dialog.Destroy()
-            self.main_list.delete_all_items()
+            self.main_list.DeleteAllItems()
             with open(open_file_dialog.GetPath(), 'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
@@ -702,7 +709,7 @@ class MainPanel(wx.Panel):
                                        )
 
         if open_file_dialog.ShowModal() == wx.ID_OK:
-            self.main_list.delete_all_items()
+            self.main_list.DeleteAllItems()
             with open(open_file_dialog.GetPath(), 'rb') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
@@ -823,122 +830,140 @@ class MainPanel(wx.Panel):
 
     def read_config_file(self):
         """Reads the config file"""
-        os_type = os.name
-        if os_type == 'nt':
+        if os.name == 'nt':
             self.path = os.path.expanduser(
                                     '~\\Documents\\Magic_DXLink_Configurator\\')
         else:
             self.path = os.path.expanduser(
                                     '~/Documents/Magic_DXLink_Configurator/')
-        self.config = ConfigParser.RawConfigParser()
+        config = ConfigParser.RawConfigParser()
         try:  # read the settings file
-            self.config.read((self.path + "settings.txt"))
-            self.master_address = (self.config.get('Settings', 'default master address'))
-            self.device_number = (self.config.get('Settings', 'default device number'))
-            self.default_dhcp = (self.config.getboolean('Settings', 'default enable DHCP'))
-            self.thread_number = (self.config.get('Settings', 'number of threads'))
-            self.telnet_client = (self.config.get('Settings', 'telnet client executable'))
-            self.telnet_timeout_seconds = (self.config.get('Settings', 'telnet timeout in seconds'))
-            self.displaysuccess = (self.config.getboolean('Settings', 'display notification of successful connections'))
-            self.dhcp_sniffing = (self.config.getboolean('Settings', 'DHCP sniffing enabled'))
-            self.amx_only_filter = (self.config.getboolean('Settings', 'filter incoming DHCP for AMX only'))
-            self.play_sounds = (self.config.getboolean('Settings', 'play sounds'))
-            self.columns_config = (self.config.get('Config', 'columns_config'))
-        except:   # Make a new settings file, because we couldn't read the old one
-            self.createConfigFile()
+            config.read((self.path + "settings.txt"))
+            self.master_address = (config.get('Settings', 
+                                  'default master address'))
+            self.device_number = (config.get('Settings', 
+                                 'default device number'))
+            self.default_dhcp = (config.getboolean('Settings', 
+                                'default enable DHCP'))
+            self.thread_number = (config.get('Settings', 
+                                 'number of threads'))
+            self.telnet_client = (config.get('Settings', 
+                                 'telnet client executable'))
+            self.telnet_timeout_seconds = (config.get('Settings', 
+                                          'telnet timeout in seconds'))
+            self.displaysuccess = (config.getboolean('Settings', 
+                              'display notification of successful connections'))
+            self.dhcp_sniffing = (config.getboolean('Settings', 
+                                 'DHCP sniffing enabled'))
+            self.amx_only_filter = (config.getboolean('Settings', 
+                                   'filter incoming DHCP for AMX only'))
+            self.play_sounds = (config.getboolean('Settings', 
+                               'play sounds'))
+            self.columns_config = (config.get('Config', 'columns_config'))
+        except IOError:   
+            # Make a new settings file, because we couldn't read the old one
+            self.create_config_file()
             self.read_config_file()
         return
 
-    def createConfigFile(self):
+    def create_config_file(self):
+        """Creates a new config file"""
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         try:
             #os.path.exists(self.path + 'settings.txt'):
             os.remove(self.path + 'settings.txt')
-        except:
+        except IOError:
             pass
-        with open((self.path + "settings.txt"), 'w') as f:
-            f.write("")
-        self.config = ConfigParser.RawConfigParser()
-        self.config.add_section('Settings')
-        self.config.set('Settings', 'default master address', '192.168.1.1')
-        self.config.set('Settings', 'default device number', '10001')
-        self.config.set('Settings', 'default enable dhcp', True )
-        self.config.set('Settings', 'number of threads', 20 )
-        self.config.set('Settings', 'telnet client executable', ('puttytel.exe'))
-        self.config.set('Settings', 'telnet timeout in seconds', '4')
-        self.config.set('Settings', 'display notification of successful connections', True)
-        self.config.set('Settings', 'DHCP sniffing enabled', True)
-        self.config.set('Settings', 'filter incoming DHCP for AMX only', True)
-        self.config.set('Settings', 'play sounds', True)
-        self.config.add_section('Config')
-        self.config.set('Config', 'Columns are with a 1 are displayed. ', ' unless you know what your doing, please change these in the application')
-        self.config.set('Config', 'columns_config', '11111111110')
-        # Writing our configuration file to 'settings.txt'
+        with open((self.path + "settings.txt"), 'w') as config_file:
+            config_file.write("")
+        config = ConfigParser.RawConfigParser()
+        config.add_section('Settings')
+        config.set('Settings', 'default master address', '192.168.1.1')
+        config.set('Settings', 'default device number', '10001')
+        config.set('Settings', 'default enable dhcp', True)
+        config.set('Settings', 'number of threads', 20)
+        config.set('Settings', 'telnet client executable', ('puttytel.exe'))
+        config.set('Settings', 'telnet timeout in seconds', '4')
+        config.set('Settings', 
+                   'display notification of successful connections', True)
+        config.set('Settings', 'DHCP sniffing enabled', True)
+        config.set('Settings', 'filter incoming DHCP for AMX only', True)
+        config.set('Settings', 'play sounds', True)
+        config.add_section('Config')
+        config.set('Config', 'Columns are with a 1 are displayed. ', 
+                             'Unless you know what your doing, ' + 
+                             'please change these in the application')
+        config.set('Config', 'columns_config', '11111111110')
         with open((self.path + "settings.txt"), 'w') as configfile:
-            self.config.write(configfile)
+            config.write(configfile)
 
-    def writeConfigFile(self):
-        self.config = ConfigParser.RawConfigParser()
-        self.config.read((self.path + "settings.txt"))
-        self.config.set('Settings', 'default master address', self.master_address )
-        self.config.set('Settings', 'default device number', self.device_number )
-        self.config.set('Settings', 'default enable dhcp', self.default_dhcp)
-        self.config.set('Settings', 'number of threads', self.thread_number )
-        self.config.set('Settings', 'telnet client executable', self.telnet_client)
-        self.config.set('Settings', 'telnet timeout in seconds', self.telnet_timeout_seconds)
-        self.config.set('Settings', 'display notification of successful connections', self.displaysuccess)
-        self.config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
-        self.config.set('Settings', 'filter incoming DHCP for AMX only', self.amx_only_filter)
-        self.config.set('Settings', 'play sounds', self.play_sounds)
-        self.config.set('Config', 'columns_config', self.columns_config)
+    def write_config_file(self):
+        """Update values in config file"""
+        config = ConfigParser.RawConfigParser()
+        config.read((self.path + "settings.txt"))
+        config.set('Settings', 'default master address', self.master_address)
+        config.set('Settings', 'default device number', self.device_number)
+        config.set('Settings', 'default enable dhcp', self.default_dhcp)
+        config.set('Settings', 'number of threads', self.thread_number)
+        config.set('Settings', 'telnet client executable', self.telnet_client)
+        config.set('Settings', 'telnet timeout in seconds', 
+                    self.telnet_timeout_seconds)
+        config.set('Settings', 'display successful notifications',
+                    self.displaysuccess)
+        config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
+        config.set('Settings', 'filter incoming DHCP for AMX only', 
+                    self.amx_only_filter)
+        config.set('Settings', 'play sounds', self.play_sounds)
+        config.set('Config', 'columns_config', self.columns_config)
         with open((self.path + "settings.txt"), 'w') as configfile:
-                self.config.write(configfile)
+            config.write(configfile)
 
-    def setTitleBar(self, data=None):
+    def set_title_bar(self):
+        """Sets title bar text"""
         self.parent.SetTitle(self.name + " " + self.version)
 
-    def configureDevice( self, event):
+    def configure_device(self, _):
+        """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
-           return
-        self.staticItems = []
-        self.abort = False
+            return
         for obj in self.main_list.GetSelectedObjects():
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
             dia.Destroy()
             if self.abort == True:
-                #self.actionItems = []
+                self.abort = False
                 return
-        #self.actionItems = self.staticItems
-        #if self.actionItems != []:
-        #    self.display_progress()
 
-    def configurePrefs( self, event ):
+
+    def configure_prefs(self, _):
+        """Sets user Preferences"""
         dia = config_menus.PreferencesConfig(self)
         dia.ShowModal()
         dia.Destroy()
 
 
-    def loadDataPickle(self, data=None):
+    def load_data_pickle(self):
+        """Loads main list from data file"""
         if os.path.exists((self.path + 'data_store.pkl')):
             try:
-                objects = pickle.load(open((self.path + 'data_store.pkl'), 'rb'))
+                objects = pickle.load(open((self.path + 'data_store.pkl'),
+                                            'rb'))
                 self.main_list.SetObjects(objects)
-            except:
+            except IOError:
                 pass
-        self.main_list.SetSortColumn(0, resortNow = True)
+        self.main_list.SetSortColumn(0, resortNow=True)
 
-    def resizeFrame(self):
+    def resize_frame(self):
         """Resizes the Frame"""
         panel_width = 30
         for i in range(len(self.columns_config)):
-            columns_width = [90,130,130,100,130,150,80,80,60,100,80]
+            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80]
             if self.columns_config[i] == '1':
                 panel_width = panel_width + columns_width[i]
-        if panel_width <  400:
+        if panel_width < 400:
             panel_width = 400
-        self.parent.SetSize((panel_width,600))
+        self.parent.SetSize((panel_width, 600))
 
     def update_status_bar(self):
         """Updates the status bar."""
@@ -952,10 +977,12 @@ class MainPanel(wx.Panel):
         self.parent.status_bar.SetStatusText(self.master_address, 1)
         self.parent.status_bar.SetStatusText(self.device_number, 2)
 
-    def onClose(self, data=None):
+    def on_close(self, _):
+        """Close program if user closes window"""
         self.parent.Destroy()
 
-    def OnAboutBox(self, event):
+    def on_about_box(self, _):
+        """Show the About information"""
 
         description = """Magic DXLink Configurator is an tool for configuring
 DXLINK Devices. Features include a DHCP monitor,
@@ -994,17 +1021,15 @@ SOFTWARE."""
         info.AddDeveloper('Jim Maciejewski')
         wx.AboutBox(info)
 
-    def OnBeerBox(self, event):
+    def on_beer_box(self, _):
+        """ Buy me a beer! Yea!"""
         dlg = wx.MessageDialog(parent=self, message='If you enjoy this ' + \
                                'program \n Click Ok to Buy me a beer', \
                                caption='Buy me a beer', \
-                               style=wx.OK|wx.CANCEL)
+                               style=wx.OK)
         if dlg.ShowModal() == wx.ID_OK:
             url = 'http://ornear.com/give_a_beer'
-            # Open URL in a new tab, if a browser window is already open.
             webbrowser.open_new_tab(url)
-            # Open URL in new window, raising the window if possible.
-            #webbrowser.open_new(url)
         dlg.Destroy()
 
 
@@ -1017,9 +1042,9 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, parent=None, id=wx.ID_ANY, 
                           title=self.title_text, size=(1100, 600))
 
-        _ib = wx.IconBundle()
-        _ib.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
-        self.SetIcons(_ib)
+        icon_bundle = wx.IconBundle()
+        icon_bundle.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(icon_bundle)
         #self.SetIcon(icon.MDC_icon.GetIcon())
 
         menubar = wx.MenuBar()
@@ -1060,7 +1085,7 @@ class MainFrame(wx.Frame):
         edit_menu.AppendMenu(wx.ID_ANY, 'Select', select_menu)
 
         eitem = edit_menu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
-        self.Bind(wx.EVT_MENU, self.panel.configurePrefs, eitem)
+        self.Bind(wx.EVT_MENU, self.panel.configure_prefs, eitem)
 
         action_menu = wx.Menu()
 
@@ -1070,7 +1095,7 @@ class MainFrame(wx.Frame):
 
         aitem = action_menu.Append(wx.ID_ANY, 'Configure Device', \
                                    'Configure Devices Connection')
-        self.Bind(wx.EVT_MENU, self.panel.configureDevice, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.configure_device, aitem)
 
         aitem = action_menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.send_commands, aitem)
@@ -1088,7 +1113,7 @@ class MainFrame(wx.Frame):
         tools_menu = wx.Menu()
 
         titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
-        self.Bind(wx.EVT_MENU, self.panel.multiPing, titem)
+        self.Bind(wx.EVT_MENU, self.panel.multi_ping, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
         self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
@@ -1137,15 +1162,15 @@ class MainFrame(wx.Frame):
 
         help_menu = wx.Menu()
         hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
-        self.Bind(wx.EVT_MENU, self.panel.OnAboutBox, hitem)
+        self.Bind(wx.EVT_MENU, self.panel.on_about_box, hitem)
 
         hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        self.Bind(wx.EVT_MENU, self.panel.OnBeerBox, hitem)
+        self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
 
         menubar.Append(help_menu, '&Help')
 
         self.SetMenuBar(menubar)
-        self.Bind(wx.EVT_CLOSE, self.panel.onClose)
+        self.Bind(wx.EVT_CLOSE, self.panel.on_close)
 
         if self.panel.port_error:
             self.panel.port_errors()
@@ -1159,7 +1184,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.get_telnet_info, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Configure Device')
-        self.Bind(wx.EVT_MENU, self.panel.configureDevice, rcitem)
+        self.Bind(wx.EVT_MENU, self.panel.configure_device, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.send_commands, rcitem)
