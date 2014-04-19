@@ -303,9 +303,9 @@ class PreferencesConfig(wx.Dialog):
         self.parent.device_number = self.device_number.GetValue()
         self.parent.displaysuccess = self.success.GetValue()
         self.parent.play_sounds = self.sounds.GetValue()
-        self.parent.updateStatusBar()
+        self.parent.update_status_bar()
         self.parent.writeConfigFile()
-        self.parent.selectColumns()
+        self.parent.select_columns()
         self.parent.resizeFrame()
         self.Destroy()
 
