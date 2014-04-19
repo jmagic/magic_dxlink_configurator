@@ -1,258 +1,290 @@
+"""Menus for Magic DXLink Configurator"""
+
 import wx
-import datetime
 import csv
-from pydispatch import dispatcher
 
 class PreferencesConfig(wx.Dialog):
     def __init__(self, parent):
 
-        wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 
+                             pos=wx.DefaultPosition, size=wx.DefaultSize, 
+                             style=wx.DEFAULT_DIALOG_STYLE)
 
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         self.parent = parent
 
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bsizer1 = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer2 = wx.BoxSizer( wx.VERTICAL )
+        bsizer2 = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Preferences", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText1.Wrap( -1 )
-        bSizer2.Add( self.m_staticText1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
-
-
-        bSizer1.Add( bSizer2, 0, wx.EXPAND, 5 )
-
-        bSizer3 = wx.BoxSizer( wx.VERTICAL )
-
-        self.m_staticline1 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer3.Add( self.m_staticline1, 0, wx.ALL|wx.EXPAND, 5 )
+        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, u"Preferences", 
+                                        wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_statictext1.Wrap(-1)
+        bsizer2.Add(self.m_statictext1, 0, 
+                    wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
 
 
-        bSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer2, 0, wx.EXPAND, 5)
 
-        bSizer4 = wx.BoxSizer( wx.VERTICAL )
+        bsizer3 = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Master and Device Defaults", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText2.Wrap( -1 )
-        bSizer4.Add( self.m_staticText2, 0, wx.ALL, 5 )
-
-
-        bSizer1.Add( bSizer4, 0, wx.EXPAND, 5 )
-
-        bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
-
-        self.m_staticText4 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText4.Wrap( -1 )
-        bSizer6.Add( self.m_staticText4, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        self.master_address = wx.TextCtrl( self, wx.ID_ANY, self.parent.master_address, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer6.Add( self.master_address, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.m_staticline1 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
+                                           wx.DefaultSize, wx.LI_HORIZONTAL)
+        bsizer3.Add(self.m_staticline1, 0, wx.ALL|wx.EXPAND, 5)
 
 
-        bSizer1.Add( bSizer6, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer3, 0, wx.EXPAND, 5)
 
-        bSizer7 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer4 = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_staticText5 = wx.StaticText( self, wx.ID_ANY, u"Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText5.Wrap( -1 )
-        bSizer7.Add( self.m_staticText5, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-        self.device_number = wx.TextCtrl( self, wx.ID_ANY, self.parent.device_number, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer7.Add( self.device_number, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
-
-
-        bSizer1.Add( bSizer7, 0, wx.EXPAND, 5 )
-
-        bSizer8 = wx.BoxSizer( wx.VERTICAL )
-
-        self.m_staticline2 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer8.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
+        self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, 
+                                           u"Master and Device Defaults", 
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext2.Wrap(-1)
+        bsizer4.Add(self.m_statictext2, 0, wx.ALL, 5)
 
 
-        bSizer1.Add( bSizer8, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer4, 0, wx.EXPAND, 5)
 
-        bSizer9 = wx.BoxSizer( wx.VERTICAL )
+        bsizer6 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText6 = wx.StaticText( self, wx.ID_ANY, u"Notifications", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText6.Wrap( -1 )
-        bSizer9.Add( self.m_staticText6, 0, wx.ALL, 5 )
+        self.m_statictext4 = wx.StaticText(self, wx.ID_ANY, u"Master Address", 
+                                         wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_statictext4.Wrap(-1)
+        bsizer6.Add(self.m_statictext4, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
 
-
-        bSizer1.Add( bSizer9, 0, wx.EXPAND, 5 )
-
-        bSizer10 = wx.BoxSizer( wx.VERTICAL )
-
-        self.success = wx.CheckBox( self, wx.ID_ANY, u"Display Successful Connections", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.success.SetValue( self.parent.displaysuccess )
-        bSizer10.Add( self.success, 0, wx.ALL, 5 )
-
-        self.sounds = wx.CheckBox( self, wx.ID_ANY, u"Play Sounds", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.sounds.SetValue( self.parent.play_sounds )
-        bSizer10.Add( self.sounds, 0, wx.ALL, 5 )
-
-        bSizer1.Add( bSizer10, 0, wx.EXPAND, 5 )
-
-        bSizer11 = wx.BoxSizer( wx.VERTICAL )
-
-        self.m_staticline3 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer11.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
+        self.master_address = wx.TextCtrl(self, wx.ID_ANY, 
+                                          self.parent.master_address, 
+                                          wx.DefaultPosition, 
+                                          wx.DefaultSize, 0)
+        bsizer6.Add(self.master_address, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
 
 
-        bSizer1.Add( bSizer11, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer6, 0, wx.EXPAND, 5)
 
-        bSizer12 = wx.BoxSizer( wx.VERTICAL )
+        bsizer7 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText7 = wx.StaticText( self, wx.ID_ANY, u"Columns To Display", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText7.Wrap( -1 )
-        bSizer12.Add( self.m_staticText7, 0, wx.ALL, 5 )
+        self.m_statictext5 = wx.StaticText(self, wx.ID_ANY, u"Device Number",
+                                          wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_statictext5.Wrap(-1)
+        bsizer7.Add(self.m_statictext5, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+
+        self.device_number = wx.TextCtrl(self, wx.ID_ANY, 
+                                         self.parent.device_number, 
+                                         wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer7.Add(self.device_number, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
 
 
-        bSizer1.Add( bSizer12, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer7, 0, wx.EXPAND, 5)
 
-        bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer8 = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer22 = wx.BoxSizer( wx.VERTICAL )
+        self.m_staticline2 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, 
+                                            wx.DefaultSize, wx.LI_HORIZONTAL)
+        bsizer8.Add(self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5)
 
-        self.display_time = wx.CheckBox( self, wx.ID_ANY, u"Time", wx.DefaultPosition, wx.DefaultSize, 0 )
+
+        bsizer1.Add(bsizer8, 0, wx.EXPAND, 5)
+
+        bsizer9 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_statictext6 = wx.StaticText(self, wx.ID_ANY, u"Notifications",
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext6.Wrap(-1)
+        bsizer9.Add(self.m_statictext6, 0, wx.ALL, 5)
+
+
+        bsizer1.Add(bsizer9, 0, wx.EXPAND, 5)
+
+        bsizer10 = wx.BoxSizer(wx.VERTICAL)
+
+        self.success = wx.CheckBox(self, wx.ID_ANY, 
+                                   u"Display Successful Connections", 
+                                   wx.DefaultPosition, wx.DefaultSize, 0)
+        self.success.SetValue(self.parent.displaysuccess)
+        bsizer10.Add(self.success, 0, wx.ALL, 5)
+
+        self.sounds = wx.CheckBox(self, wx.ID_ANY, u"Play Sounds",
+                                  wx.DefaultPosition, wx.DefaultSize, 0)
+        self.sounds.SetValue(self.parent.play_sounds)
+        bsizer10.Add(self.sounds, 0, wx.ALL, 5)
+
+        bsizer1.Add(bsizer10, 0, wx.EXPAND, 5)
+
+        bsizer11 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_staticline3 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
+                                           wx.DefaultSize, wx.LI_HORIZONTAL)
+        bsizer11.Add(self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5)
+
+
+        bsizer1.Add(bsizer11, 0, wx.EXPAND, 5)
+
+        bsizer12 = wx.BoxSizer(wx.VERTICAL)
+
+        self.m_statictext7 = wx.StaticText(self, wx.ID_ANY, 
+                                           u"Columns To Display", 
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext7.Wrap(-1)
+        bsizer12.Add(self.m_statictext7, 0, wx.ALL, 5)
+
+
+        bsizer1.Add(bsizer12, 0, wx.EXPAND, 5)
+
+        bsizer13 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bsizer22 = wx.BoxSizer(wx.VERTICAL)
+
+        self.display_time = wx.CheckBox(self, wx.ID_ANY, u"Time", 
+                                        wx.DefaultPosition, wx.DefaultSize, 0)
         self.display_time.SetValue((int(self.parent.columns_config[0])))
-        bSizer22.Add( self.display_time, 0, wx.ALL, 5 )
+        bsizer22.Add(self.display_time, 0, wx.ALL, 5)
 
 
-        bSizer13.Add( bSizer22, 1, 0, 5 )
+        bsizer13.Add(bsizer22, 1, 0, 5)
 
-        bSizer23 = wx.BoxSizer( wx.VERTICAL )
+        bsizer23 = wx.BoxSizer(wx.VERTICAL)
 
-        self.display_model = wx.CheckBox( self, wx.ID_ANY, u"Model", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.display_model = wx.CheckBox(self, wx.ID_ANY, u"Model", 
+                                         wx.DefaultPosition, wx.DefaultSize, 0)
         self.display_model.SetValue((int(self.parent.columns_config[1])))
-        bSizer23.Add( self.display_model, 0, wx.ALL, 5 )
+        bsizer23.Add(self.display_model, 0, wx.ALL, 5)
 
 
-        bSizer13.Add( bSizer23, 1, 0, 5 )
+        bsizer13.Add(bsizer23, 1, 0, 5)
 
 
-        bSizer1.Add( bSizer13, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer13, 0, wx.EXPAND, 5)
 
-        bSizer14 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer14 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer24 = wx.BoxSizer( wx.VERTICAL )
+        bsizer24 = wx.BoxSizer(wx.VERTICAL)
 
-        self.display_mac = wx.CheckBox( self, wx.ID_ANY, u"MAC", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.display_mac = wx.CheckBox(self, wx.ID_ANY, u"MAC", 
+                                       wx.DefaultPosition, wx.DefaultSize, 0)
         self.display_mac.SetValue((int(self.parent.columns_config[2])))
-        bSizer24.Add( self.display_mac, 0, wx.ALL, 5 )
+        bsizer24.Add(self.display_mac, 0, wx.ALL, 5)
 
 
-        bSizer14.Add( bSizer24, 1, wx.EXPAND, 5 )
+        bsizer14.Add(bsizer24, 1, wx.EXPAND, 5)
 
-        bSizer25 = wx.BoxSizer( wx.VERTICAL )
+        bsizer25 = wx.BoxSizer(wx.VERTICAL)
 
-        self.display_ip = wx.CheckBox( self, wx.ID_ANY, u"IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.display_ip = wx.CheckBox(self, wx.ID_ANY, u"IP", 
+                                      wx.DefaultPosition, wx.DefaultSize, 0)
         self.display_ip.SetValue((int(self.parent.columns_config[3])))
-        bSizer25.Add( self.display_ip, 0, wx.ALL, 5 )
+        bsizer25.Add(self.display_ip, 0, wx.ALL, 5)
 
 
-        bSizer14.Add( bSizer25, 1, wx.EXPAND, 5 )
+        bsizer14.Add(bsizer25, 1, wx.EXPAND, 5)
 
 
-        bSizer1.Add( bSizer14, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer14, 0, wx.EXPAND, 5)
 
-        bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer15 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bSizer26 = wx.BoxSizer( wx.VERTICAL )
+        bsizer26 = wx.BoxSizer(wx.VERTICAL)
 
-        self.display_hostname = wx.CheckBox( self, wx.ID_ANY, u"Hostname", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.display_hostname = wx.CheckBox(self, wx.ID_ANY, u"Hostname",
+                                            wx.DefaultPosition, 
+                                            wx.DefaultSize, 0)
         self.display_hostname.SetValue((int(self.parent.columns_config[4])))
-        bSizer26.Add( self.display_hostname, 0, wx.ALL, 5 )
+        bsizer26.Add(self.display_hostname, 0, wx.ALL, 5)
 
 
-        bSizer15.Add( bSizer26, 1, wx.EXPAND, 5 )
+        bsizer15.Add(bsizer26, 1, wx.EXPAND, 5)
 
-        bSizer27 = wx.BoxSizer( wx.VERTICAL )
+        bsizer27 = wx.BoxSizer(wx.VERTICAL)
 
-        self.display_serial = wx.CheckBox( self, wx.ID_ANY, u"Serial Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.display_serial = wx.CheckBox(self, wx.ID_ANY, u"Serial Number",
+                                          wx.DefaultPosition, wx.DefaultSize, 0)
         self.display_serial.SetValue((int(self.parent.columns_config[5])))
-        bSizer27.Add( self.display_serial, 0, wx.ALL, 5 )
+        bsizer27.Add(self.display_serial, 0, wx.ALL, 5)
 
 
-        bSizer15.Add( bSizer27, 1, wx.EXPAND, 5 )
+        bsizer15.Add(bsizer27, 1, wx.EXPAND, 5)
 
 
-        bSizer1.Add( bSizer15, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer15, 0, wx.EXPAND, 5)
 
-        bSizer16 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer16 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer28 = wx.BoxSizer( wx.VERTICAL )
+        bsizer28 = wx.BoxSizer( wx.VERTICAL )
 
         self.display_firmware = wx.CheckBox( self, wx.ID_ANY, u"Firmware", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.display_firmware.SetValue((int(self.parent.columns_config[6])))
-        bSizer28.Add( self.display_firmware, 0, wx.ALL, 5 )
+        bsizer28.Add( self.display_firmware, 0, wx.ALL, 5 )
 
 
-        bSizer16.Add( bSizer28, 1, wx.EXPAND, 5 )
+        bsizer16.Add( bsizer28, 1, wx.EXPAND, 5 )
 
-        bSizer29 = wx.BoxSizer( wx.VERTICAL )
+        bsizer29 = wx.BoxSizer( wx.VERTICAL )
 
         self.display_device = wx.CheckBox( self, wx.ID_ANY, u"Device", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.display_device.SetValue((int(self.parent.columns_config[7])))
-        bSizer29.Add( self.display_device, 0, wx.ALL, 5 )
+        bsizer29.Add( self.display_device, 0, wx.ALL, 5 )
 
 
-        bSizer16.Add( bSizer29, 1, wx.EXPAND, 5 )
+        bsizer16.Add( bsizer29, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer16, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer16, 0, wx.EXPAND, 5 )
 
-        bSizer17 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer17 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer30 = wx.BoxSizer( wx.VERTICAL )
+        bsizer30 = wx.BoxSizer( wx.VERTICAL )
 
         self.display_static = wx.CheckBox( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.display_static.SetValue((int(self.parent.columns_config[8])))
-        bSizer30.Add( self.display_static, 0, wx.ALL, 5 )
+        bsizer30.Add( self.display_static, 0, wx.ALL, 5 )
 
 
-        bSizer17.Add( bSizer30, 1, wx.EXPAND, 5 )
+        bsizer17.Add( bsizer30, 1, wx.EXPAND, 5 )
 
-        bSizer31 = wx.BoxSizer( wx.VERTICAL )
+        bsizer31 = wx.BoxSizer( wx.VERTICAL )
 
         self.display_master = wx.CheckBox( self, wx.ID_ANY, u"Master", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.display_master.SetValue((int(self.parent.columns_config[9])))
-        bSizer31.Add( self.display_master, 0, wx.ALL, 5 )
+        bsizer31.Add( self.display_master, 0, wx.ALL, 5 )
 
 
-        bSizer17.Add( bSizer31, 1, wx.EXPAND, 5 )
+        bsizer17.Add( bsizer31, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer17, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer17, 0, wx.EXPAND, 5 )
 
-        bSizer20 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer20 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer32 = wx.BoxSizer( wx.VERTICAL )
+        bsizer32 = wx.BoxSizer( wx.VERTICAL )
 
         self.display_system = wx.CheckBox( self, wx.ID_ANY, u"System", wx.DefaultPosition, wx.DefaultSize, 0 )
         self.display_system.SetValue((int(self.parent.columns_config[10])))
-        bSizer32.Add( self.display_system, 0, wx.ALL, 5 )
+        bsizer32.Add( self.display_system, 0, wx.ALL, 5 )
 
 
-        bSizer20.Add( bSizer32, 1, wx.EXPAND, 5 )
+        bsizer20.Add( bsizer32, 1, wx.EXPAND, 5 )
 
-        bSizer33 = wx.BoxSizer( wx.VERTICAL )
-
-
-        bSizer20.Add( bSizer33, 1, wx.EXPAND, 5 )
+        bsizer33 = wx.BoxSizer( wx.VERTICAL )
 
 
-        bSizer1.Add( bSizer20, 0, wx.EXPAND, 5 )
+        bsizer20.Add( bsizer33, 1, wx.EXPAND, 5 )
 
-        bSizer21 = wx.BoxSizer( wx.VERTICAL )
+
+        bsizer1.Add( bsizer20, 0, wx.EXPAND, 5 )
+
+        bsizer21 = wx.BoxSizer( wx.VERTICAL )
 
         self.m_staticline4 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer21.Add( self.m_staticline4, 0, wx.EXPAND |wx.ALL, 5 )
+        bsizer21.Add( self.m_staticline4, 0, wx.EXPAND |wx.ALL, 5 )
 
 
-        bSizer1.Add( bSizer21, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer21, 0, wx.EXPAND, 5 )
 
-        bSizer34 = wx.BoxSizer( wx.VERTICAL )
+        bsizer34 = wx.BoxSizer( wx.VERTICAL )
 
         choice = wx.StdDialogButtonSizer()
         self.choiceOK = wx.Button( self, wx.ID_OK )
@@ -261,23 +293,23 @@ class PreferencesConfig(wx.Dialog):
         choice.AddButton( self.choiceCancel )
         choice.Realize();
 
-        bSizer34.Add( choice, 1, wx.EXPAND, 5 )
+        bsizer34.Add( choice, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer34, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer34, 0, wx.EXPAND, 5 )
 
-        bSizer35 = wx.BoxSizer( wx.VERTICAL )
+        bsizer35 = wx.BoxSizer( wx.VERTICAL )
 
         self.m_staticline5 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-        bSizer35.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
+        bsizer35.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
 
 
-        bSizer1.Add( bSizer35, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer35, 0, wx.EXPAND, 5 )
 
 
-        self.SetSizer( bSizer1 )
+        self.SetSizer( bsizer1 )
         self.Layout()
-        bSizer1.Fit( self )
+        bsizer1.Fit( self )
 
         self.Centre( wx.BOTH )
 
@@ -317,43 +349,43 @@ class DeviceConfig(wx.Dialog):
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bsizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Hostname", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText1.Wrap( -1 )
-        bSizer2.Add( self.m_staticText1, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+        self.m_statictext1 = wx.StaticText( self, wx.ID_ANY, u"Hostname", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext1.Wrap( -1 )
+        bsizer2.Add( self.m_statictext1, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
 
         self.hostname_txt = wx.TextCtrl( self, wx.ID_ANY, obj.hostname, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.hostname_txt.SetMinSize( wx.Size( 150,-1 ) )
 
-        bSizer2.Add( self.hostname_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bsizer2.Add( self.hostname_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        bSizer1.Add( bSizer2, 0, wx.TOP|wx.RIGHT|wx.LEFT|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        bsizer1.Add( bsizer2, 0, wx.TOP|wx.RIGHT|wx.LEFT|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer3 = wx.BoxSizer( wx.HORIZONTAL )
 
         self.dhcp_btn = wx.RadioButton( self, wx.ID_ANY, u"DHCP", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer3.Add( self.dhcp_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bsizer3.Add( self.dhcp_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         self.Bind(wx.EVT_RADIOBUTTON, self.OnDhcp, self.dhcp_btn)
 
         self.static_btn = wx.RadioButton( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer3.Add( self.static_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        bsizer3.Add( self.static_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
         self.Bind(wx.EVT_RADIOBUTTON, self.OnDhcp, self.static_btn)
 
-        bSizer1.Add( bSizer3, 1, wx.ALIGN_RIGHT|wx.RIGHT|wx.LEFT|wx.EXPAND, 5 )
+        bsizer1.Add( bsizer3, 1, wx.ALIGN_RIGHT|wx.RIGHT|wx.LEFT|wx.EXPAND, 5 )
 
-        sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"IP info" ), wx.VERTICAL )
+        sbsizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"IP info" ), wx.VERTICAL )
 
         fgSizer2 = wx.FlexGridSizer( 3, 2, 0, 0 )
         fgSizer2.SetFlexibleDirection( wx.BOTH )
         fgSizer2.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_staticText7 = wx.StaticText( self, wx.ID_ANY, u"IP Address", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText7.Wrap( -1 )
-        fgSizer2.Add( self.m_staticText7, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.m_statictext7 = wx.StaticText( self, wx.ID_ANY, u"IP Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext7.Wrap( -1 )
+        fgSizer2.Add( self.m_statictext7, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
         self.ip_address_txt = wx.TextCtrl( self, wx.ID_ANY, obj.ip, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.ip_address_txt.SetMinSize( wx.Size( 150,-1 ) )
@@ -379,29 +411,29 @@ class DeviceConfig(wx.Dialog):
         fgSizer2.Add( self.gateway_txt, 0, wx.ALL, 5 )
 
 
-        sbSizer1.Add( fgSizer2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        sbsizer1.Add( fgSizer2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
-        bSizer1.Add( sbSizer1, 0, wx.EXPAND|wx.ALL, 5 )
+        bsizer1.Add( sbsizer1, 0, wx.EXPAND|wx.ALL, 5 )
 
-        sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Master Info" ), wx.VERTICAL )
+        sbsizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Master Info" ), wx.VERTICAL )
 
         fgSizer3 = wx.FlexGridSizer( 2, 2, 0, 0 )
         fgSizer3.SetFlexibleDirection( wx.BOTH )
         fgSizer3.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-        self.m_staticText10 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText10.Wrap( -1 )
-        fgSizer3.Add( self.m_staticText10, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.m_statictext10 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext10.Wrap( -1 )
+        fgSizer3.Add( self.m_statictext10, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
         self.master_txt = wx.TextCtrl( self, wx.ID_ANY, obj.master, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.master_txt.SetMinSize( wx.Size( 150,-1 ) )
 
         fgSizer3.Add( self.master_txt, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        self.m_staticText11 = wx.StaticText( self, wx.ID_ANY, u"Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText11.Wrap( -1 )
-        fgSizer3.Add( self.m_staticText11, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.m_statictext11 = wx.StaticText( self, wx.ID_ANY, u"Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext11.Wrap( -1 )
+        fgSizer3.Add( self.m_statictext11, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
         self.device_txt = wx.TextCtrl( self, wx.ID_ANY, obj.device, wx.DefaultPosition, wx.DefaultSize, 0 )
         self.device_txt.SetMinSize( wx.Size( 150,-1 ) )
@@ -409,32 +441,32 @@ class DeviceConfig(wx.Dialog):
         fgSizer3.Add( self.device_txt, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        sbSizer2.Add( fgSizer3, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        sbsizer2.Add( fgSizer3, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 
-        bSizer1.Add( sbSizer2, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+        bsizer1.Add( sbsizer2, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
-        bSizer4 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer4 = wx.BoxSizer( wx.HORIZONTAL )
 
         self.set_btn = wx.Button( self, wx.ID_ANY, u"Set", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer4.Add( self.set_btn, 0, wx.ALL, 5 )
+        bsizer4.Add( self.set_btn, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.OnSet, self.set_btn)
 
         self.cancel_btn = wx.Button( self, wx.ID_ANY, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer4.Add( self.cancel_btn, 0, wx.ALL, 5 )
+        bsizer4.Add( self.cancel_btn, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancel_btn)
 
         self.abort_btn = wx.Button( self, wx.ID_ANY, u"Abort", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer4.Add( self.abort_btn, 0, wx.ALL, 5 )
+        bsizer4.Add( self.abort_btn, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.OnAbort, self.abort_btn)
 
 
-        bSizer1.Add( bSizer4, 0, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+        bsizer1.Add( bsizer4, 0, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 
 
-        self.SetSizer( bSizer1 )
+        self.SetSizer( bsizer1 )
         self.Layout()
-        bSizer1.Fit( self )
+        bsizer1.Fit( self )
 
         self.Centre( wx.BOTH )
 
@@ -532,78 +564,78 @@ class IpListGen(wx.Dialog):
 
         self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bsizer1 = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer2 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer2 = wx.BoxSizer( wx.HORIZONTAL )
 
         bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText1 = wx.StaticText( self, wx.ID_ANY, u"Starting IP", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText1.Wrap( -1 )
-        bSizer5.Add( self.m_staticText1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+        self.m_statictext1 = wx.StaticText( self, wx.ID_ANY, u"Starting IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext1.Wrap( -1 )
+        bSizer5.Add( self.m_statictext1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-        bSizer2.Add( bSizer5, 0, wx.EXPAND, 5 )
+        bsizer2.Add( bSizer5, 0, wx.EXPAND, 5 )
 
-        bSizer6 = wx.BoxSizer( wx.VERTICAL )
+        bsizer6 = wx.BoxSizer( wx.VERTICAL )
 
         self.start_ip = wx.TextCtrl( self, wx.ID_ANY, self.parent.master_address, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer6.Add( self.start_ip, 0, wx.ALL|wx.EXPAND, 5 )
+        bsizer6.Add( self.start_ip, 0, wx.ALL|wx.EXPAND, 5 )
 
 
-        bSizer2.Add( bSizer6, 1, wx.EXPAND, 5 )
+        bsizer2.Add( bsizer6, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer2, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer2, 0, wx.EXPAND, 5 )
 
-        bSizer3 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer3 = wx.BoxSizer( wx.HORIZONTAL )
 
-        bSizer7 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer7 = wx.BoxSizer( wx.HORIZONTAL )
 
-        self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Finishing IP", wx.DefaultPosition, wx.DefaultSize, 0 )
-        self.m_staticText2.Wrap( -1 )
-        bSizer7.Add( self.m_staticText2, 0, wx.ALL, 5 )
+        self.m_statictext2 = wx.StaticText( self, wx.ID_ANY, u"Finishing IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.m_statictext2.Wrap( -1 )
+        bsizer7.Add( self.m_statictext2, 0, wx.ALL, 5 )
 
 
-        bSizer3.Add( bSizer7, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+        bsizer3.Add( bsizer7, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        bSizer8 = wx.BoxSizer( wx.VERTICAL )
+        bsizer8 = wx.BoxSizer( wx.VERTICAL )
 
         self.finish_ip = wx.TextCtrl( self, wx.ID_ANY, self.parent.master_address, wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer8.Add( self.finish_ip, 1, wx.ALL|wx.EXPAND, 5 )
+        bsizer8.Add( self.finish_ip, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-        bSizer3.Add( bSizer8, 1, wx.EXPAND, 5 )
+        bsizer3.Add( bsizer8, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer3, 0, wx.EXPAND, 5 )
 
-        bSizer4 = wx.BoxSizer( wx.VERTICAL )
+        bsizer4 = wx.BoxSizer( wx.VERTICAL )
 
-        bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
+        bsizer9 = wx.BoxSizer( wx.HORIZONTAL )
 
         self.replace = wx.Button( self, wx.ID_ANY, u"Replace List", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer9.Add( self.replace, 0, wx.ALL, 5 )
+        bsizer9.Add( self.replace, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.on_replace, self.replace)
 
         self.add = wx.Button( self, wx.ID_ANY, u"Add to List", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer9.Add( self.add, 0, wx.ALL, 5 )
+        bsizer9.Add( self.add, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.on_add, self.add)
 
         self.save = wx.Button( self, wx.ID_ANY, u"Save as File", wx.DefaultPosition, wx.DefaultSize, 0 )
-        bSizer9.Add( self.save, 0, wx.ALL, 5 )
+        bsizer9.Add( self.save, 0, wx.ALL, 5 )
         self.Bind(wx.EVT_BUTTON, self.on_save, self.save)
 
 
-        bSizer4.Add( bSizer9, 1, wx.EXPAND, 5 )
+        bsizer4.Add( bsizer9, 1, wx.EXPAND, 5 )
 
 
-        bSizer1.Add( bSizer4, 1, wx.EXPAND, 5 )
+        bsizer1.Add( bsizer4, 1, wx.EXPAND, 5 )
 
 
-        self.SetSizer( bSizer1 )
+        self.SetSizer( bsizer1 )
         self.Layout()
-        bSizer1.Fit( self )
+        bsizer1.Fit( self )
 
         self.Centre( wx.BOTH )
 
