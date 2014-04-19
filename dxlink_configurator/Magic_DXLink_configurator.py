@@ -108,6 +108,8 @@ class MainPanel(wx.Panel):
         # Select columns displayed
         self.columns = []
 
+        self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
+                                         stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
                               ColumnDefn("MAC", "center", 130, "mac_address"),
                               ColumnDefn("IP", "center", 100, "ip_address"),
