@@ -478,7 +478,7 @@ class Telnetjobs(Thread):
                     mse = []
                     data = []
 
-        except IOError:
+        except:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
 
