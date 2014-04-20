@@ -598,7 +598,8 @@ class DeviceConfig(wx.Dialog):
         info = ['DeviceConfig',
                 self.obj,
                 self.parent.telnet_timeout_seconds,
-                setdhcp, str(self.hostname_txt.GetValue()),
+                setdhcp, 
+                str(self.hostname_txt.GetValue()),
                 str(self.ip_org),
                 str(self.ip_address_txt.GetValue()),
                 str(self.subnet_txt.GetValue()),
@@ -720,9 +721,9 @@ class IpListGen(wx.Dialog):
         """Adds to the bottom of the list"""
         self.gen_list()
         for item in self.data:
-            self.parent.main_list.AddObject(self.parent.makeUnit(
+            self.parent.main_list.AddObject(self.parent.make_unit(
                                             ('', '', str(item))))
-        self.parent.dumpPickle()
+        self.parent.dump_pickle()
         self.Destroy()
 
     def on_save(self, _):

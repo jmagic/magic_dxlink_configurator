@@ -978,6 +978,7 @@ class MainPanel(wx.Panel):
 
     def on_close(self, _):
         """Close program if user closes window"""
+        self.ping_active = False
         self.parent.Destroy()
 
     def on_about_box(self, _):
