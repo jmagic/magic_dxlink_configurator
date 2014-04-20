@@ -252,9 +252,8 @@ class MainPanel(wx.Panel):
                         ((count + 1), len(self.main_list.GetSelectedObjects())))
 
         dlg.Destroy()
-        self.main_list.RefreshObjects(self.main_list.GetSelectedObjects())
+        self.main_list.RefreshObject(self.main_list)
         self.dump_pickle()
-
         errortext = ""
         phil = " "
         
