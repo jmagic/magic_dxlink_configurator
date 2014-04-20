@@ -109,14 +109,15 @@ class Multi_Plot(wx.Dialog):
 
         self.SetSizer(bsizer1)
 
-        device_list = [obj]
-
         self.parent = parent
-        self.obj = obj
+        #self.obj = obj
         self.SetTitle('MSE values plotted over time ' + 
                        obj.ip_address + '  ' + obj.device)
-        self.plot_objects = []
-        self.set_objects(device_list)
+        self.plot_obj = PlotUnit(
+                                     [],
+                                     obj.ip_address,
+                                     obj.mac_address
+                                     )
         self.paused = False
         self.plot_length = int(plot_length)
         self.error = [False, '']
@@ -139,45 +140,33 @@ class Multi_Plot(wx.Dialog):
                                                           sender=dispatcher.Any)
 
 
-    def set_objects(self, device_list):
-        """Creates plot units"""
-        for obj in device_list:
-            data = [PlotUnit(
-                             [],
-                             obj.ip_address,
-                             obj.mac_address
-                             )]
-            self.plot_objects.append(data[0])
-
-
     def set_mse_data(self, mse_info):
         """Creates data units"""
-        data = [MSE_Data_Unit(
+        data = MSE_Data_Unit(
                                [mse_info[0].strftime('%H:%M:%S.%f')],
                                [int(mse_info[1][0])],
                                [int(mse_info[1][1])],
                                [int(mse_info[1][2])],
                                [int(mse_info[1][3])]
-                               )]
-        return data[0]
+                               )
+        return data
 
 
     def on_incoming_mse(self, sender):
         """Handle incoming MSE values"""
-        for obj in self.plot_objects:
+        if not self.paused:
+            if sender[2] == self.plot_obj.mac_address:
 
-            if not self.paused:
-                if sender[2] == obj.mac_address:
+                if self.plot_obj.mse_data == []:
+                    self.plot_obj.mse_data = self.set_mse_data(sender[0])
+                else:
+                    self.plot_obj.mse_data.mse_time.append(
+                                       sender[0][0].strftime('%H:%M:%S.%f')) 
+                    self.plot_obj.mse_data.data0.append(int(sender[0][1][0])) 
+                    self.plot_obj.mse_data.data1.append(int(sender[0][1][1]))
+                    self.plot_obj.mse_data.data2.append(int(sender[0][1][2]))
+                    self.plot_obj.mse_data.data3.append(int(sender[0][1][3]))
 
-                    if obj.mse_data == []:
-                        obj.mse_data = self.set_mse_data(sender[0])
-                    else:
-                        obj.mse_data.mse_time.append(
-                                           sender[0][0].strftime('%H:%M:%S.%f')) 
-                        obj.mse_data.data0.append(int(sender[0][1][0])) 
-                        obj.mse_data.data1.append(int(sender[0][1][1]))
-                        obj.mse_data.data2.append(int(sender[0][1][2]))
-                        obj.mse_data.data3.append(int(sender[0][1][3]))
 
     def on_telnet_error(self, sender):
         """Handle telnet error"""
@@ -329,134 +318,133 @@ class Multi_Plot(wx.Dialog):
     def draw_plot(self):
         """ Redraws the plot
         """
-        for obj in self.plot_objects:
 
-            if obj.mse_data == []:
-                break
-            length_control = self.length_control.slider.GetValue()
-            length_mse = len(obj.mse_data.data0)
-            if self.length_control.radio_auto.IsChecked(): 
-                if length_mse < length_control:
-                    end_point = length_control
-                else:
-                    end_point = len(obj.mse_data.data0)
-                start_point = end_point - length_control
+        if self.plot_obj.mse_data == []:
+            return
+        length_control = self.length_control.slider.GetValue()
+        length_mse = len(self.plot_obj.mse_data.data0)
+        if self.length_control.radio_auto.IsChecked(): 
+            if length_mse < length_control:
+                end_point = length_control
             else:
-                if length_mse < length_control:
-                    end_point = length_control
-                else:
-                    end_point = ((self.time_control.slider.GetValue() * 
-                                             length_mse / 100) + length_control)
-                    if end_point > length_mse:
-                        end_point = length_mse
-                start_point = end_point - length_control
-            if not self.time_control.radio_auto.IsChecked():
-
+                end_point = len(self.plot_obj.mse_data.data0)
+            start_point = end_point - length_control
+        else:
+            if length_mse < length_control:
+                end_point = length_control
+            else:
                 end_point = ((self.time_control.slider.GetValue() * 
-                                                len(obj.mse_data.data0)) / 100)
-                start_point = end_point - self.length_control.slider.GetValue()
-                if end_point < self.length_control.slider.GetValue():
-                    end_point = self.length_control.slider.GetValue()
-                    start_point = end_point - length_control
+                                         length_mse / 100) + length_control)
+                if end_point > length_mse:
+                    end_point = length_mse
+            start_point = end_point - length_control
+        if not self.time_control.radio_auto.IsChecked():
 
-            mse_time = obj.mse_data.mse_time[start_point:end_point]   
-            data0 = obj.mse_data.data0[start_point:end_point]
-            data1 = obj.mse_data.data1[start_point:end_point]
-            data2 = obj.mse_data.data2[start_point:end_point]
-            data3 = obj.mse_data.data3[start_point:end_point]
+            end_point = ((self.time_control.slider.GetValue() * 
+                                            len(self.plot_obj.mse_data.data0)) / 100)
+            start_point = end_point - self.length_control.slider.GetValue()
+            if end_point < self.length_control.slider.GetValue():
+                end_point = self.length_control.slider.GetValue()
+                start_point = end_point - length_control
+
+        mse_time = self.plot_obj.mse_data.mse_time[start_point:end_point]   
+        data0 = self.plot_obj.mse_data.data0[start_point:end_point]
+        data1 = self.plot_obj.mse_data.data1[start_point:end_point]
+        data2 = self.plot_obj.mse_data.data2[start_point:end_point]
+        data3 = self.plot_obj.mse_data.data3[start_point:end_point]
 
 
-            xmin = 0
-            xmax = self.length_control.slider.GetValue()
+        xmin = 0
+        xmax = self.length_control.slider.GetValue()
 
-            ymin = -4
-            ymax = -25
+        ymin = -4
+        ymax = -25
 
-            if not self.zoom_control.radio_auto.IsChecked():
-               
-                if self.level_control.radio_auto.IsChecked():
-                    ymax = ymax + self.zoom_control.slider.GetValue() 
-                else:
-                    ymax = (-25 + self.zoom_control.slider.GetValue() + 
-                                           self.level_control.slider.GetValue())
-                
-                if self.level_control.radio_auto.IsChecked():
-                    ymin = ymin + (self.zoom_control.slider.GetValue()*-1)
-                else:
-                    ymin = (-4 + (self.zoom_control.slider.GetValue()*-1) + 
-                                           self.level_control.slider.GetValue())
-
-            if not self.level_control.radio_auto.IsChecked():
-                ymax = ymax  + self.level_control.slider.GetValue()
-                ymin = ymin + self.level_control.slider.GetValue()
-
-            self.axes.set_xbound(lower=xmin, upper=xmax)
-            self.axes.set_ybound(lower=ymin, upper=ymax)
-
-            self.axes.grid(True, color='gray')
-
-            # Using setp here is convenient, because get_xticklabels
-            # returns a list over which one needs to explicitly
-            # iterate, and setp already handles this.
-            #
-            pylab.setp(self.axes.get_xticklabels(),
-               visible=True)
-
-            if self.cb_cha.IsChecked():
-                self.plot_data0.set_xdata(np.arange(len(data0)))
-                self.plot_data0.set_ydata(np.array(data0))
+        if not self.zoom_control.radio_auto.IsChecked():
+           
+            if self.level_control.radio_auto.IsChecked():
+                ymax = ymax + self.zoom_control.slider.GetValue() 
             else:
-                self.plot_data0.set_xdata([])
-                self.plot_data0.set_ydata([])
-
-            if self.cb_chb.IsChecked():
-                self.plot_data1.set_xdata(np.arange(len(data1)))
-                self.plot_data1.set_ydata(np.array(data1))
+                ymax = (-25 + self.zoom_control.slider.GetValue() + 
+                                       self.level_control.slider.GetValue())
+            
+            if self.level_control.radio_auto.IsChecked():
+                ymin = ymin + (self.zoom_control.slider.GetValue()*-1)
             else:
-                self.plot_data1.set_xdata([])
-                self.plot_data1.set_ydata([])
+                ymin = (-4 + (self.zoom_control.slider.GetValue()*-1) + 
+                                       self.level_control.slider.GetValue())
 
-            if self.cb_chc.IsChecked():
-                self.plot_data2.set_xdata(np.arange(len(data2)))
-                self.plot_data2.set_ydata(np.array(data2))
-            else:
-                self.plot_data2.set_xdata([])
-                self.plot_data2.set_ydata([])
+        if not self.level_control.radio_auto.IsChecked():
+            ymax = ymax  + self.level_control.slider.GetValue()
+            ymin = ymin + self.level_control.slider.GetValue()
 
-            if self.cb_chd.IsChecked():
-                self.plot_data3.set_xdata(np.arange(len(data3)))
-                self.plot_data3.set_ydata(np.array(data3))
-            else:
-                self.plot_data3.set_xdata([])
-                self.plot_data3.set_ydata([])
+        self.axes.set_xbound(lower=xmin, upper=xmax)
+        self.axes.set_ybound(lower=ymin, upper=ymax)
+
+        self.axes.grid(True, color='gray')
+
+        # Using setp here is convenient, because get_xticklabels
+        # returns a list over which one needs to explicitly
+        # iterate, and setp already handles this.
+        #
+        pylab.setp(self.axes.get_xticklabels(),
+           visible=True)
+
+        if self.cb_cha.IsChecked():
+            self.plot_data0.set_xdata(np.arange(len(data0)))
+            self.plot_data0.set_ydata(np.array(data0))
+        else:
+            self.plot_data0.set_xdata([])
+            self.plot_data0.set_ydata([])
+
+        if self.cb_chb.IsChecked():
+            self.plot_data1.set_xdata(np.arange(len(data1)))
+            self.plot_data1.set_ydata(np.array(data1))
+        else:
+            self.plot_data1.set_xdata([])
+            self.plot_data1.set_ydata([])
+
+        if self.cb_chc.IsChecked():
+            self.plot_data2.set_xdata(np.arange(len(data2)))
+            self.plot_data2.set_ydata(np.array(data2))
+        else:
+            self.plot_data2.set_xdata([])
+            self.plot_data2.set_ydata([])
+
+        if self.cb_chd.IsChecked():
+            self.plot_data3.set_xdata(np.arange(len(data3)))
+            self.plot_data3.set_ydata(np.array(data3))
+        else:
+            self.plot_data3.set_xdata([])
+            self.plot_data3.set_ydata([])
 
 
-            if self.cb_xlab.IsChecked():
-                labels = []
+        if self.cb_xlab.IsChecked():
+            labels = []
 
-                count = 0
-                for item in self.axes.get_xticklabels():
+            count = 0
+            for item in self.axes.get_xticklabels():
 
-                    count += 1
-                    if len(self.axes.get_xticklabels()) == count:
-                        break
-                    item.set_rotation(35)
+                count += 1
+                if len(self.axes.get_xticklabels()) == count:
+                    break
+                item.set_rotation(35)
 
-                    try:
-                        labels.append(mse_time[int(item.get_position()
-                                                                     [0])][:-4])
-                    except BaseException:
-                        pass
+                try:
+                    labels.append(mse_time[int(item.get_position()
+                                                                 [0])][:-4])
+                except BaseException:
+                    pass
 
 
-                self.axes.set_xticklabels(labels)
-            else:
-                labels = []
-
-                for item in self.axes.get_xticklabels():
-                    item.set_rotation(35)
-                    labels.append(int(item.get_position()[0]) + start_point)
             self.axes.set_xticklabels(labels)
+        else:
+            labels = []
+
+            for item in self.axes.get_xticklabels():
+                item.set_rotation(35)
+                labels.append(int(item.get_position()[0]) + start_point)
+        self.axes.set_xticklabels(labels)
         self.canvas.draw()
 
     def on_pause_button(self, _):
@@ -493,7 +481,7 @@ class Multi_Plot(wx.Dialog):
             datapath = datapath + ".csv"
             with open(datapath, 'wb') as plot_file:
                 writer_csv = csv.writer(plot_file, quoting=csv.QUOTE_ALL)
-                for obj in self.plot_objects:
+                for obj in self.plot_object:
                     writer_csv.writerow(['Time', 'ChA', 'ChB', 'ChC', 'ChD', 
                                     self.obj.ip, self.obj.mac, self.obj.device])
                     for i in range(len(obj.mse_data.mse_time)):
@@ -509,11 +497,12 @@ class Multi_Plot(wx.Dialog):
     def on_redraw_timer(self, _):
         """Update plot when timer expires"""
 
-        if self.error[0] and self.obj.mac_address == self.error[1]:
+        if self.error[0] and self.plot_obj.mac_address == self.error[1]:
             self.redraw_timer.Stop()
             dlg = wx.MessageDialog(parent=self, 
-                      message='No connection to device ' + self.obj.ip_address,
-                      caption='No %s' % self.obj.ip_address,
+                      message='No connection to device ' + 
+                      self.plot_obj.ip_address,
+                      caption='No %s' % self.plot_obj.ip_address,
                       style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -525,8 +514,8 @@ class Multi_Plot(wx.Dialog):
     def on_close(self, _):
         """User closes the plot window"""
         self.redraw_timer.Stop()
-        self.parent.mse_active_list.remove(self.obj.mac_address)
-        self.obj.mse_data = []
+        self.parent.mse_active_list.remove(self.plot_obj.mac_address)
+        self.plot_obj.mse_data = []
         self.Destroy()
 
 
