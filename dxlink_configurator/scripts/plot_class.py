@@ -1,49 +1,40 @@
-
+"""Plots MSE values over time"""
 import wx
-
 from pydispatch import dispatcher
-
-import matplotlib
-#matplotlib.use('WXAgg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import \
-    FigureCanvasWxAgg as FigCanvas, \
-    NavigationToolbar2WxAgg as NavigationToolbar
+    FigureCanvasWxAgg as FigCanvas
 import numpy as np
 import pylab
 import datetime
 import csv
-from ObjectListView import ObjectListView, ColumnDefn
 
 class PlotUnit(object):
     """
     Model of the Plot Unit
-
     Contains the following attributes:
     'hostname','serial','firmware','device','mac','time'
     """
     #----------------------------------------------------------------------
-    def __init__(self, mse_data, ip, mac):
+    def __init__(self, mse_data, ip_address, mac_address):
 
         self.mse_data = mse_data
-        self.ip = ip
-        self.mac = mac
+        self.ip_address = ip_address
+        self.mac_address = mac_address
 
 class MSE_Data_Unit(object):
     """
     Model of the MSE_Data_Unit
-
     Contains the following attributes:
     mse_time,mse_data0,mse_data1,mse_data2,mse_data3"""
     #----------------------------------------------------------------------
-    def __init__(self, mse_time, mse_data0, mse_data1, mse_data2, mse_data3 ):
+    def __init__(self, mse_time, mse_data0, mse_data1, mse_data2, mse_data3):
 
         self.mse_time = mse_time
         self.data0 = mse_data0
         self.data1 = mse_data1
         self.data2 = mse_data2
         self.data3 = mse_data3
-
 
 class BoundControlBox(wx.Panel):
 
@@ -53,25 +44,36 @@ class BoundControlBox(wx.Panel):
         self.initval = initval
         direction = wx.VERTICAL if initval[3] else wx.HORIZONTAL
 
-        sbSizer = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, label ), direction )
+        sbsizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, label),
+                                                                      direction)
 
         direction = wx.SL_HORIZONTAL if initval[3] else wx.SL_VERTICAL
 
-        self.slider = wx.Slider( self, wx.ID_ANY, initval[0], initval[1], initval[2], wx.DefaultPosition, wx.Size(initval[4], -1), direction | wx.SL_LABELS | wx.SL_AUTOTICKS )
-        self.slider.SetTickFreq(((abs(initval[1])+abs(initval[2]))/10),1)  #absolute value to deal with negitive numbers
+        self.slider = wx.Slider(self, wx.ID_ANY, 
+                                initval[0], 
+                                initval[1], 
+                                initval[2], 
+                                wx.DefaultPosition, 
+                                wx.Size(initval[4], -1), 
+                                direction | 
+                                wx.SL_LABELS | 
+                                wx.SL_AUTOTICKS)
+        self.slider.SetTickFreq(((abs(initval[1]) + abs(initval[2]))/10), 1)
         self.slider.Disable()
-        sbSizer.Add( self.slider, 0, wx.ALL, 5 )
+        sbsizer.Add(self.slider, 0, wx.ALL, 5)
 
-        self.radio_auto = wx.CheckBox( self, wx.ID_ANY, u"Auto", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.radio_auto = wx.CheckBox(self, wx.ID_ANY, u"Auto", 
+                                         wx.DefaultPosition, wx.DefaultSize, 0)
         self.radio_auto.SetValue(True)
-        sbSizer.Add( self.radio_auto, 0, wx.ALL, 5 )
-        self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.radio_auto )
+        sbsizer.Add(self.radio_auto, 0, wx.ALL, 5)
+        self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.radio_auto)
 
-        self.SetSizer( sbSizer )
+        self.SetSizer(sbsizer)
         self.Layout()
-        sbSizer.Fit( self )
+        sbsizer.Fit(self)
 
-    def on_checkbox(self, event):
+    def on_checkbox(self, _):
+        """Enable disable slider"""
         if self.radio_auto.GetValue():
             self.slider.SetValue(self.initval[0])
             self.slider.Disable()
@@ -79,66 +81,77 @@ class BoundControlBox(wx.Panel):
             self.slider.Enable()
 
 
-class Multi_Plot ( wx.Dialog ):
+class Multi_Plot(wx.Dialog):
 
-    def __init__( self, parent, obj, plot_length ):
+    def __init__(self, parent, obj, plot_length):
 
-        wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 600,800 ), style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER )
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 
+                           pos=wx.DefaultPosition, size=wx.Size(600, 800), 
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
-        self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
-        bSizer1 = wx.BoxSizer( wx.VERTICAL )
+        bsizer1 = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer3 = wx.BoxSizer( wx.VERTICAL )
+        bsizer3 = wx.BoxSizer(wx.VERTICAL)
 
-        self.panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,-1 ), wx.TAB_TRAVERSAL )
-        self.bSizer10 = wx.BoxSizer( wx.VERTICAL )
+        self.panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, 
+                                    wx.Size(-1, -1), wx.TAB_TRAVERSAL)
+        self.bsizer10 = wx.BoxSizer(wx.VERTICAL)
 
 
-        self.panel.SetSizer( self.bSizer10 )
+        self.panel.SetSizer(self.bsizer10)
         self.panel.Layout()
-        self.bSizer10.Fit( self.panel )
-        bSizer3.Add( self.panel, 1, wx.EXPAND |wx.ALL, 5 )
+        self.bsizer10.Fit(self.panel)
+        bsizer3.Add(self.panel, 1, wx.EXPAND |wx.ALL, 5)
 
-        bSizer1.Add( bSizer3, 0, wx.EXPAND, 5 )
+        bsizer1.Add(bsizer3, 0, wx.EXPAND, 5)
 
-        self.SetSizer( bSizer1 )
+        self.SetSizer(bsizer1)
 
         device_list = [obj]
 
         self.parent = parent
         self.obj = obj
-        self.SetTitle('MSE values plotted over time ' + obj.ip_address + '  ' + obj.device)
-        self.plotObjects = []
+        self.SetTitle('MSE values plotted over time ' + 
+                       obj.ip_address + '  ' + obj.device)
+        self.plot_objects = []
         self.set_objects(device_list)
         self.paused = False
-        self.threadNumber = ''
         self.plot_length = int(plot_length)
-
         self.error = [False, '']
-
+        self.canvas = None
+        self.length_control = None
+        self.time_control = None
+        self.zoom_control = None
+        self.level_control = None
+        self.pause_button = None
+        self.save_plot = None
+        self.dpi = 100
         self.create_main_panel()
-
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.redraw_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
-        self.redraw_timer.Start((200+(100*(len(self.parent.mse_active_list))))) #slow refresh as multiple units are added
-
-        dispatcher.connect(self.on_telnet_error, signal="MSE error", sender=dispatcher.Any)
-        dispatcher.connect(self.on_incoming_mse, signal="Incoming MSE", sender=dispatcher.Any)
+        self.redraw_timer.Start((200+(100*(len(self.parent.mse_active_list)))))
+        dispatcher.connect(self.on_telnet_error, signal="MSE error", 
+                                                          sender=dispatcher.Any)
+        dispatcher.connect(self.on_incoming_mse, signal="Incoming MSE", 
+                                                          sender=dispatcher.Any)
 
 
     def set_objects(self, device_list):
+        """Creates plot units"""
         for obj in device_list:
             data = [PlotUnit(
                              [],
                              obj.ip_address,
                              obj.mac_address
                              )]
-            self.plotObjects.append(data[0])
+            self.plot_objects.append(data[0])
 
 
     def set_mse_data(self, mse_info):
+        """Creates data units"""
         data = [MSE_Data_Unit(
                                [mse_info[0].strftime('%H:%M:%S.%f')],
                                [int(mse_info[1][0])],
@@ -146,13 +159,12 @@ class Multi_Plot ( wx.Dialog ):
                                [int(mse_info[1][2])],
                                [int(mse_info[1][3])]
                                )]
-        return(data[0])
+        return data[0]
 
 
     def on_incoming_mse(self, sender):
-
-        #print sender
-        for obj in self.plotObjects:
+        """Handle incoming MSE values"""
+        for obj in self.plot_objects:
 
             if not self.paused:
                 if sender[2] == obj.mac_address:
@@ -160,35 +172,36 @@ class Multi_Plot ( wx.Dialog ):
                     if obj.mse_data == []:
                         obj.mse_data = self.set_mse_data(sender[0])
                     else:
-                        obj.mse_data.mse_time.append(sender[0][0].strftime('%H:%M:%S.%f')) # an array of time
-                        obj.mse_data.data0.append(int(sender[0][1][0])) #combine first data points into data0
+                        obj.mse_data.mse_time.append(
+                                           sender[0][0].strftime('%H:%M:%S.%f')) 
+                        obj.mse_data.data0.append(int(sender[0][1][0])) 
                         obj.mse_data.data1.append(int(sender[0][1][1]))
                         obj.mse_data.data2.append(int(sender[0][1][2]))
                         obj.mse_data.data3.append(int(sender[0][1][3]))
 
-    '''def open_archive(self, archive):
-        with open'''
-
     def on_telnet_error(self, sender):
-
-        self.error = [True , sender]
+        """Handle telnet error"""
+        self.error = [True, sender]
 
     def create_main_panel(self):
-
+        """Creates the main panel"""
         self.init_plot()
-
         self.canvas = FigCanvas(self.panel, -1, self.fig)
-
-        self.length_control = BoundControlBox(self.panel, -1, "Length", [1500,150,1500,1,250]) # initval = [ default, min, max, direction 0=hoz 1=vert lenght of slider in px]
-        self.time_control = BoundControlBox(self.panel, -1, "Time", [100,0,100,1,250])
-        #self.time_control.slider.SetThumbLength(100)
-        self.zoom_control = BoundControlBox(self.panel, -1, "Vertical zoom", [0,0,10,1,150])
-
-        self.level_control = BoundControlBox(self.panel, -1, "Vertical level", [0,-17,15,1,150])
+        # initval = [ default, min, max, direction 0=hoz 1=vert 
+        # lenght of slider in px]
+        self.length_control = BoundControlBox(self.panel, -1, "Length", 
+                                                [1500, 150, 1500, 1, 250]) 
+        self.time_control = BoundControlBox(self.panel, -1, "Time", 
+                                                    [100, 0, 100, 1, 250])
+        self.zoom_control = BoundControlBox(self.panel, -1, "Vertical zoom", 
+                                                       [0, 0, 10, 1, 150])
+        self.level_control = BoundControlBox(self.panel, -1, "Vertical level", 
+                                                       [0, -17, 15, 1, 150])
 
         self.pause_button = wx.Button(self.panel, -1, "Pause")
         self.Bind(wx.EVT_BUTTON, self.on_pause_button, self.pause_button)
-        self.Bind(wx.EVT_UPDATE_UI, self.on_update_pause_button, self.pause_button)
+        self.Bind(wx.EVT_UPDATE_UI, self.on_update_pause_button, 
+                                                              self.pause_button)
 
         self.save_plot = wx.Button(self.panel, -1, "Save")
         self.Bind(wx.EVT_BUTTON, self.on_save_plot, self.save_plot)
@@ -223,25 +236,26 @@ class Multi_Plot ( wx.Dialog ):
         self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.cb_chd)
         self.cb_chd.SetValue(True)
 
-        #self.slider = wx.Slider(self.panel, -1, 750, 1, 1500,
-        #    size=(250, -1),
-        #    style= wx.ALIGN_RIGHT | wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS  )
-        #self.slider.SetTickFreq(5,1)
-        #self.Bind(wx.EVT_CHECKBOX, self.on_cb, self.slider)
-
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox1.Add(self.pause_button, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-        self.hbox1.Add(self.save_plot, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.pause_button, border=5, flag=wx.ALL |
+                                                       wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.save_plot, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(20)
-        self.hbox1.Add(self.cb_xlab, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.cb_xlab, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(10)
-        self.hbox1.Add(self.cb_cha, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.cb_cha, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(10)
-        self.hbox1.Add(self.cb_chb, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.cb_chb, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(10)
-        self.hbox1.Add(self.cb_chc, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.cb_chc, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(10)
-        self.hbox1.Add(self.cb_chd, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.Add(self.cb_chd, border=5, flag=wx.ALL | 
+                                                       wx.ALIGN_CENTER_VERTICAL)
 
 
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -250,10 +264,10 @@ class Multi_Plot ( wx.Dialog ):
         self.hbox2.Add(self.zoom_control, border=5, flag=wx.ALL)
         self.hbox2.Add(self.level_control, border=5, flag=wx.ALL)
 
-        self.bSizer10.Add(self.canvas, -1, flag=wx.ALL|wx.EXPAND)
+        self.bsizer10.Add(self.canvas, -1, flag=wx.ALL|wx.EXPAND)
 
         self.vbox = wx.BoxSizer(wx.VERTICAL)
-        self.vbox.Add(self.canvas, 1, flag=wx.ALL|wx.EXPAND )
+        self.vbox.Add(self.canvas, 1, flag=wx.ALL|wx.EXPAND)
         self.vbox.Add(self.hbox1, 0, flag=wx.ALIGN_LEFT | wx.TOP)
         self.vbox.Add(self.hbox2, 0, flag=wx.ALIGN_LEFT | wx.TOP)
 
@@ -262,10 +276,10 @@ class Multi_Plot ( wx.Dialog ):
 
 
     def init_plot(self):
-        self.dpi = 100
+        """Set up the plot"""
         self.fig = Figure((10.0, 3.5), dpi=self.dpi)
-        self.fig.subplotpars.update(bottom = .20)
-        self.axes = self.fig.add_subplot(111,  adjustable = 'box')
+        self.fig.subplotpars.update(bottom=.20)
+        self.axes = self.fig.add_subplot(111, adjustable='box')
         self.axes.set_axis_bgcolor('black')
 
         pylab.setp(self.axes.get_xticklabels(), fontsize=8)
@@ -296,10 +310,14 @@ class Multi_Plot ( wx.Dialog ):
             color=("orange"),
             )[0]
 
-        legend = self.fig.legend([self.plot_data0,self.plot_data1,self.plot_data2,self.plot_data3],
-                                 ['ChA','ChB','ChC','ChD'],'upper center',ncol=4,bbox_to_anchor=(0, 0, 1, 1), borderaxespad=0.)
+        legend = self.fig.legend([self.plot_data0, self.plot_data1, 
+                                  self.plot_data2, self.plot_data3],
+                                 ['ChA', 'ChB', 'ChC', 'ChD'], 'upper center', 
+                                 ncol=4, bbox_to_anchor=(0, 0, 1, 1), 
+                                 borderaxespad=0.)
         box = self.axes.get_position()
-        self.axes.set_position([box.x0 - box.width * .11 , box.y0, box.width * 1.2, box.height])
+        self.axes.set_position([box.x0 - box.width * .11, box.y0, 
+                                box.width * 1.2, box.height])
         frame = legend.get_frame()
         frame.set_facecolor('0.90')
         for label in legend.get_texts():
@@ -311,34 +329,37 @@ class Multi_Plot ( wx.Dialog ):
     def draw_plot(self):
         """ Redraws the plot
         """
-        for obj in self.plotObjects:
+        for obj in self.plot_objects:
 
             if obj.mse_data == []:
                 break
-
-            if self.length_control.radio_auto.IsChecked():
-
-                end_point = self.length_control.slider.GetValue() if len(obj.mse_data.data0) < self.length_control.slider.GetValue() else len(obj.mse_data.data0)
-                start_point = end_point - self.length_control.slider.GetValue()
-            else:
-                if len(obj.mse_data.data0) < self.length_control.slider.GetValue():
-                    end_point =  self.length_control.slider.GetValue()
+            length_control = self.length_control.slider.GetValue()
+            length_mse = len(obj.mse_data.data0)
+            if self.length_control.radio_auto.IsChecked(): 
+                if length_mse < length_control:
+                    end_point = length_control
                 else:
-                    end_point = ((self.time_control.slider.GetValue() * len(obj.mse_data.data0)) / 100) + self.length_control.slider.GetValue()
-                    if end_point > len(obj.mse_data.data0):
-                        end_point = len(obj.mse_data.data0)
-
-                start_point = end_point - self.length_control.slider.GetValue()
+                    end_point = len(obj.mse_data.data0)
+                start_point = end_point - length_control
+            else:
+                if length_mse < length_control:
+                    end_point = length_control
+                else:
+                    end_point = ((self.time_control.slider.GetValue() * 
+                                             length_mse / 100) + length_control)
+                    if end_point > length_mse:
+                        end_point = length_mse
+                start_point = end_point - length_control
             if not self.time_control.radio_auto.IsChecked():
 
-                end_point = ((self.time_control.slider.GetValue() * len(obj.mse_data.data0)) / 100)
+                end_point = ((self.time_control.slider.GetValue() * 
+                                                len(obj.mse_data.data0)) / 100)
                 start_point = end_point - self.length_control.slider.GetValue()
                 if end_point < self.length_control.slider.GetValue():
                     end_point = self.length_control.slider.GetValue()
-                    start_point = end_point - self.length_control.slider.GetValue()
+                    start_point = end_point - length_control
 
-
-            mse_time = obj.mse_data.mse_time[start_point:end_point]   #only get the number of plot points we will be ploting
+            mse_time = obj.mse_data.mse_time[start_point:end_point]   
             data0 = obj.mse_data.data0[start_point:end_point]
             data1 = obj.mse_data.data1[start_point:end_point]
             data2 = obj.mse_data.data2[start_point:end_point]
@@ -352,8 +373,18 @@ class Multi_Plot ( wx.Dialog ):
             ymax = -25
 
             if not self.zoom_control.radio_auto.IsChecked():
-                ymax = ymax + self.zoom_control.slider.GetValue() if self.level_control.radio_auto.IsChecked() else -25 + self.zoom_control.slider.GetValue() + self.level_control.slider.GetValue()
-                ymin = ymin + (self.zoom_control.slider.GetValue()*-1) if self.level_control.radio_auto.IsChecked() else -4 + (self.zoom_control.slider.GetValue()*-1) + self.level_control.slider.GetValue()
+               
+                if self.level_control.radio_auto.IsChecked():
+                    ymax = ymax + self.zoom_control.slider.GetValue() 
+                else:
+                    ymax = (-25 + self.zoom_control.slider.GetValue() + 
+                                           self.level_control.slider.GetValue())
+                
+                if self.level_control.radio_auto.IsChecked():
+                    ymin = ymin + (self.zoom_control.slider.GetValue()*-1)
+                else:
+                    ymin = (-4 + (self.zoom_control.slider.GetValue()*-1) + 
+                                           self.level_control.slider.GetValue())
 
             if not self.level_control.radio_auto.IsChecked():
                 ymax = ymax  + self.level_control.slider.GetValue()
@@ -412,8 +443,9 @@ class Multi_Plot ( wx.Dialog ):
                     item.set_rotation(35)
 
                     try:
-                        labels.append(mse_time[int(item.get_position()[0])][:-4])
-                    except:
+                        labels.append(mse_time[int(item.get_position()
+                                                                     [0])][:-4])
+                    except BaseException:
                         pass
 
 
@@ -422,33 +454,35 @@ class Multi_Plot ( wx.Dialog ):
                 labels = []
 
                 for item in self.axes.get_xticklabels():
-                        item.set_rotation(35)
-                        labels.append(int(item.get_position()[0]) + start_point)
-
-
+                    item.set_rotation(35)
+                    labels.append(int(item.get_position()[0]) + start_point)
             self.axes.set_xticklabels(labels)
         self.canvas.draw()
 
-    def on_pause_button(self, event):
+    def on_pause_button(self, _):
+        """User pushes pause"""
         self.paused = not self.paused
 
-
-    def on_update_pause_button(self, event):
+    def on_update_pause_button(self, _):
+        """Label button resume"""
         label = "Resume" if self.paused else "Pause"
         self.pause_button.SetLabel(label)
 
-    def on_cb(self, event):
+    def on_cb(self, _):
+        """User clicks check box"""
         self.draw_plot()
 
 
-    def on_save_plot(self, event):
+    def on_save_plot(self, _):
+        """Save plot to a file"""
         file_choices = "PNG (*.png)|*.png"
-        name = 'device_' + self.obj.device + '_time_' + datetime.datetime.now().strftime('%H_%M_%S')
+        name = ('device_' + self.obj.device + '_time_' + 
+                                   datetime.datetime.now().strftime('%H_%M_%S'))
         dlg = wx.FileDialog(
             self,
             message="Save plot as...",
             defaultDir=self.parent.path,
-            defaultFile= name,
+            defaultFile=name,
             wildcard=file_choices,
             style=wx.SAVE)
 
@@ -457,10 +491,11 @@ class Multi_Plot ( wx.Dialog ):
             self.canvas.print_figure(path, dpi=self.dpi)
             datapath = dlg.GetPath()[:-4]
             datapath = datapath + ".csv"
-            with open(datapath, 'wb') as f:
-                w = csv.writer(f, quoting=csv.QUOTE_ALL)
-                for obj in self.plotObjects:
-                    w.writerow(['Time','ChA','ChB','ChC','ChD', self.obj.ip, self.obj.mac, self.obj.device])
+            with open(datapath, 'wb') as plot_file:
+                writer_csv = csv.writer(plot_file, quoting=csv.QUOTE_ALL)
+                for obj in self.plot_objects:
+                    writer_csv.writerow(['Time', 'ChA', 'ChB', 'ChC', 'ChD', 
+                                    self.obj.ip, self.obj.mac, self.obj.device])
                     for i in range(len(obj.mse_data.mse_time)):
 
                         row = []
@@ -469,27 +504,26 @@ class Multi_Plot ( wx.Dialog ):
                         row.append(str(obj.mse_data.data1[i]))
                         row.append(str(obj.mse_data.data2[i]))
                         row.append(str(obj.mse_data.data3[i]))
-                        w.writerow(row)
+                        writer_csv.writerow(row)
 
-    def on_redraw_timer(self, sender):
-        # if paused do not add data, but still redraw the plot
-        # (to respond to scale modifications, grid change, etc.)
+    def on_redraw_timer(self, _):
+        """Update plot when timer expires"""
 
         if self.error[0] and self.obj.mac_address == self.error[1]:
             self.redraw_timer.Stop()
-            dlg = wx.MessageDialog(parent=self, message= 'No connection to device ' + self.obj.ip_address,
-                                       caption = 'No %s' % self.obj.ip_address,
-                                       style = wx.OK
-                                       )
+            dlg = wx.MessageDialog(parent=self, 
+                      message='No connection to device ' + self.obj.ip_address,
+                      caption='No %s' % self.obj.ip_address,
+                      style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
-            #self.on_close(None)
             self.error[0] = False
         #if not self.paused:
         self.draw_plot()
 
 
-    def on_close(self, event):
+    def on_close(self, _):
+        """User closes the plot window"""
         self.redraw_timer.Stop()
         self.parent.mse_active_list.remove(self.obj.mac_address)
         self.obj.mse_data = []

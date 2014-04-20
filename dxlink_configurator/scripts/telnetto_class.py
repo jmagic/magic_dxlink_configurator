@@ -1,8 +1,11 @@
+"""Opens a subprocess to launch the telnet client"""
+
 import threading 
 import subprocess
 import os
 
-class telnet_to_thread(threading.Thread):
+class TelnetToThread(threading.Thread):
+    """Telnet to thread"""
 
     def __init__(self, parent, queue):
         threading.Thread.__init__(self)
@@ -20,7 +23,4 @@ class telnet_to_thread(threading.Thread):
                                   " " + obj.ip_address))
             if os.name == 'posix':
                 subprocess.call(('telnet', obj.ip_address)) 
-
- 
-########################################################################
 

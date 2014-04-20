@@ -152,7 +152,7 @@ class MainPanel(wx.Panel):
         # create a telenetto thread pool and assign them to a queue
         self.telnet_to_queue = Queue.Queue()
         for _ in range(10):
-            self.telnet_to_thread = telnetto_class.telnet_to_thread(self, 
+            self.telnet_to_thread = telnetto_class.TelnetToThread(self, 
                                                         self.telnet_to_queue)
             self.telnet_to_thread.setDaemon(True)
             self.telnet_to_thread.start()
