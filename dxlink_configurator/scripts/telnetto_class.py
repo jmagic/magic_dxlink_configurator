@@ -1,5 +1,6 @@
 import threading 
 import subprocess
+import os
 
 class telnet_to_thread(threading.Thread):
 
@@ -13,11 +14,12 @@ class telnet_to_thread(threading.Thread):
             # gets the job from the queue
             obj = self.queue.get()
 
-            if self.parent.os_type == 'nt':
+            if os.name == 'nt':
                 
-                subprocess.call((self.parent.path + self.parent.telnet_client + " " + obj.ip))
-            if self.parent.os_type == 'posix':
-                subprocess.call(('telnet', obj.ip)) 
+                subprocess.call((self.parent.path + self.parent.telnet_client +
+                                  " " + obj.ip_address))
+            if os.name == 'posix':
+                subprocess.call(('telnet', obj.ip_address)) 
 
  
 ########################################################################

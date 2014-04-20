@@ -343,9 +343,9 @@ class PreferencesConfig(wx.Dialog):
         self.parent.displaysuccess = self.success.GetValue()
         self.parent.play_sounds = self.sounds.GetValue()
         self.parent.update_status_bar()
-        self.parent.writeConfigFile()
+        self.parent.write_config_file()
         self.parent.select_columns()
-        self.parent.resizeFrame()
+        self.parent.resize_frame()
         self.Destroy()
 
 

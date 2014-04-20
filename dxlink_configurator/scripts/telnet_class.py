@@ -23,7 +23,7 @@ class Telnetjobs(Thread):
             self.type = job[0]
             self.timeout = int(job[2])
 
-            if self.type == "GetTelnetInfo":
+            if self.type == "get_telnet_info":
                 self.GetTelnetInfo(job)
             elif self.type == "SetDHCP":
                 self.SetDHCP(job)
