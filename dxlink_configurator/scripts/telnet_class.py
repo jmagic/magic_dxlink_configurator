@@ -31,14 +31,16 @@ class Telnetjobs(Thread):
                 self.factory_av(job)
             elif job[0] == "send_command":
                 self.send_command(job)
-            elif job[0] == "TurnOnLED":
+            elif job[0] == "turn_on_leds":
                 self.set_turn_on_led(job)
-            elif job[0] == "TurnOffLED":
+            elif job[0] == "turn_off_leds":
                 self.set_turn_off_led(job)
             elif job[0] == "mse":
                 self.set_mse(job)
             elif job[0] == "Ping":
                 self.set_ping(job)
+            else:                
+                return
 
             # send a signal to the queue that the job is done
             self.queue.task_done()
@@ -52,9 +54,7 @@ class Telnetjobs(Thread):
         try:
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
             
-            if (telnet_session.read_until('Welcome to', int(job[2])) !=
-                                                         "\r\nWelcome to"):
-                raise IOError('Not an AMX device')
+            is_dxlink = telnet_session.read_until('Welcome to', int(job[2]))
             intro = telnet_session.read_very_eager().split()
             obj.model = intro[0]
             obj.firmware = intro[1]
@@ -104,8 +104,10 @@ class Telnetjobs(Thread):
 
             telnet_session.write('exit')
             telnet_session.close()
+            if is_dxlink !=("\r\nWelcome to"):
+                raise IOError('Warning, not a recognized dxlink device')
             self.communication_success(obj) 
-        except (IOError) as error:
+        except (IOError, IndexError) as error:
             self.error_processing(obj, error)
 
     def set_master(self, job):
@@ -407,7 +409,7 @@ class Telnetjobs(Thread):
         elif error.split()[0] == "('Command":
             data = (obj.ip_address, 'Command not sent')'''
         if str(error) == 'Not an AMX device':
-            data = (obj.ip_address, 'Not a AMX device')
+            data = (obj.ip_address, 'Warning, not a recognized dxlink device')
         else:
             data = (obj.ip_address, str(error))
         dispatcher.send(signal="Collect Errors", sender=data)
