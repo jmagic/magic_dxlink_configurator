@@ -995,6 +995,7 @@ class MainPanel(wx.Panel):
     def on_close(self, _):
         """Close program if user closes window"""
         self.ping_active = False
+        self.mse_active_list = []
         self.telnet_job_queue.join()
         self.parent.Destroy()
 
@@ -1041,7 +1042,7 @@ SOFTWARE."""
     def on_beer_box(self, _):
         """ Buy me a beer! Yea!"""
         dlg = wx.MessageDialog(parent=self, message='If you enjoy this ' + \
-                               'program \n Click Ok to Buy me a beer', \
+                               'program \n Learn how you can help out', \
                                caption='Buy me a beer', \
                                style=wx.OK)
         if dlg.ShowModal() == wx.ID_OK:
