@@ -72,7 +72,7 @@ class DetailsView(wx.Dialog):
         #------------------------------ Done with wxFormBuilder  
            
         self.parent = parent
-        self.SetTitle("Details View for " + device_object.ip) 
+        self.SetTitle("Details View for " + device_object.ip_address) 
         self.ping_list.SetObjects(device_object.ping_data)        
         
         
@@ -92,8 +92,10 @@ class MultiPing(wx.Dialog):
                                         style=wx.LC_REPORT|
                                         wx.SUNKEN_BORDER|
                                         wx.RESIZE_BORDER)
-        self.ping_list.SetColumns([ColumnDefn("IP", "center", 100, "ip"),
-                                   ColumnDefn("MAC", "center", 130, "mac"),
+        self.ping_list.SetColumns([ColumnDefn("IP", "center", 100,
+                                                                  "ip_address"),
+                                   ColumnDefn("MAC", "center", 130, 
+                                                                 "mac_address"),
                                    ColumnDefn("Hostname", "center", 130, 
                                                                     "hostname"),
                                    ColumnDefn("Serial", "center", 150, 

@@ -27,7 +27,8 @@ class MultiSendCommandConfig (wx.Dialog):
                                           wx.RESIZE_BORDER)
         self.device_list.SetColumns([ColumnDefn("Model", "center", 130,
                                                                       "model"),
-                                     ColumnDefn("IP", "center", 100, "ip"),
+                                     ColumnDefn("IP", "center", 100, 
+                                                                 "ip_address"),
                                      ColumnDefn("Device", "center", 80,
                                                                      "device")])
         bsizer121.Add(self.device_list, 1, wx.ALL|wx.EXPAND, 5)
@@ -182,16 +183,17 @@ class MultiSendCommandConfig (wx.Dialog):
         self.send.Disable()       
         self.dxlink_model = dxlink_model
         self.on_query(None)
-        self.device_list.SetColumns([ColumnDefn("Model", "center", 130, 
-                                                                       "model"),
-                                   ColumnDefn("IP", "center", 100, "ip"),
-                                   ColumnDefn("Device", "center", 80, 
-                                                                     "device")])
+        #self.device_list.SetColumns([ColumnDefn("Model", "center", 130, 
+        #                                                              "model"),
+        #                           ColumnDefn("IP", "center", 100, 
+        #                                                          "ip_address"),
+        #                           ColumnDefn("Device", "center", 80, 
+        #                                                             "device")])
         self.device_list.CreateCheckStateColumn()
         self.device_list.SetObjects(device_list)
         for obj in self.device_list.GetObjects():
             self.device_list.ToggleCheck(obj)
-        self.device_list.RefreshObject(self.device_list)
+        self.device_list.RefreshObjects(self.device_list.GetObjects())
         self.waiting_result = True
         dispatcher.connect(self.result, signal="send_command result", 
                                                           sender=dispatcher.Any)
@@ -301,95 +303,96 @@ class MultiSendCommandConfig (wx.Dialog):
         """Sets the result label"""        
         self.result.SetLabel('Result:   ' + sender)
 
+
     def on_send(self, _):
-        """Send the command string"""        
-        objects = self.device_list.GetObjects()
-        for obj in objects:
-            if self.device_list.IsChecked(obj):
-                #self.update_string(obj)
-                if obj.device == " ":
-                    device = 0
-                else:
-                    device = obj.device
-                if obj.system == " ":
-                    system = 0
-                else:
-                    system = obj.system
-                
-                if self.get_all.GetValue():
-                    total = len(self.command_combo.GetItems())
-                    #print total
-                    dlg = wx.ProgressDialog('Sending command to selected ' +
-                                            'device with results listed ' +
-                                            'below ', 
-                                            'Sending command to selected ' +
-                                            'device',
-                                            maximum=total,
-                                            parent=self.parent,
-                                            style=wx.PD_APP_MODAL
-                                             | wx.PD_CAN_ABORT
-                                             | wx.PD_AUTO_HIDE
-                                             | wx.PD_SMOOTH)            
-                            
-                    count = 0 
-                    abort = False
-                    for item in self.command_combo.GetItems():
-                        count += 1                        
-                        output = ("send_command " + 
-                                   str(device) + 
-                                   ":" + 
-                                   str(self.rx_tx_commands
-                                                 [self.dxlink_model][item][0]) + 
-                                   ":" + 
-                                   str(system) + 
-                                   ", " + 
-                                   "\"\'" + 
-                                   str(item) + 
-                                   "\'\"") 
-                        self.parent.actionItems.append(obj)
-                        self.parent.telnetjobqueue.put(['SendCommand', obj, 
-                          self.parent.telnet_timeout_seconds, output, 
-                          str(self.rx_tx_commands[self.dxlink_model][item][0])])
-                        #time_out = 0
-                        self.time_out.Start(5000)
-                        while self.waiting_result:
-                            time.sleep(.5)
-                            (abort, _) = dlg.Update(count,
-                                        ('Sending command' + count + 
-                                        'of ' + total + ' to device ' + device +
-                                        '\n' + self.result_string)) 
-                        if not abort:
-                            #self.parent.displayProgress()
-                            abort = False
-                            self.time_out.Stop()
-                            self.waiting_result = True
-                            break
+        """Send the command string"""
+        if len(self.device_list.GetCheckedObjects()) == 0:
+            return   
+        for obj in self.device_list.GetCheckedObjects():
+            if obj.device == " ":
+                device = 0
+            else:
+                device = obj.device
+            if obj.system == " ":
+                system = 0
+            else:
+                system = obj.system
+            
+            if self.get_all.GetValue():
+                total = len(self.command_combo.GetItems())
+                dlg = wx.ProgressDialog('Sending command to selected ' +
+                                        'device with results listed ' +
+                                        'below ', 
+                                        'Sending command to selected ' +
+                                        'device with results listed ' +
+                                        'below',
+                                        maximum=total,
+                                        parent=self.parent,
+                                        style=wx.PD_APP_MODAL
+                                         | wx.PD_CAN_ABORT
+                                         | wx.PD_AUTO_HIDE
+                                         | wx.PD_SMOOTH)            
+                        
+                count = 0 
+                abort = False
+                for item in self.command_combo.GetItems():
+                    count += 1                        
+                    output = ("send_command " + 
+                               str(device) + 
+                               ":" + 
+                               str(self.rx_tx_commands
+                                             [self.dxlink_model][item][0]) + 
+                               ":" + 
+                               str(system) + 
+                               ", " + 
+                               "\"\'" + 
+                               str(item) + 
+                               "\'\"") 
+                    self.parent.actionItems.append(obj)
+                    self.parent.telnet_job_queue.put(['send_command', obj, 
+                      self.parent.telnet_timeout_seconds, output, 
+                      str(self.rx_tx_commands[self.dxlink_model][item][0])])
+                    #time_out = 0
+                    self.time_out.Start(5000)
+                    while self.waiting_result:
+                        time.sleep(.5)
+                        (abort, _) = dlg.Update(count,
+                                    ('Sending command ' + str(count) + 
+                                    ' of ' + str(total) + ' to device ' 
+                                    + str(device) +
+                                    '\n' + self.result_string)) 
+                    if not abort:
+                        #self.parent.display_progress()
+                        abort = False
                         self.time_out.Stop()
                         self.waiting_result = True
+                        break
+                    self.time_out.Stop()
+                    self.waiting_result = True
 
-                    self.parent.displayProgress()
-                    self.result_string = ''
-                    dlg.Destroy()
-                        
-                        
-                
-                else:
-                    output = ("send_command " + 
-                              str(device) + 
-                              ":" + 
-                              str(self.string_port.GetValue()) + 
-                              ":" + 
-                              str(system) + 
-                              ", " + 
-                              "\"\'" + 
-                              str(self.stringcommand.GetValue()) + 
-                              "\'\"")
-                    self.parent.actionItems.append(obj)
-                    self.parent.telnetjobqueue.put(['SendCommand', obj, 
-                                             self.parent.telnet_timeout_seconds, 
-                                             output, 
-                                             str(self.port)])                
-                    self.parent.displayProgress()
+                self.parent.display_progress()
+                self.result_string = ''
+                dlg.Destroy()
+                    
+                    
+            
+            else:
+                output = ("send_command " + 
+                          str(device) + 
+                          ":" + 
+                          str(self.string_port.GetValue()) + 
+                          ":" + 
+                          str(system) + 
+                          ", " + 
+                          "\"\'" + 
+                          str(self.stringcommand.GetValue()) + 
+                          "\'\"")
+                self.parent.actionItems.append(obj)
+                self.parent.telnet_job_queue.put(['send_command', obj, 
+                                         self.parent.telnet_timeout_seconds, 
+                                         output, 
+                                         str(self.port)])                
+                self.parent.display_progress()
     
     def on_time_out(self, _):
         """Timer has expired"""

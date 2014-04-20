@@ -19,8 +19,8 @@ class Telnetjobs(Thread):
             # gets the job from the queue
             job = self.queue.get()
 
-            if job[0] == "get_telnet_info":
-                self.get_telnet_info(job)
+            if job[0] == "get_config_info":
+                self.get_config_info(job)
             elif job[0] == "set_factory":
                 self.set_factory(job)
             elif job[0] == "set_reboot":
@@ -44,22 +44,22 @@ class Telnetjobs(Thread):
             self.queue.task_done()
 
 ########################################################################
-    def get_telnet_info(self, job):
+    def get_config_info(self, job):
         """Gets serial number, firmware from device"""
 
         obj = job[1]
 
         try:
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-
-            telnet_session.read_until('Welcome to', int(job[2]))
-
+            
+            if (telnet_session.read_until('Welcome to', int(job[2])) !=
+                                                         "\r\nWelcome to"):
+                raise IOError('Not an AMX device')
             intro = telnet_session.read_very_eager().split()
             obj.model = intro[0]
             obj.firmware = intro[1]
             telnet_session.write('get sn \r')
             telnet_session.read_until('Number:', int(job[2]))
-
             obj.serial = telnet_session.read_very_eager().split()[0]
 
             telnet_session.write('get device \r')
@@ -68,7 +68,7 @@ class Telnetjobs(Thread):
             obj.device = telnet_session.read_very_eager().split()[0]
 
             telnet_session.write('get ip \r')
-            telnet_session.read_until('Hostname:', int(job[2]))
+            telnet_session.read_until('HostName:', int(job[2]))
             ip_info = telnet_session.read_very_eager().split()
             if ip_info[0] == "Type:":
                 obj.hostname = " "
@@ -83,13 +83,9 @@ class Telnetjobs(Thread):
             obj.subnet = ip_info[8]
             obj.gateway = ip_info[11]
             obj.mac_address = ip_info[14]
-
-
-            #telnet_session.read_until('>')
             telnet_session.write('get connection \r')
             telnet_session.read_until('Mode:', int(job[2]))
             connection_info = telnet_session.read_very_eager().split()
-            #print connection_info
             if connection_info[0] == 'NDP':
                 if connection_info[7] == '(n/a)':
                     obj.master = 'not connected'
@@ -108,8 +104,8 @@ class Telnetjobs(Thread):
 
             telnet_session.write('exit')
             telnet_session.close()
-            self.communication_success(obj)
-        except IOError, error:
+            self.communication_success(obj) 
+        except (IOError) as error:
             self.error_processing(obj, error)
 
     def set_master(self, job):
@@ -329,7 +325,7 @@ class Telnetjobs(Thread):
                        ":" + 
                        str(obj.system) + 
                        " , " + 
-                       "\"\'fACTORY_av\'\" \r")
+                       "\"\'Factory_AV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
@@ -383,10 +379,6 @@ class Telnetjobs(Thread):
                 dispatcher.send(signal="send_command result", 
                                 sender=('Sending' + str(result_raw[:-1])))
 
-
-            #if command_sent == 'fACTORY_av':
-            #    telnet_session.write('reboot \r')
-            #    telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
             self.communication_success(obj)
@@ -401,9 +393,8 @@ class Telnetjobs(Thread):
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
-        error = str(error.args)
-
-        if error.split()[0] == '(113,' or \
+    
+        '''if error.split()[0] == '(113,' or \
            error.split()[0] == '(111,' or \
            error.split()[0] == "('timed" or \
            error.split()[0] == '(2,':
@@ -414,9 +405,11 @@ class Telnetjobs(Thread):
             data = (obj.ip_address, 
                            'I\'m having trouble communicating with this device')
         elif error.split()[0] == "('Command":
-            data = (obj.ip_address, 'Command not sent')
+            data = (obj.ip_address, 'Command not sent')'''
+        if str(error) == 'Not an AMX device':
+            data = (obj.ip_address, 'Not a AMX device')
         else:
-            data = (obj.ip_address, 'Unable to communicate with device')
+            data = (obj.ip_address, str(error))
         dispatcher.send(signal="Collect Errors", sender=data)
 
 
