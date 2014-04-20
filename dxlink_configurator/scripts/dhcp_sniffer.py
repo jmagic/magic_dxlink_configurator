@@ -1,17 +1,21 @@
+"""A DCHP sniffer that listens for DHCP request messages"""
+
 from threading import Thread
 import socket
-import datetime
 from pydispatch import dispatcher
 import wx
 
 ########################################################################
-class dhcp_listener(Thread):
+class DHCPListener(Thread):
+    """The dhcp listener thread"""
 
     #----------------------------------------------------------------------
     def __init__(self, parent):
         """Init Worker Thread Class."""
         self.listen = True
         self.parent = parent
+        self.lis_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.dhcp_options = None
         Thread.__init__(self)
 
     #----------------------------------------------------------------------
@@ -20,25 +24,22 @@ class dhcp_listener(Thread):
 
         try:
             port = 67
-            self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.s.bind(("", port))
+            self.lis_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.lis_sock.bind(("", port))
 
-        except:
-            # something has already blocked the port, its probably not us because
+        except IOError:
+            # something has already used the port, its probably not us because
             # multiple instances can run without error due to SO_REUSEADDR
             self.parent.portError = True
 
 
         while True:
-
-            ''' receive packets from port 67
-            msg is the data part of the packet
-            addr is the from address and port number (not used)'''
-            msg, addr = self.s.recvfrom(1024)
+            msg, _ = self.lis_sock.recvfrom(1024)
 
             # check if it is a DHCP "request" message
-            if ((msg[240]=="\x35" and msg[241]=="\x01" and msg[242]=="\x03")):
+            if ((msg[240] == "\x35" and 
+                 msg[241] == "\x01" and 
+                 msg[242] == "\x03")):
 
                 # extract the sending mac address
                 mac_address = ((msg[28].encode("hex") + ":" +
@@ -60,28 +61,31 @@ class dhcp_listener(Thread):
 
                     #end of packet
                     if opt == '\xff':
-                        self.dumpByte() #move to the next byte
+                        self.dump_byte() #move to the next byte
                         break
 
                     # padding in packet
                     if opt == '\x00':
-                        self.dumpByte() #move to the next byte
+                        self.dump_byte() #move to the next byte
                         continue
 
                     # requested IP
                     if opt == '\x32':
-                        #We need to move to the data, and read the length of it
-                        # convert what we got from hex to decimal and put into string with dots
-                        ip_address = '.'.join(str(ord(c)) for c in (self.readData(self.getToData())))
+                        # We need to move to the data, and read the length of it
+                        # convert what we got from hex to decimal and put into 
+                        # string with dots
+                        ip_address = '.'.join(str(ord(c)) for c in 
+                                           (self.read_data(self.get_to_data())))
                         continue
 
                     # hostname
                     if opt == '\x0c':
                         # convert what we got to a string
-                        hostname = ''.join((c) for c in (self.readData(self.getToData())))
+                        hostname = ''.join((c) for c in 
+                                           (self.read_data(self.get_to_data())))
                         continue
 
-                    self.readData(self.getToData())
+                    self.read_data(self.get_to_data())
 
 
                 if ip_address == '':
@@ -90,38 +94,39 @@ class dhcp_listener(Thread):
                 # check if we have been told to stop listening
                 if self.parent.dhcp_sniffing == True:
 
-                    #send it processed packet to the main loop
-                    wx.CallAfter(self.postTime, (hostname, mac_address,ip_address ))
+                    #send the processed packet to the main loop
+                    wx.CallAfter(self.send_info, (hostname, mac_address, 
+                                                                    ip_address))
 
 
-    def readData(self, data_length):
-
+    def read_data(self, data_length):
+        """Reads the data portion of the DHCP option"""
         read_data = []
-        for i in range(0, data_length):
+        for _ in range(0, data_length):
             read_data.append(self.dhcp_options[0])
             self.dhcp_options = self.dhcp_options[1:]
-        return(read_data)
+        return read_data
 
 
-    def dumpByte(self):
-
+    def dump_byte(self):
+        """Move to the next byte"""
         self.dhcp_options = self.dhcp_options[1:] #move one byte
 
 
-    def getToData(self):
-
-        self.dumpByte() # move to data length
+    def get_to_data(self):
+        """Read the data length and option number then move to the data"""
+        self.dump_byte() # move to data length
         data_length = ord(self.dhcp_options[0]) # get data length
-        self.dumpByte() #move to start of data
-        return(data_length)
+        self.dump_byte() #move to start of data
+        return data_length
 
 
     #----------------------------------------------------------------------
-    def postTime(self, info):
+    def send_info(self, info):
         """
         Send data to GUI
         """
-        dispatcher.send( signal="Incoming Packet", sender=info )
+        dispatcher.send(signal="Incoming Packet", sender=info)
 
 ########################################################################
 
