@@ -107,7 +107,7 @@ class Telnetjobs(Thread):
             if is_dxlink !=("\r\nWelcome to"):
                 raise IOError('Warning, not a recognized dxlink device')
             self.communication_success(obj) 
-        except (IOError, IndexError) as error:
+        except (IOError, Exception) as error:
             self.error_processing(obj, error)
 
     def set_master(self, job):
@@ -149,7 +149,7 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
 
     def set_factory(self, job):
@@ -182,7 +182,7 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
 
 
@@ -239,7 +239,7 @@ class Telnetjobs(Thread):
 
                 self.communication_success(obj)
 
-            except IOError, error:
+            except Exception as error:
                 self.error_processing(obj, error)
 
         else:
@@ -289,7 +289,7 @@ class Telnetjobs(Thread):
 
                 self.communication_success(obj)
 
-            except IOError, error:
+            except Exception as error:
                 self.error_processing(obj, error)
 
     def factory_av(self, job):
@@ -338,7 +338,7 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
 
 
@@ -385,35 +385,8 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
-
-    def communication_success(self, obj):
-        """Send notification of success to main"""
-        data = [obj.ip_address, 'Success']
-        dispatcher.send(signal="Collect Completions", sender=data)
-
-    def error_processing(self, obj, error):
-        """Send notification of error to main"""
-    
-        '''if error.split()[0] == '(113,' or \
-           error.split()[0] == '(111,' or \
-           error.split()[0] == "('timed" or \
-           error.split()[0] == '(2,':
-            data = (obj.ip_address, 'IP unreachable or offline')
-        elif error.split()[0] == "('Not,'":
-            data = (obj.ip_address, 'Not a DXLink device')
-        elif error.split()[0] == "('list":
-            data = (obj.ip_address, 
-                           'I\'m having trouble communicating with this device')
-        elif error.split()[0] == "('Command":
-            data = (obj.ip_address, 'Command not sent')'''
-        if str(error) == 'Not an AMX device':
-            data = (obj.ip_address, 'Warning, not a recognized dxlink device')
-        else:
-            data = (obj.ip_address, str(error))
-        dispatcher.send(signal="Collect Errors", sender=data)
-
 
     def set_turn_on_led(self, job):
         """Turns on LEDs"""
@@ -428,7 +401,7 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
 
 
@@ -445,7 +418,7 @@ class Telnetjobs(Thread):
 
             self.communication_success(obj)
 
-        except IOError, error:
+        except Exception as error:
             self.error_processing(obj, error)
 
     def set_mse(self, job):
@@ -523,3 +496,29 @@ class Telnetjobs(Thread):
         ping.kill()
 
         
+    def communication_success(self, obj):
+        """Send notification of success to main"""
+        data = [obj.ip_address, 'Success']
+        dispatcher.send(signal="Collect Completions", sender=data)
+
+    def error_processing(self, obj, error):
+        """Send notification of error to main"""
+    
+        '''if error.split()[0] == '(113,' or \
+           error.split()[0] == '(111,' or \
+           error.split()[0] == "('timed" or \
+           error.split()[0] == '(2,':
+            data = (obj.ip_address, 'IP unreachable or offline')
+        elif error.split()[0] == "('Not,'":
+            data = (obj.ip_address, 'Not a DXLink device')
+        elif error.split()[0] == "('list":
+            data = (obj.ip_address, 
+                           'I\'m having trouble communicating with this device')
+        elif error.split()[0] == "('Command":
+            data = (obj.ip_address, 'Command not sent')'''
+        if str(error) == 'Not an AMX device':
+            data = (obj.ip_address, 'Warning, not a recognized dxlink device')
+        else:
+            data = (obj.ip_address, str(error))
+        dispatcher.send(signal="Collect Errors", sender=data)
+

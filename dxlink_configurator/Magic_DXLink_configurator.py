@@ -167,7 +167,7 @@ class MainPanel(wx.Panel):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
-        dispatcher.connect(self.update_info, 
+        dispatcher.connect(self.incoming_packet, 
                            signal="Incoming Packet", 
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
@@ -821,7 +821,7 @@ class MainPanel(wx.Panel):
                     '')
         return data
 
-    def update_info(self, sender):
+    def incoming_packet(self, sender):
         """Receives dhcp requests with and adds them to objects to display"""
         data = self.make_unit(sender)
         self.parent.status_bar.SetStatusText(
@@ -942,6 +942,7 @@ class MainPanel(wx.Panel):
         """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
             return
+
         for obj in self.main_list.GetSelectedObjects():
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
@@ -949,6 +950,7 @@ class MainPanel(wx.Panel):
             if self.abort == True:
                 self.abort = False
                 return
+        self.display_progress()
 
 
     def configure_prefs(self, _):

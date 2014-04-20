@@ -581,6 +581,9 @@ class DeviceConfig(wx.Dialog):
 
     def on_cancel(self, _):
         """Canel and close"""
+        selected_items = self.parent.main_list.GetSelectedObjects()
+        selected_items.remove(self.obj)
+        self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.Destroy()
 
     def on_abort(self, _):
@@ -609,7 +612,7 @@ class DeviceConfig(wx.Dialog):
 
         #self.parent.static_items.append(self.obj)
         self.parent.telnet_job_queue.put(info)
-        self.parent.display_progress()
+        #self.parent.display_progress()
         self.Destroy()
 
 
