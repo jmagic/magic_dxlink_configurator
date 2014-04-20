@@ -94,7 +94,12 @@ class MainPanel(wx.Panel):
         self.amx_only_filter = None
         self.play_sounds = None
         self.columns_config = None
-
+        if os.name == 'nt':
+            self.path = os.path.expanduser(
+                                    '~\\Documents\\Magic_DXLink_Configurator\\')
+        else:
+            self.path = os.path.expanduser(
+                                    '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
@@ -108,7 +113,6 @@ class MainPanel(wx.Panel):
         self.port_error = False
         self.ping_objects = []
         self.ping_active = False
-        self.path = ""
         self.abort = False
 
         self.main_list = ObjectListView(self, wx.ID_ANY, 
@@ -829,12 +833,6 @@ class MainPanel(wx.Panel):
 
     def read_config_file(self):
         """Reads the config file"""
-        if os.name == 'nt':
-            self.path = os.path.expanduser(
-                                    '~\\Documents\\Magic_DXLink_Configurator\\')
-        else:
-            self.path = os.path.expanduser(
-                                    '~/Documents/Magic_DXLink_Configurator/')
         config = ConfigParser.RawConfigParser()
         try:  # read the settings file
             config.read((self.path + "settings.txt"))
