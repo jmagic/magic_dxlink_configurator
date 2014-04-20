@@ -343,9 +343,9 @@ class PreferencesConfig(wx.Dialog):
         self.parent.displaysuccess = self.success.GetValue()
         self.parent.play_sounds = self.sounds.GetValue()
         self.parent.update_status_bar()
-        self.parent.writeConfigFile()
+        self.parent.write_config_file()
         self.parent.select_columns()
-        self.parent.resizeFrame()
+        self.parent.resize_frame()
         self.Destroy()
 
 
@@ -414,7 +414,7 @@ class DeviceConfig(wx.Dialog):
                                             wx.ALIGN_CENTER_HORIZONTAL|
                                             wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.ip_address_txt = wx.TextCtrl(self, wx.ID_ANY, obj.ip, 
+        self.ip_address_txt = wx.TextCtrl(self, wx.ID_ANY, obj.ip_address, 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.ip_address_txt.SetMinSize(wx.Size(150, -1))
 
@@ -533,7 +533,7 @@ class DeviceConfig(wx.Dialog):
         self.obj = obj
         self.ip_org = obj.ip_address
 
-        self.SetTitle("Device settings for %s %s" %(obj.ip, obj.device))
+        self.SetTitle("Device settings for %s %s" %(obj.ip_address, obj.device))
         self.hostname = obj.hostname
         self.ip_address = obj.ip_address
         self.subnet = obj.subnet
@@ -606,8 +606,9 @@ class DeviceConfig(wx.Dialog):
                 str(self.master_txt.GetValue()),
                 str(self.device_txt.GetValue())]
 
-        self.parent.staticItems.append(self.obj)
-        self.parent.telnetjobqueue.put(info)
+        #self.parent.static_items.append(self.obj)
+        self.parent.telnet_job_queue.put(info)
+        self.parent.display_progress()
         self.Destroy()
 
 

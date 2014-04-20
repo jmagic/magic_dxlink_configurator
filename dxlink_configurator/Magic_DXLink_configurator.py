@@ -141,7 +141,7 @@ class MainPanel(wx.Panel):
         self.SetSizer(main_sizer)
 
         # Create DHCP listening thread
-        self.dhcp_listener = dhcp_sniffer.dhcp_listener(self)
+        self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
         self.dhcp_listener.setDaemon(True)
         self.dhcp_listener.start()
 
@@ -252,9 +252,8 @@ class MainPanel(wx.Panel):
                         ((count + 1), len(self.main_list.GetSelectedObjects())))
 
         dlg.Destroy()
-        self.main_list.RefreshObjects(self.main_list.GetSelectedObjects())
+        self.main_list.RefreshObject(self.main_list)
         self.dump_pickle()
-
         errortext = ""
         phil = " "
         
@@ -484,7 +483,7 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnet_job_queue.put(['Get_telnet_info', obj,
+            self.telnet_job_queue.put(['get_telnet_info', obj,
                                         self.telnet_timeout_seconds])
         self.display_progress()
 
