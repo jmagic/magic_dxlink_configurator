@@ -27,18 +27,18 @@ class Telnetjobs(Thread):
                 self.set_reboot(job)
             elif job[0] == "DeviceConfig":
                 self.set_device_config(job)
-            elif job[0] == "FactoryAV":
-                self.FactoryAV(job)
-            elif job[0] == "SendCommand":
-                self.SendCommand(job)
+            elif job[0] == "factory_av":
+                self.factory_av(job)
+            elif job[0] == "send_command":
+                self.send_command(job)
             elif job[0] == "TurnOnLED":
-                self.SetTurnOnLED(job)
+                self.set_turn_on_led(job)
             elif job[0] == "TurnOffLED":
-                self.SetTurnOffLED(job)
-            elif job[0] == "MSE":
-                self.SetMSE(job)
+                self.set_turn_off_led(job)
+            elif job[0] == "mse":
+                self.set_mse(job)
             elif job[0] == "Ping":
-                self.SetPing(job)
+                self.set_ping(job)
 
             # send a signal to the queue that the job is done
             self.queue.task_done()
@@ -108,7 +108,7 @@ class Telnetjobs(Thread):
 
             telnet_session.write('exit')
             telnet_session.close()
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
         except IOError, error:
             self.error_processing(obj, error)
 
@@ -149,7 +149,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
@@ -166,7 +166,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('>', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
@@ -182,7 +182,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
@@ -239,31 +239,31 @@ class Telnetjobs(Thread):
                 telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communicationSuccess(obj)
+                self.communication_success(obj)
 
             except IOError, error:
                 self.error_processing(obj, error)
 
         else:
             try:
-                telnet_session = telnetlib.Telnet(ip_org,23,int(job[2]))
+                telnet_session = telnetlib.Telnet(ip_org, 23, int(job[2]))
 
-                telnet_session.read_until('>',int(job[2]))
+                telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set ip \r')
-                telnet_session.read_until('Name:',int(job[2]))
-                telnet_session.write( Hostname + '\r')
-                telnet_session.read_until('Enter:',int(job[2]))
+                telnet_session.read_until('Name:', int(job[2]))
+                telnet_session.write(hostname + '\r')
+                telnet_session.read_until('Enter:', int(job[2]))
                 telnet_session.write('s\r')
-                telnet_session.read_until('Address:',int(job[2]))
-                telnet_session.write( ip_new + '\r')
-                telnet_session.read_until('Mask:',int(job[2]))
-                telnet_session.write( subnet + '\r')
-                telnet_session.read_until('IP:',int(job[2]))
-                telnet_session.write( gateway + '\r')
-                telnet_session.read_until('Enter ->',int(job[2]))
+                telnet_session.read_until('Address:', int(job[2]))
+                telnet_session.write(ip_new + '\r')
+                telnet_session.read_until('Mask:', int(job[2]))
+                telnet_session.write(subnet + '\r')
+                telnet_session.read_until('IP:', int(job[2]))
+                telnet_session.write(gateway + '\r')
+                telnet_session.read_until('Enter ->', int(job[2]))
                 telnet_session.write('y\r')
-                telnet_session.read_until('settings.',int(job[2]))
-                telnet_session.read_until('>',int(job[2]))
+                telnet_session.read_until('settings.', int(job[2]))
+                telnet_session.read_until('>', int(job[2]))
 
                 telnet_session.write('set connection\r')
                 telnet_session.read_until('Enter:', int(job[2]))
@@ -280,29 +280,26 @@ class Telnetjobs(Thread):
                 telnet_session.write('\r')
                 telnet_session.read_until('Enter ->', int(job[2]))
                 telnet_session.write('y\r')
-                telnet_session.read_until('written.',int(job[2]))
-                telnet_session.read_until('>',int(job[2]))
+                telnet_session.read_until('written.', int(job[2]))
+                telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set device ' + str(device) + '\r')
-                telnet_session.read_until('device',int(job[2]))
-                telnet_session.read_until('>',int(job[2]))
+                telnet_session.read_until('device', int(job[2]))
+                telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('reboot\r')
-                telnet_session.read_until('Rebooting....',int(job[2]))
+                telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communicationSuccess(obj)
+                self.communication_success(obj)
 
             except IOError, error:
                 self.error_processing(obj, error)
 
-    def FactoryAV(self, job):
-
+    def factory_av(self, job):
+        """Sets unit audio visual to factory defaults"""
         obj = job[1]
-        #command_sent = job[3]
-        #port = job[4]
-
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address,23, int(job[2]))
+            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('get connection \r')
@@ -325,35 +322,35 @@ class Telnetjobs(Thread):
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
 
-
-            #command =  command_sent  + "\r"
-            command = "send_command " + str(obj.device) + ":" + "1" + ":" + str(obj.system) + " , " + "\"\'FACTORYAV\'\" \r"
-            #print command
+            command = ("send_command " +
+                       str(obj.device) + 
+                       ":" + 
+                       "1" + 
+                       ":" + 
+                       str(obj.system) + 
+                       " , " + 
+                       "\"\'fACTORY_av\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
-            result = result_raw.split()
-            #print result_raw
-            if result[0] != 'command:':
+            if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
 
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
 
 
-    def SendCommand(self, job):
+    def send_command(self, job):
 
         obj = job[1]
         command_sent = job[3]
-        port = job[4]
-
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address,23, int(job[2]))
+            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('get connection \r')
@@ -375,204 +372,159 @@ class Telnetjobs(Thread):
                     obj.master = connection_info[7]
 
 
-            command =  command_sent  + " \r"
+            command = command_sent  + " \r"
             #print command
             telnet_session.write(str(command))
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
-            result = result_raw.split()
-            #print result_raw
-            if result[0] != 'command:':
+            if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
             else:
-                dispatcher.send( signal="send_command result", sender=('Sending' + str(result_raw[:-1])))
+                dispatcher.send(signal="send_command result", 
+                                sender=('Sending' + str(result_raw[:-1])))
 
 
-            #if command_sent == 'FACTORYAV':
+            #if command_sent == 'fACTORY_av':
             #    telnet_session.write('reboot \r')
             #    telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
 
-    def communicationSuccess(self, obj):
+    def communication_success(self, obj):
+        """Send notification of success to main"""
         data = [obj.ip_address, 'Success']
-        dispatcher.send( signal="Collect Completions", sender=data )
+        dispatcher.send(signal="Collect Completions", sender=data)
 
     def error_processing(self, obj, error):
-
-        #print(error)
-        #print error.args
+        """Send notification of error to main"""
         error = str(error.args)
-        #print error.split()[0] this is what we are matching ... so
 
-        if error.split()[0] == '(113,' or  error.split()[0] == '(111,' or error.split()[0] == "('timed" or error.split()[0] == '(2,':
+        if error.split()[0] == '(113,' or \
+           error.split()[0] == '(111,' or \
+           error.split()[0] == "('timed" or \
+           error.split()[0] == '(2,':
             data = (obj.ip_address, 'IP unreachable or offline')
-        elif error.split()[0] =="('Not,'":
+        elif error.split()[0] == "('Not,'":
             data = (obj.ip_address, 'Not a DXLink device')
-        elif error.split()[0] =="('list":
-            data = (obj.ip_address, 'I\'m having trouble communicating with this device')
+        elif error.split()[0] == "('list":
+            data = (obj.ip_address, 
+                           'I\'m having trouble communicating with this device')
         elif error.split()[0] == "('Command":
             data = (obj.ip_address, 'Command not sent')
         else:
             data = (obj.ip_address, 'Unable to communicate with device')
-        dispatcher.send( signal="Collect Errors", sender=data)
+        dispatcher.send(signal="Collect Errors", sender=data)
 
 
-    def SetTurnOnLED(self, job):
+    def set_turn_on_led(self, job):
+        """Turns on LEDs"""
 
         obj = job[1]
-        ip = obj.ip_address
-
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address,23, int(job[2]))
+            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led on \r')
             telnet_session.read_until('ON', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
 
 
-    def SetTurnOffLED(self, job):
-
+    def set_turn_off_led(self, job):
+        """Turns off leds"""
         obj = job[1]
-        ip = obj.ip_address
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address,23, int(job[2]))
+            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led off \r')
             telnet_session.read_until('OFF', int(job[2]))
             telnet_session.close()
 
-            self.communicationSuccess(obj)
+            self.communication_success(obj)
 
         except IOError, error:
             self.error_processing(obj, error)
 
-    def SetMSE(self, job):
-
+    def set_mse(self, job):
+        """Gathers MSE values"""
         obj = job[1]
-        ip = obj.ip_address
-        #print current_thread().getelnet_sessioname()
         try:
 
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-
             telnet_session.read_until('Welcome to')
-
-            intro = telnet_session.read_very_eager().split()
+            telnet_session.read_very_eager()
 
             mse = []
             data = []
-
-            while obj.mac_address in self.parent.mse_active_list: # only get if unit is currently being graphed
-                #True:
-                #print self.parent.mse_active_list
-                #for item in self.parent.mse_active_list:
-                    #if obj.mac_address == item:
-                        #while self.parent.mse_device_listactive:
+            while obj.mac_address in self.parent.mse_active_list: 
 
                 telnet_session.write('show vs100 stats \r')
                 stats = telnet_session.read_until('MSE(db)').split()
-                #time.sleep(1)
-
                 for i in range(len(stats)):
-                	if stats[i] == "ChA:":
-                		data.append(stats[i+1][:-1])
-                		data.append(stats[i+3][:-1])
-                		data.append(stats[i+5][:-1])
-                		data.append(stats[i+7])
-                #print mse
+                    if stats[i] == "ChA:":
+                        data.append(stats[i+1][:-1])
+                        data.append(stats[i+3][:-1])
+                        data.append(stats[i+5][:-1])
+                        data.append(stats[i+7])
                 if data != []:
-                    mse_time = [datetime.datetime.now(),data]
-                    #print test
+                    mse_time = [datetime.datetime.now(), data]
                     mse.append(mse_time)
                     mse.append(obj.ip_address)
                     mse.append(obj.mac_address)
-
                     dispatcher.send(signal="Incoming MSE", sender=mse)
                     mse = []
                     data = []
 
-        except IOError, error:
+        except IOError:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
 
            
-    def SetPing(self, job):
-        
+    def set_ping(self, job):
+        """Ping devices constantly for troubleshooting"""        
         obj = job[1]
-        ip = obj.ip_address
-        
-        #kwargs = {}
-        
-        #params = dict()
-        #startupinfo = subprocess.STARTUPINFO()
-        #startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        #params['startupinfo'] = startupinfo
-
-        '''p = subprocess.Popen("cmd.exe", **params)
-        if subprocess.mswindows:
-             su = subprocess.STARTUPINFO()
-             su.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-             su.wShowWindow = subprocess.SW_HIDE
-             kwargs['startupinfo'] = su 
-        #subprocess.Popen("cmd.exe", **kwargs)'''
-        ping = subprocess.Popen(['ping' , obj.ip_address , '-t'], shell=True, stdout = subprocess.PIPE)
-        #ping = subprocess.Popen("ping %s" % obj.ip_address, shell=True, 
-        #                        stdout=subprocess.PIPE) 
+        ping = subprocess.Popen(['ping', obj.ip_address, '-t'], shell=False, 
+                                                         stdout=subprocess.PIPE)
         while self.parent.ping_active:
-            for line in iter(ping.stdout.readline,''):
-                
-                
+            for line in iter(ping.stdout.readline, ''):
                 result = line.rstrip()
-                #print result
                 if len(result) < 10:
                     continue
                 if result == '':
-                    continue
-                    #print 'blank'
-                    
+                    continue                    
                 elif result == '\n': 
                     continue
-                    #print 'next line'
-                    
                 elif result[:7] == 'Pinging': 
                     continue
-                    #print 'pinging'
 
-                elif result.split()[-1] == 'unreachable.' or result == 'Request timed out.':
-                    #print result 
+                elif result.split()[-1] == 'unreachable.' or \
+                                 result == 'Request timed out.':
                     success = 'No'
                     ms_delay = "N/A"
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
+                    data = (obj, [datetime.datetime.now(), ms_delay, success])
                     dispatcher.send(signal="Incoming Ping", sender=data)
                     
                 elif result.split()[-1][:3] == 'TTL':
                     temp = result.split()[-2]
                     ms_delay = ''.join([str(s) for s in temp if s.isdigit()])
-                    success = 'Yes'
-
-                                
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
-                    #print 'sending ping'
-                    #print "data: ", data
+                    success = 'Yes'           
+                    data = (obj, [datetime.datetime.now(), ms_delay, success])
                     dispatcher.send(signal="Incoming Ping", sender=data)
-                    #time.sleep(.5)
                 else:
-                    #print 'no matches', result
                     success = 'No'
                     ms_delay = "N/A"
-                    data = (obj,[ datetime.datetime.now(), ms_delay , success])
+                    data = (obj, [datetime.datetime.now(), ms_delay, success])
                     dispatcher.send(signal="Incoming Ping", sender=data)
-                if not self.parent.ping_active: break
-            
+                if not self.parent.ping_active: 
+                    break  
         ping.kill()
+
+        

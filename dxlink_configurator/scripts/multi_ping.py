@@ -123,7 +123,7 @@ class MultiPing(wx.Dialog):
         self.ping_list.SetObjects(self.ping_objects)
 
         for obj in device_list:
-            self.parent.telnetjobqueue.put(['Ping', obj, 
+            self.parent.telnet_job_queue.put(['Ping', obj, 
                                             self.parent.telnet_timeout_seconds])   
             
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -175,7 +175,7 @@ class MultiPing(wx.Dialog):
             for obj in self.ping_objects:
 
                 
-                if sender[0].ip == obj.ip:
+                if sender[0].ip_address == obj.ip_address:
 
                     obj.ping_data.append(self.set_ping_data(sender[1]))
               

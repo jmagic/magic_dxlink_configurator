@@ -94,7 +94,12 @@ class MainPanel(wx.Panel):
         self.amx_only_filter = None
         self.play_sounds = None
         self.columns_config = None
-
+        if os.name == 'nt':
+            self.path = os.path.expanduser(
+                                    '~\\Documents\\Magic_DXLink_Configurator\\')
+        else:
+            self.path = os.path.expanduser(
+                                    '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
@@ -108,7 +113,6 @@ class MainPanel(wx.Panel):
         self.port_error = False
         self.ping_objects = []
         self.ping_active = False
-        self.path = ""
         self.abort = False
 
         self.main_list = ObjectListView(self, wx.ID_ANY, 
@@ -148,7 +152,7 @@ class MainPanel(wx.Panel):
         # create a telenetto thread pool and assign them to a queue
         self.telnet_to_queue = Queue.Queue()
         for _ in range(10):
-            self.telnet_to_thread = telnetto_class.telnet_to_thread(self, 
+            self.telnet_to_thread = telnetto_class.TelnetToThread(self, 
                                                         self.telnet_to_queue)
             self.telnet_to_thread.setDaemon(True)
             self.telnet_to_thread.start()
@@ -829,12 +833,6 @@ class MainPanel(wx.Panel):
 
     def read_config_file(self):
         """Reads the config file"""
-        if os.name == 'nt':
-            self.path = os.path.expanduser(
-                                    '~\\Documents\\Magic_DXLink_Configurator\\')
-        else:
-            self.path = os.path.expanduser(
-                                    '~/Documents/Magic_DXLink_Configurator/')
         config = ConfigParser.RawConfigParser()
         try:  # read the settings file
             config.read((self.path + "settings.txt"))
@@ -978,6 +976,7 @@ class MainPanel(wx.Panel):
 
     def on_close(self, _):
         """Close program if user closes window"""
+        self.ping_active = False
         self.parent.Destroy()
 
     def on_about_box(self, _):
