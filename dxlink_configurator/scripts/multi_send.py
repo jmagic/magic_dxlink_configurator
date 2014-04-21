@@ -1,6 +1,7 @@
 """Sends commands to multiple devices"""
 
 import wx
+import os
 from pydispatch import dispatcher
 import json
 from ObjectListView import ObjectListView, ColumnDefn
@@ -160,15 +161,16 @@ class MultiSendCommandConfig (wx.Dialog):
             #create json file with: 
             #json.dump(jsonData, outfile, sort_keys = True, indent = 4,
             #ensure_ascii=False)
-            with open("scripts\\rx_tx_commands.txt") as command_file:
+            with open("send_commands\\rx_tx_commands.txt") as command_file:
 
                 self.rx_tx_commands = json.load(command_file)
         except IOError:
             dlg = wx.MessageDialog(parent=self, message='Cannot find  ' +
-                                   'rx_tx_commands.txt \nYou will be able ' +
-                                   'to send commands manually, to have the ' +
-                                   'system commands auto load re-install the ' +
-                                   'program or replace scripts\\' +
+                                   'rx_tx_commands.txt \nYou will now only be' + 
+                                   ' able to send commands manually. \nTo ' + 
+                                   'have the system commands auto load, ' +
+                                   're-install the \nprogram or replace: ' +
+                                   os.getcwd() + '\\send_commands\\' +
                                    'rx_tx_commands.txt',
                                    caption='Please re-install program.',
                                    style=wx.OK)
