@@ -110,7 +110,7 @@ class Multi_Plot(wx.Dialog):
         self.SetSizer(bsizer1)
 
         self.parent = parent
-        #self.obj = obj
+        self.obj = obj
         self.SetTitle('MSE values plotted over time ' + 
                        obj.ip_address + '  ' + obj.device)
         self.plot_obj = PlotUnit(
@@ -481,18 +481,19 @@ class Multi_Plot(wx.Dialog):
             datapath = datapath + ".csv"
             with open(datapath, 'wb') as plot_file:
                 writer_csv = csv.writer(plot_file, quoting=csv.QUOTE_ALL)
-                for obj in self.plot_object:
-                    writer_csv.writerow(['Time', 'ChA', 'ChB', 'ChC', 'ChD', 
-                                    self.obj.ip, self.obj.mac, self.obj.device])
-                    for i in range(len(obj.mse_data.mse_time)):
+                writer_csv.writerow(['Time', 'ChA', 'ChB', 'ChC', 'ChD', 
+                                      self.obj.ip_address, 
+                                      self.obj.mac_address,
+                                      self.obj.device])
+                for i in range(len(self.plot_obj.mse_data.mse_time)):
 
-                        row = []
-                        row.append(str(obj.mse_data.mse_time[i]))
-                        row.append(str(obj.mse_data.data0[i]))
-                        row.append(str(obj.mse_data.data1[i]))
-                        row.append(str(obj.mse_data.data2[i]))
-                        row.append(str(obj.mse_data.data3[i]))
-                        writer_csv.writerow(row)
+                    row = []
+                    row.append(str(self.plot_obj.mse_data.mse_time[i]))
+                    row.append(str(self.plot_obj.mse_data.data0[i]))
+                    row.append(str(self.plot_obj.mse_data.data1[i]))
+                    row.append(str(self.plot_obj.mse_data.data2[i]))
+                    row.append(str(self.plot_obj.mse_data.data3[i]))
+                    writer_csv.writerow(row)
 
     def on_redraw_timer(self, _):
         """Update plot when timer expires"""

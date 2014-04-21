@@ -703,7 +703,7 @@ class MainPanel(wx.Panel):
                     ]
                 plot_object.append(data[0])
                 obj = plot_object[0]
-                self.mse_active_list.append(obj.mac)
+                self.mse_active_list.append(obj.mac_address)
                 for item in csv_data:
                     mse = []
                     data = []
