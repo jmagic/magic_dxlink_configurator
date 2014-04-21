@@ -113,6 +113,7 @@ class MainPanel(wx.Panel):
         self.port_error = False
         self.ping_objects = []
         self.ping_active = False
+        self.ping_window = None
         self.abort = False
 
         self.main_list = ObjectListView(self, wx.ID_ANY, 
@@ -442,6 +443,7 @@ class MainPanel(wx.Panel):
             
         self.ping_active = True
         dia = multi_ping.MultiPing(self, self.main_list.GetSelectedObjects())
+        self.ping_window = dia
         dia.Show()
 
     def factory_av(self, _):
@@ -996,6 +998,9 @@ class MainPanel(wx.Panel):
 
     def on_close(self, _):
         """Close program if user closes window"""
+        self.parent.Hide()
+        if self.ping_window != None:
+          self.ping_window.Hide()
         self.ping_active = False
         self.mse_active_list = []
         self.telnet_job_queue.join()
