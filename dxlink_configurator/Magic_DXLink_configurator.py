@@ -113,6 +113,7 @@ class MainPanel(wx.Panel):
         self.port_error = False
         self.ping_objects = []
         self.ping_active = False
+        self.ping_window = None
         self.abort = False
 
         self.main_list = ObjectListView(self, wx.ID_ANY, 
@@ -167,7 +168,7 @@ class MainPanel(wx.Panel):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
-        dispatcher.connect(self.update_info, 
+        dispatcher.connect(self.incoming_packet, 
                            signal="Incoming Packet", 
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
@@ -442,6 +443,7 @@ class MainPanel(wx.Panel):
             
         self.ping_active = True
         dia = multi_ping.MultiPing(self, self.main_list.GetSelectedObjects())
+        self.ping_window = dia
         dia.Show()
 
     def factory_av(self, _):
@@ -701,7 +703,7 @@ class MainPanel(wx.Panel):
                     ]
                 plot_object.append(data[0])
                 obj = plot_object[0]
-                self.mse_active_list.append(obj.mac)
+                self.mse_active_list.append(obj.mac_address)
                 for item in csv_data:
                     mse = []
                     data = []
@@ -821,7 +823,7 @@ class MainPanel(wx.Panel):
                     '')
         return data
 
-    def update_info(self, sender):
+    def incoming_packet(self, sender):
         """Receives dhcp requests with and adds them to objects to display"""
         data = self.make_unit(sender)
         self.parent.status_bar.SetStatusText(
@@ -942,6 +944,7 @@ class MainPanel(wx.Panel):
         """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
             return
+
         for obj in self.main_list.GetSelectedObjects():
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
@@ -949,6 +952,7 @@ class MainPanel(wx.Panel):
             if self.abort == True:
                 self.abort = False
                 return
+        self.display_progress()
 
 
     def configure_prefs(self, _):
@@ -994,6 +998,9 @@ class MainPanel(wx.Panel):
 
     def on_close(self, _):
         """Close program if user closes window"""
+        self.parent.Hide()
+        if self.ping_window != None:
+          self.ping_window.Hide()
         self.ping_active = False
         self.mse_active_list = []
         self.telnet_job_queue.join()

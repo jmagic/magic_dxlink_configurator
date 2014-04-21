@@ -129,8 +129,8 @@ class MultiPing(wx.Dialog):
                                             self.parent.telnet_timeout_seconds])   
             
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        dispatcher.connect(self.on_incoming_ping, signal="Incoming Ping", 
-                                                        sender=dispatcher.Any)
+        dispatcher.connect(self.on_incoming_ping, 
+                                signal="Incoming Ping", sender=dispatcher.Any)
         
         #print self.timer.IsRunning()
         
@@ -193,7 +193,9 @@ class MultiPing(wx.Dialog):
         """Close the window"""               
         self.parent.ping_active = False
         self.Hide()
+        self.parent.ping_window = None
         self.Destroy()
+        
         
     def show_details(self, _):
         """Show the details of the pings to this device"""        

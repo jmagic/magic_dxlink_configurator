@@ -39,7 +39,7 @@ class PreferencesConfig(wx.Dialog):
         bsizer4 = wx.BoxSizer(wx.VERTICAL)
 
         self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, 
-                                           u"Master and Device Defaults", 
+                                           u"Default values for:", 
                                            wx.DefaultPosition, 
                                            wx.DefaultSize, 0)
         self.m_statictext2.Wrap(-1)
@@ -522,7 +522,7 @@ class DeviceConfig(wx.Dialog):
 
         bsizer1.Add(bsizer4, 0, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5)
 
-
+        self.Bind(wx.EVT_CLOSE, self.on_abort)
         self.SetSizer(bsizer1)
         self.Layout()
         bsizer1.Fit(self)
@@ -565,6 +565,7 @@ class DeviceConfig(wx.Dialog):
 
         self.on_dhcp(None) #call to update dhcp / static
 
+
     def on_dhcp(self, _):
         """Sets DHCP mode on or off and enables the DHCP options"""
 
@@ -581,12 +582,17 @@ class DeviceConfig(wx.Dialog):
 
     def on_cancel(self, _):
         """Canel and close"""
+        selected_items = self.parent.main_list.GetSelectedObjects()
+        selected_items.remove(self.obj)
+        self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.Destroy()
 
     def on_abort(self, _):
         """Quits processing the list of selected items"""
         self.parent.abort = True
+        self.parent.main_list.DeselectAll()
         self.Destroy()
+
 
     def on_set(self, _):
         """Sends the setting to the device"""
@@ -609,7 +615,7 @@ class DeviceConfig(wx.Dialog):
 
         #self.parent.static_items.append(self.obj)
         self.parent.telnet_job_queue.put(info)
-        self.parent.display_progress()
+        #self.parent.display_progress()
         self.Destroy()
 
 
