@@ -23,7 +23,7 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=output
 OutputBaseFilename=Magic_DXLink_Configurator_Setup_2.0.0
-SetupIconFile=C:\Users\jim.maciejewski\Documents\configurator\dxlink_configurator\icon\MDC_icon.ico
+SetupIconFile=C:\Users\Kylie\Documents\configurator\dxlink_configurator\dist\Magic_DXLink_configurator\icon\MDC_icon.ico
 Compression=lzma
 SolidCompression=yes
 VersionInfoVersion=2.0.0
@@ -36,8 +36,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Users\jim.maciejewski\Documents\configurator\dxlink_configurator\dist\Magic_DXLink_configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\jim.maciejewski\Documents\configurator\dxlink_configurator\dist\Magic_DXLink_configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Kylie\Documents\configurator\dxlink_configurator\dist\Magic_DXLink_configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Kylie\Documents\configurator\dxlink_configurator\dist\Magic_DXLink_configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "
 ;Source: "C:\Users\Kylie\Dropbox\python_projects\eclipse\workspace2\Magic DXLink Configurator\dist\Magic_DXLink_Configurator"; DestDir: "{userdocs}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
