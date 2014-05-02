@@ -3,6 +3,9 @@
 import wx
 from pydispatch import dispatcher
 from ObjectListView import ObjectListView, ColumnDefn
+import datetime
+import csv
+import os
 
 class PingUnit(object):
     """
@@ -123,10 +126,17 @@ class MultiPing(wx.Dialog):
         self.ping_objects = []
         self.set_objects(device_list)
         self.ping_list.SetObjects(self.ping_objects)
+        self.log_files = {}
 
         for obj in device_list:
             self.parent.telnet_job_queue.put(['Ping', obj, 
-                                            self.parent.telnet_timeout_seconds])   
+                                            self.parent.telnet_timeout_seconds])
+            
+        for obj in self.ping_objects:
+            self.log_files[obj]=('device_' + obj.ip_address + '_time_' + 
+                                   datetime.datetime.now().strftime('%H_%M_%S') +
+                                   '.csv')
+        #print self.log_files  
             
         self.Bind(wx.EVT_CLOSE, self.on_close)
         dispatcher.connect(self.on_incoming_ping, 
@@ -166,7 +176,7 @@ class MultiPing(wx.Dialog):
         
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
-
+        logging = True
         #print sender
         #print '.'
         if self.parent.ping_active:
@@ -188,6 +198,9 @@ class MultiPing(wx.Dialog):
                     #print 'success', str(obj.success)
                     #print 'finish incoming'
                     self.ping_list.RefreshObject(obj)
+                    if logging:
+                        self.save_log(obj)
+
         
     def on_close(self, _):
         """Close the window"""               
@@ -213,7 +226,24 @@ class MultiPing(wx.Dialog):
         self.PopupMenu(right_click_menu)
         right_click_menu.Destroy()
 
-     
+    def save_log(self, obj):
+        """Save log to a file"""
+        #user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
+        user_path = os.path.expanduser('~\\Dropbox\\AMX\\FSE\\NSW\\Syndey\\CPC\\ping_logs\\')
+        path = user_path + self.log_files[obj]
+        #print 'path', path
+        #print 'ping_data', obj.ping_data[-1].ping_time
+        
+        with open(path, 'ab') as log_file:
+            writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
+            row = []
+            row.append(str(obj.ping_data[-1].ping_time))
+            row.append(str(obj.ping_data[-1].ms_delay))
+            row.append(str(obj.ping_data[-1].success))
+            writer_csv.writerow(row)
+            #print row
+        
+
         
 
 
