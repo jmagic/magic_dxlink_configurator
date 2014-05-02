@@ -228,8 +228,8 @@ class MultiPing(wx.Dialog):
 
     def save_log(self, obj):
         """Save log to a file"""
-        #user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
-        user_path = os.path.expanduser('~\\Dropbox\\AMX\\FSE\\NSW\\Syndey\\CPC\\ping_logs\\')
+        user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
+        #user_path = os.path.expanduser('~\\Dropbox\\AMX\\FSE\\NSW\\Syndey\\CPC\\ping_logs\\')
         path = user_path + self.log_files[obj]
         #print 'path', path
         #print 'ping_data', obj.ping_data[-1].ping_time
