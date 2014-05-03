@@ -134,6 +134,7 @@ class Multi_Plot(wx.Dialog):
         self.redraw_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
         self.redraw_timer.Start((200+(100*(len(self.parent.mse_active_list)))))
+        #self.redraw_timer.Start((1000))
         dispatcher.connect(self.on_telnet_error, signal="MSE error", 
                                                           sender=dispatcher.Any)
         dispatcher.connect(self.on_incoming_mse, signal="Incoming MSE", 
@@ -516,6 +517,7 @@ class Multi_Plot(wx.Dialog):
         """User closes the plot window"""
         self.redraw_timer.Stop()
         self.parent.mse_active_list.remove(self.plot_obj.mac_address)
+        self.parent.serial_active.remove(self.plot_obj.mac_address)
         self.plot_obj.mse_data = []
         self.Destroy()
 
