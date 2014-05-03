@@ -465,7 +465,7 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         if len(self.parent.serial_active) == 1:
-            ser = serial.Serial("COM8", 9600, timeout=.1)
+            ser = serial.Serial(obj.ip_address, 9600, timeout=.1)
             sio = io.TextIOWrapper(io.BufferedRWPair(ser,ser))
             sio.write(unicode(str("\x03")))
         
@@ -512,9 +512,9 @@ class Telnetjobs(Thread):
                                 if row != []:
                                     mline_time = [datetime.datetime.now(), row]
                                     mline.append(mline_time)
-                                    mline.append(('DGX_BCPU' + str(bcpu) + ':' + str(dgx_output[mse_line].split()[0][:3])))
-                                    #DGX_BCPU5:Ch1 
-                                    mline.append(('DGX_BCPU' + str(bcpu) + ':' + str(dgx_output[mse_line].split()[0][:3])))
+                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
+                                    #DGX_BCPU5_Ch1 
+                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
                                     #print mline
                                     dispatcher.send(signal="Incoming MSE", sender=mline)
                                     mline = []

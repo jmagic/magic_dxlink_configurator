@@ -413,7 +413,7 @@ class MainPanel(wx.Panel):
                 dlg.Destroy()
                 return
             self.mse_active_list.append(obj.mac_address)
-            if obj.ip_address == "DGX":
+            if obj.ip_address[:3] == "COM":
               #DGX_BCPU5:1
               self.serial_active.append(obj.mac_address)
               self.telnet_job_queue.put(['dgx-mse', obj, self.telnet_timeout_seconds])
