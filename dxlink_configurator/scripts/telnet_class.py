@@ -501,15 +501,19 @@ class Telnetjobs(Thread):
                                 row = []
                                 mline = []
                                 #row.append(str(datetime.datetime.now().strftime('%H:%M:%S.%f')))
-                                for mse in [4, 6, 8]:
-                                    row.append(str(dgx_output[mse_line].split()[mse][2:-3]))
-                                row.append(str(dgx_output[mse_line].split()[10][2:-2]))#one less no comma on this one
+                                try:
+                                    for mse in [4, 6, 8]:
+                                        row.append(str(dgx_output[mse_line].split()[mse][2:-3]))
+                                    row.append(str(dgx_output[mse_line].split()[10][2:-2]))#one less no comma on this one
+                                except IndexError:
+                                    print "Index error building dgx mse row"
+                                    continue
                                 #print "row", row
                                 if row != []:
                                     mline_time = [datetime.datetime.now(), row]
                                     mline.append(mline_time)
                                     mline.append(('DGX_BCPU' + str(bcpu) + ':' + str(dgx_output[mse_line].split()[0][:3])))
-                                    #DGX_BCPU5:Ch1
+                                    #DGX_BCPU5:Ch1 
                                     mline.append(('DGX_BCPU' + str(bcpu) + ':' + str(dgx_output[mse_line].split()[0][:3])))
                                     #print mline
                                     dispatcher.send(signal="Incoming MSE", sender=mline)
