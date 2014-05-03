@@ -179,8 +179,13 @@ class Multi_Plot(wx.Dialog):
         self.canvas = FigCanvas(self.panel, -1, self.fig)
         # initval = [ default, min, max, direction 0=hoz 1=vert 
         # lenght of slider in px]
-        self.length_control = BoundControlBox(self.panel, -1, "Length", 
-                                                [1500, 150, 1500, 1, 250]) 
+        if self.obj.ip_address == "DGX":
+            self.length_control = BoundControlBox(self.panel, -1, "Length", 
+                                                [1500, 150, 1, 1, 250])
+        else:
+            self.length_control = BoundControlBox(self.panel, -1, "Length", 
+                                                [1500, 150, 1500, 1, 250])
+
         self.time_control = BoundControlBox(self.panel, -1, "Time", 
                                                     [100, 0, 100, 1, 250])
         self.zoom_control = BoundControlBox(self.panel, -1, "Vertical zoom", 
