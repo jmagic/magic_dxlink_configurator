@@ -176,7 +176,8 @@ class MultiPing(wx.Dialog):
         
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
-        logging = True
+        #switch to true to log pings
+        logging = False
         #print sender
         #print '.'
         if self.parent.ping_active:
@@ -229,10 +230,7 @@ class MultiPing(wx.Dialog):
     def save_log(self, obj):
         """Save log to a file"""
         user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
-        #user_path = os.path.expanduser('~\\Dropbox\\AMX\\FSE\\NSW\\Syndey\\CPC\\ping_logs\\')
         path = user_path + self.log_files[obj]
-        #print 'path', path
-        #print 'ping_data', obj.ping_data[-1].ping_time
         
         with open(path, 'ab') as log_file:
             writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
