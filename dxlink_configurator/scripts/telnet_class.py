@@ -506,7 +506,7 @@ class Telnetjobs(Thread):
                                         row.append(str(dgx_output[mse_line].split()[mse][2:-3]))
                                     row.append(str(dgx_output[mse_line].split()[10][2:-2]))#one less no comma on this one
                                 except IndexError:
-                                    print "Index error building dgx mse row"
+                                    #print "Index error building dgx mse row"
                                     continue
                                 #print "row", row
                                 if row != []:
