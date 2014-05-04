@@ -111,7 +111,11 @@ class Multi_Plot(wx.Dialog):
 
         self.parent = parent
         self.obj = obj
-        self.SetTitle('MSE values plotted over time ' + 
+        if self.obj.ip_address[:3] == "COM":
+            self.SetTitle('MSE values plotted over time ' + 
+                       'DGX ' + obj.mac_address)
+        else:
+            self.SetTitle('MSE values plotted over time ' + 
                        obj.ip_address + '  ' + obj.device)
         self.plot_obj = PlotUnit(
                                      [],
@@ -134,6 +138,7 @@ class Multi_Plot(wx.Dialog):
         self.redraw_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_redraw_timer, self.redraw_timer)
         self.redraw_timer.Start((200+(100*(len(self.parent.mse_active_list)))))
+        #self.redraw_timer.Start((1000))
         dispatcher.connect(self.on_telnet_error, signal="MSE error", 
                                                           sender=dispatcher.Any)
         dispatcher.connect(self.on_incoming_mse, signal="Incoming MSE", 
@@ -178,8 +183,13 @@ class Multi_Plot(wx.Dialog):
         self.canvas = FigCanvas(self.panel, -1, self.fig)
         # initval = [ default, min, max, direction 0=hoz 1=vert 
         # lenght of slider in px]
-        self.length_control = BoundControlBox(self.panel, -1, "Length", 
-                                                [1500, 150, 1500, 1, 250]) 
+        if self.obj.ip_address[:3] == "COM":
+            self.length_control = BoundControlBox(self.panel, -1, "Length", 
+                                                [150, 150, 1500, 1, 250])
+        else:
+            self.length_control = BoundControlBox(self.panel, -1, "Length", 
+                                                [1500, 150, 1500, 1, 250])
+
         self.time_control = BoundControlBox(self.panel, -1, "Time", 
                                                     [100, 0, 100, 1, 250])
         self.zoom_control = BoundControlBox(self.panel, -1, "Vertical zoom", 
@@ -464,7 +474,11 @@ class Multi_Plot(wx.Dialog):
     def on_save_plot(self, _):
         """Save plot to a file"""
         file_choices = "PNG (*.png)|*.png"
-        name = ('device_' + self.obj.device + '_time_' + 
+        if self.obj.ip_address[:3] == "COM":
+            name = (self.obj.mac_address + '_time_' + 
+                                   datetime.datetime.now().strftime('%H_%M_%S'))
+        else:
+            name = ('device_' + self.obj.device + '_time_' + 
                                    datetime.datetime.now().strftime('%H_%M_%S'))
         dlg = wx.FileDialog(
             self,
@@ -516,6 +530,8 @@ class Multi_Plot(wx.Dialog):
         """User closes the plot window"""
         self.redraw_timer.Stop()
         self.parent.mse_active_list.remove(self.plot_obj.mac_address)
+        if self.obj.ip_address[:3] == "COM":
+            self.parent.serial_active.remove(self.plot_obj.mac_address)
         self.plot_obj.mse_data = []
         self.Destroy()
 

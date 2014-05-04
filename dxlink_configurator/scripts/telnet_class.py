@@ -6,6 +6,9 @@ from threading import Thread
 import time
 import datetime
 import subprocess
+import serial
+import io
+
 
 class Telnetjobs(Thread):
 
@@ -37,6 +40,8 @@ class Telnetjobs(Thread):
                 self.set_turn_off_led(job)
             elif job[0] == "mse":
                 self.set_mse(job)
+            elif job[0] == "dgx-mse":
+                self.set_dgx_mse(job)
             elif job[0] == "Ping":
                 self.set_ping(job)
             else:                
@@ -455,7 +460,68 @@ class Telnetjobs(Thread):
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
 
-           
+    def set_dgx_mse(self, job):
+        "Gathers DGX MSE values"
+        obj = job[1]
+
+        if len(self.parent.serial_active) == 1:
+            ser = serial.Serial(obj.ip_address, 9600, timeout=.1)
+            sio = io.TextIOWrapper(io.BufferedRWPair(ser,ser))
+            sio.write(unicode(str("\x03")))
+        
+            while self.parent.serial_active != []: 
+
+                sio.flush()
+                #print sio.readlines()
+                sio.write(unicode(str("show stats \n")))
+                sio.flush()
+                dgx_output = sio.readlines()
+                        
+                #Find the cards in the system
+                for block in dgx_output:
+                    #if block[:-2] == "BCPU6":
+                    #print 'block[:-3] == obj.device', block[:-3], obj.device
+                    if block[:-3] == "BCPU":
+                        card_line_number = dgx_output.index(block)
+                        #print card_line_number 
+                        # lets count from the BCPU to the MSE value lines by 4's
+                        for mse_line in range(card_line_number + 3, 
+                                              card_line_number + 16, 4 ): 
+                            if str(dgx_output[mse_line][-10:-2]) != "Unlinked":
+                                #print dgx_output[mse_line]
+                                bcpu = int(block[-3:-2])
+                                #print bcpu
+                                if str(dgx_output[mse_line][6:8]) == "RX":
+                                    dgx_output[mse_line] = dgx_output[mse_line].split()[0] + " " + dgx_output[mse_line] 
+
+                                
+                                #print 'active_dgx_mse[-3:]',active_dgx_mse[-3:], str(dgx_output[mse_line].split()[0][:3])
+                                #if active_dgx_mse[-3:] == str(dgx_output[mse_line].split()[0][:3]):
+                                #    print 'active_dgx_mse[-3:]', active_dgx_mse[-3:]
+                                row = []
+                                mline = []
+                                #row.append(str(datetime.datetime.now().strftime('%H:%M:%S.%f')))
+                                try:
+                                    for mse in [4, 6, 8]:
+                                        row.append(str(dgx_output[mse_line].split()[mse][2:-3]))
+                                    row.append(str(dgx_output[mse_line].split()[10][2:-2]))#one less no comma on this one
+                                except IndexError:
+                                    print "Index error building dgx mse row"
+                                    continue
+                                #print "row", row
+                                if row != []:
+                                    mline_time = [datetime.datetime.now(), row]
+                                    mline.append(mline_time)
+                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
+                                    #DGX_BCPU5_Ch1 
+                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
+                                    #print mline
+                                    dispatcher.send(signal="Incoming MSE", sender=mline)
+                                    mline = []
+                                    row = []
+            
+
+
     def set_ping(self, job):
         """Ping devices constantly for troubleshooting"""        
         obj = job[1]

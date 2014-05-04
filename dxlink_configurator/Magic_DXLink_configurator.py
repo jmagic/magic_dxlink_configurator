@@ -110,6 +110,7 @@ class MainPanel(wx.Panel):
         self.errorlist = []
         self.completionlist = []
         self.mse_active_list = []
+        self.serial_active = []
         self.port_error = False
         self.ping_objects = []
         self.ping_active = False
@@ -392,7 +393,7 @@ class MainPanel(wx.Panel):
         """Plots mse over time"""
         if self.check_for_none_selected(): 
             return
-        if len(self.main_list.GetSelectedObjects()) > 10:
+        if len(self.main_list.GetSelectedObjects()) > 15:
             dlg = wx.MessageDialog(parent=self, message='I can only graph 10' +
                                    ' devices at a time \nPlease select less ' +
                                    'than ten devices at once',
@@ -412,7 +413,12 @@ class MainPanel(wx.Panel):
                 dlg.Destroy()
                 return
             self.mse_active_list.append(obj.mac_address)
-            self.telnet_job_queue.put(['mse', obj, self.telnet_timeout_seconds])
+            if obj.ip_address[:3] == "COM":
+              #DGX_BCPU5:1
+              self.serial_active.append(obj.mac_address)
+              self.telnet_job_queue.put(['dgx-mse', obj, self.telnet_timeout_seconds])
+            else:
+              self.telnet_job_queue.put(['mse', obj, self.telnet_timeout_seconds])
             dia = plot_class.Multi_Plot(self, obj, '-1500')
             dia.Show()
 
