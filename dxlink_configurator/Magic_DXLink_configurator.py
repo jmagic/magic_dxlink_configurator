@@ -1089,24 +1089,29 @@ class MainFrame(wx.Frame):
         self.panel = MainPanel(self)
 
         file_menu = wx.Menu()
-        fitem = file_menu.Append(wx.ID_ANY, 'Import CSV Spread Sheet', \
-                                 'Import CSV Spread Sheet')
-        self.Bind(wx.EVT_MENU, self.panel.import_csv_file, fitem)
 
-        fitem = file_menu.Append(wx.ID_ANY, 'Import IP list', 'Import IP list')
-        self.Bind(wx.EVT_MENU, self.panel.import_ip_list, fitem)
+        import_menu = wx.Menu()
+        iitem = import_menu.Append(wx.ID_ANY, 'Import from a CSV', \
+                                 'Import from a CSV')
+        self.Bind(wx.EVT_MENU, self.panel.import_csv_file, iitem)
 
-        fitem = file_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
-        self.Bind(wx.EVT_MENU, self.panel.import_plot, fitem)
+        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', 'Import IP list')
+        self.Bind(wx.EVT_MENU, self.panel.import_ip_list, iitem)
 
-        fitem = file_menu.Append(wx.ID_ANY, 'Store Items in a CSV File', \
-                                 'Store selected items in a CSV file')
-        self.Bind(wx.EVT_MENU, self.panel.remove_and_store, fitem)
+        iitem = import_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
+        self.Bind(wx.EVT_MENU, self.panel.import_plot, iitem)
+
+        export_menu = wx.Menu()
+        eitem = export_menu.Append(wx.ID_ANY, 'Export to a CSV File', \
+                                 'Export to a CSV file')
+        self.Bind(wx.EVT_MENU, self.panel.remove_and_store, eitem)
+
+        menubar.Append(file_menu, '&File')
+        file_menu.AppendMenu(wx.ID_ANY, 'Import', import_menu)
+        file_menu.AppendMenu(wx.ID_ANY, 'Export', export_menu)
 
         fitem = file_menu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
         self.Bind(wx.EVT_MENU, self.on_quit, fitem)
-
-        menubar.Append(file_menu, '&File')
 
         edit_menu = wx.Menu()
 
