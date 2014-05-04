@@ -564,7 +564,7 @@ class MainPanel(wx.Panel):
     def dump_pickle(self):
         """Saves list data to a file"""
         pickle.dump(self.main_list.GetObjects(), open((self.path + 
-                                                     'data_store.pkl'), 'wb'))
+                                  'data_' + self.version + '.pkl'), 'wb'))
 
     def remove_and_store(self, _):
         """Store list items in a CSV file"""
@@ -975,10 +975,10 @@ class MainPanel(wx.Panel):
 
     def load_data_pickle(self):
         """Loads main list from data file"""
-        if os.path.exists((self.path + 'data_store.pkl')):
+        if os.path.exists((self.path + 'data_' + self.version + '.pkl')):
             try:
-                objects = pickle.load(open((self.path + 'data_store.pkl'),
-                                            'rb'))
+                objects = pickle.load(open((self.path + 'data_' + 
+                                                  self.version + '.pkl'), 'rb'))
                 self.main_list.SetObjects(objects)
             except IOError:
                 pass
