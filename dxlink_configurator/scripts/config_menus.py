@@ -584,6 +584,7 @@ class DeviceConfig(wx.Dialog):
         """Canel and close"""
         selected_items = self.parent.main_list.GetSelectedObjects()
         selected_items.remove(self.obj)
+        self.parent.configure_list.remove(self.obj)
         self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.Destroy()
 

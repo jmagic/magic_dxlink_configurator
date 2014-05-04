@@ -109,6 +109,7 @@ class MainPanel(wx.Panel):
 
         self.errorlist = []
         self.completionlist = []
+        self.configure_list = []
         self.mse_active_list = []
         self.serial_active = []
         self.port_error = False
@@ -952,13 +953,17 @@ class MainPanel(wx.Panel):
             return
 
         for obj in self.main_list.GetSelectedObjects():
+            self.configure_list.append(obj)
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
             dia.Destroy()
             if self.abort == True:
                 self.abort = False
                 return
-        self.display_progress()
+        if self.configure_list == []:
+          return
+        else:
+          self.display_progress()
 
 
     def configure_prefs(self, _):
