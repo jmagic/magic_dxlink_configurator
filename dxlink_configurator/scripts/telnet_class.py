@@ -465,8 +465,13 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         if len(self.parent.serial_active) == 1:
-            ser = serial.Serial(obj.ip_address, 9600, timeout=.1)
-            sio = io.TextIOWrapper(io.BufferedRWPair(ser,ser))
+            try:
+                ser = serial.Serial(obj.ip_address, 9600, timeout=.1)
+                sio = io.TextIOWrapper(io.BufferedRWPair(ser,ser))
+            except Exception as error:
+                time.sleep(2) # wait for gui to start
+                dispatcher.send(signal="MSE error", sender=obj.mac_address)
+                return
             sio.write(unicode(str("\x03")))
         
             while self.parent.serial_active != []: 
