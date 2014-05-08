@@ -594,7 +594,7 @@ class MainPanel(wx.Panel):
         pickle.dump(self.main_list.GetObjects(), open((self.path + 
                                   'data_' + self.version + '.pkl'), 'wb'))
 
-    def remove_and_store(self, _):
+    def export_to_csv(self, _):
         """Store list items in a CSV file"""
         if self.check_for_none_selected():
             return
@@ -634,8 +634,6 @@ class MainPanel(wx.Panel):
                             ]
                     write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
                     write_csv.writerow(data)
-            self.main_list.RemoveObjects(self.main_list.GetSelectedObjects())
-            self.main_list.RepopulateList()
             self.dump_pickle()
 
     def import_csv_file(self, _):
@@ -648,35 +646,36 @@ class MainPanel(wx.Panel):
                                          | wx.FD_FILE_MUST_EXIST)
         if open_file_dialog.ShowModal() == wx.ID_OK:
             open_file_dialog.Destroy()
-            dlg = wx.MessageDialog(parent=self, message='This will replace ' +
-                                   'all items currently in your list',
-                                   caption='Replaces items',
+            dlg = wx.MessageDialog(parent=self, message='To replace ' +
+                                   'all items currently in your list,  ' +
+                                   'click ok',
+                                   caption='Replace items',
                                    style=wx.OK|wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:            
                 self.main_list.DeleteAllItems()
-                with open(open_file_dialog.GetPath(), 'rb') as csvfile:
-                    cvs_data = csv.reader(csvfile)
-                    for item in cvs_data:
-                        data = Unit(
-                                   item[0],
-                                   item[1],
-                                   item[2],
-                                   item[3],
-                                   item[4],
-                                   item[5],
-                                   item[6],
-                                   datetime.datetime.strptime((item[7]),
-                                                "%Y-%m-%d %H:%M:%S.%f"), 
-                                   item[8],
-                                   item[9],
-                                   item[10],
-                                   item[11],
-                                   item[12]
-                                  )
-                        self.main_list.AddObject(data)
-                self.dump_pickle()
-            else:
-                dlg.Destroy()
+
+            with open(open_file_dialog.GetPath(), 'rb') as csvfile:
+                cvs_data = csv.reader(csvfile)
+                for item in cvs_data:
+                    data = Unit(
+                               item[0],
+                               item[1],
+                               item[2],
+                               item[3],
+                               item[4],
+                               item[5],
+                               item[6],
+                               datetime.datetime.strptime((item[7]),
+                                            "%Y-%m-%d %H:%M:%S.%f"), 
+                               item[8],
+                               item[9],
+                               item[10],
+                               item[11],
+                               item[12]
+                              )
+                    self.main_list.AddObject(data)
+            self.dump_pickle()
+
         else:
             open_file_dialog.Destroy()
 
@@ -1157,7 +1156,7 @@ class MainFrame(wx.Frame):
         export_menu = wx.Menu()
         eitem = export_menu.Append(wx.ID_ANY, 'Export to a CSV File', \
                                  'Export to a CSV file')
-        self.Bind(wx.EVT_MENU, self.panel.remove_and_store, eitem)
+        self.Bind(wx.EVT_MENU, self.panel.export_to_csv, eitem)
 
         menubar.Append(file_menu, '&File')
         file_menu.AppendMenu(wx.ID_ANY, 'Import', import_menu)
