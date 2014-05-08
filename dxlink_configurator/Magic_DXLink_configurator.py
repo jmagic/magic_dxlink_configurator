@@ -1011,14 +1011,31 @@ class MainPanel(wx.Panel):
 
     def load_data_pickle(self):
         """Loads main list from data file"""
-        if os.path.exists((self.path + 'data_' + self.version + '.pkl')):
+        if os.path.exists(self.path + 'data_' + self.version + '.pkl'):
             try:
-                objects = pickle.load(open((self.path + 'data_' + 
-                                                  self.version + '.pkl'), 'rb'))
-                self.main_list.SetObjects(objects)
-            except IOError:
-                pass
+                with open((self.path + 'data_' + self.version + 
+                                                    '.pkl'), 'rb') as data_file:
+                    objects = pickle.load(data_file)
+                    self.main_list.SetObjects(objects)
+            except (IOError, KeyError):
+                self.new_pickle()
         self.main_list.SetSortColumn(0, resortNow=True)
+
+    def new_pickle(self):
+        """Creates a new pickle if there is a problem with the old one"""
+        try:
+            if os.path.exists((self.path + 'data_' + self.version + '.pkl')):
+                os.rename(self.path + 'data_' + self.version + '.pkl',
+                          self.path + 'data_' + self.version + '.bad')
+        except IOError:
+            dlg = wx.MessageDialog(parent=self, message='There is a problem ' +
+                                   'with the .pkl data file. Please delete ' +
+                                   'to continue. ' +
+                                   ' The program will now exit',
+                                   caption='Problem with .pkl file',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            self.Destroy()
 
     def resize_frame(self):
         """Resizes the Frame"""
