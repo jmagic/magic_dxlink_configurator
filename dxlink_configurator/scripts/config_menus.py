@@ -769,3 +769,207 @@ class IpListGen(wx.Dialog):
             self.data.append(ip_gen)
             count += 1
 
+class DGXListGen(wx.Dialog):
+    def __init__(self, parent):
+
+        wx.Dialog.__init__(self, parent=parent, id=wx.ID_ANY)
+
+        self.parent = parent
+
+        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+
+        bsizer1 = wx.BoxSizer(wx.VERTICAL)
+
+
+
+        bsizer2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bsizer5 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, u"Starting Card", 
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext1.Wrap(-1)
+        bsizer5.Add(self.m_statictext1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+
+
+        bsizer2.Add(bsizer5, 0, wx.EXPAND, 5)
+
+        bsizer6 = wx.BoxSizer(wx.VERTICAL)
+
+        self.start_ip = wx.TextCtrl(self, wx.ID_ANY, u'BCPU1',
+                                    wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer6.Add(self.start_ip, 0, wx.ALL|wx.EXPAND, 5)
+
+
+        bsizer2.Add(bsizer6, 1, wx.EXPAND, 5)
+
+
+        bsizer1.Add(bsizer2, 0, wx.EXPAND, 5)
+
+
+
+
+        bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
+
+        bsizer7 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, u"Finishing Card",
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext2.Wrap(-1)
+        bsizer7.Add(self.m_statictext2, 0, wx.ALL, 5)
+
+
+        bsizer3.Add(bsizer7, 0, wx.ALIGN_CENTER_VERTICAL, 5)
+
+        bsizer8 = wx.BoxSizer(wx.VERTICAL)
+
+        self.finish_ip = wx.TextCtrl(self, wx.ID_ANY, 
+                                     u'BCPU16', 
+                                     wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer8.Add(self.finish_ip, 1, wx.ALL|wx.EXPAND, 5)
+
+
+        bsizer3.Add(bsizer8, 1, wx.EXPAND, 5)
+
+
+        bsizer1.Add(bsizer3, 0, wx.EXPAND, 5)
+
+
+
+
+        bsizer14 = wx.BoxSizer(wx.HORIZONTAL)
+        
+        bsizer11 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_statictext3 = wx.StaticText(self, wx.ID_ANY, u"COM Port",
+                                           wx.DefaultPosition, 
+                                           wx.DefaultSize, 0)
+        self.m_statictext3.Wrap(-1)
+        bsizer11.Add(self.m_statictext3, 0, wx.ALL, 5)
+        
+        bsizer14.Add(bsizer11, 0, wx.ALIGN_CENTER_VERTICAL, 5)
+        #bsizer14.Add(bsizer11, 1, wx.EXPAND, 5)
+        
+        bsizer12 = wx.BoxSizer(wx.VERTICAL)
+
+        self.com_port = wx.TextCtrl(self, wx.ID_ANY, 
+                                     u'COM8', 
+                                     wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer12.Add(self.com_port, 1, wx.ALL|wx.EXPAND, 5)
+
+
+        bsizer14.Add(bsizer12, 1, wx.EXPAND, 5)
+
+
+        bsizer1.Add(bsizer14, 0, wx.EXPAND, 5)
+
+
+
+        bsizer4 = wx.BoxSizer(wx.VERTICAL)
+
+        bsizer9 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.replace = wx.Button(self, wx.ID_ANY, u"Replace List", 
+                                 wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer9.Add(self.replace, 0, wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.on_replace, self.replace)
+
+        self.add = wx.Button(self, wx.ID_ANY, u"Add to List", 
+                             wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer9.Add(self.add, 0, wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.on_add, self.add)
+
+        self.save = wx.Button(self, wx.ID_ANY, u"Save as File", 
+                              wx.DefaultPosition, wx.DefaultSize, 0)
+        bsizer9.Add(self.save, 0, wx.ALL, 5)
+        self.Bind(wx.EVT_BUTTON, self.on_save, self.save)
+
+
+        bsizer4.Add(bsizer9, 1, wx.EXPAND, 5)
+
+
+        bsizer1.Add(bsizer4, 1, wx.EXPAND, 5)
+
+
+        self.SetSizer(bsizer1)
+        self.Layout()
+        bsizer1.Fit(self)
+
+        self.Centre(wx.BOTH)
+
+        self.data = []
+
+        self.SetTitle("Generate DGX Card list")
+        dlg = wx.MessageDialog(parent=self, message='This will generate ' +
+                                   'a list of the BCPU card names for getting' +
+                                   ' MSE values from a DGX. Please enter your' +
+                                   ' card in the format \'BCPU1\'',
+                                   caption='Build DGX list',
+                                   style=wx.OK)
+        dlg.ShowModal()
+
+
+
+
+    def on_replace(self, _):
+        """Replaces list with generated list"""
+        self.parent.main_list.DeleteAllItems()
+        self.on_add(None)
+
+    def on_add(self, _):
+        """Adds to the bottom of the list"""
+        self.gen_list()
+        for item in self.data:
+            self.parent.main_list.AddObject(self.parent.make_unit(
+                                            ('', item, 
+                                            self.com_port.GetValue())))
+        self.parent.dump_pickle()
+        self.Destroy()
+
+    def on_save(self, _):
+        """Saves the ip list to a file"""
+        self.gen_list()
+        save_file_dialog = wx.FileDialog(self, message="Save DGX list",
+                                         defaultDir=self.parent.path,
+                                         defaultFile="generatedDGXlist.csv",
+                                         wildcard="CSV files (*.csv)|*.csv",
+                                         style=wx.SAVE)
+        if save_file_dialog.ShowModal() == wx.ID_OK:
+
+            path = save_file_dialog.GetPath()
+            with open(path, 'wb') as dgx_list_file:
+                writer_csv = csv.writer(dgx_list_file)
+                for item in self.data:
+                    writer_csv.writerow([item])
+                self.Destroy()
+        else:
+            self.Destroy()
+
+    def gen_list(self):
+        """Generates the IP list"""
+        try:
+            self.data = []
+            #count = 0
+            #try: Later
+            if str(self.start_ip.GetValue()[:4]) != 'BCPU':
+                raise ValueError(self.start_ip.GetValue())
+            start = str(self.start_ip.GetValue()[4:])
+            #start = start.split('.')[3]
+            finish = str(self.finish_ip.GetValue()[4:])
+            #finish = finish.split('.')[3]
+            for bcpu in range(int(start), (int(finish)+1)):
+                for port in range(4):
+                    dgx_gen = 'BCPU' + str(bcpu) + '_' + str(port + 1)
+                    self.data.append(dgx_gen)
+                    #count += 1
+        except ValueError as error:
+            dlg = wx.MessageDialog(parent=self, message='The value(' + 
+                                    error[0].split(':')[-1] + ') you ' +
+                                    'entered is invalid',
+                                   caption='Build DGX list',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            self.Destroy()
+
