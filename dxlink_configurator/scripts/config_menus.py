@@ -3,6 +3,11 @@
 import wx
 import csv
 
+
+class MyException(Exception):
+    """Allow custom exceptions"""
+    pass
+
 class PreferencesConfig(wx.Dialog):
     def __init__(self, parent):
 
@@ -881,12 +886,6 @@ class DGXListGen(wx.Dialog):
         bsizer9.Add(self.add, 0, wx.ALL, 5)
         self.Bind(wx.EVT_BUTTON, self.on_add, self.add)
 
-        self.save = wx.Button(self, wx.ID_ANY, u"Save as File", 
-                              wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer9.Add(self.save, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_save, self.save)
-
-
         bsizer4.Add(bsizer9, 1, wx.EXPAND, 5)
 
 
@@ -928,46 +927,25 @@ class DGXListGen(wx.Dialog):
         self.parent.dump_pickle()
         self.Destroy()
 
-    def on_save(self, _):
-        """Saves the ip list to a file"""
-        self.gen_list()
-        save_file_dialog = wx.FileDialog(self, message="Save DGX list",
-                                         defaultDir=self.parent.path,
-                                         defaultFile="generatedDGXlist.csv",
-                                         wildcard="CSV files (*.csv)|*.csv",
-                                         style=wx.SAVE)
-        if save_file_dialog.ShowModal() == wx.ID_OK:
-
-            path = save_file_dialog.GetPath()
-            with open(path, 'wb') as dgx_list_file:
-                writer_csv = csv.writer(dgx_list_file)
-                for item in self.data:
-                    writer_csv.writerow([item])
-                self.Destroy()
-        else:
-            self.Destroy()
-
     def gen_list(self):
         """Generates the IP list"""
         try:
             self.data = []
-            #count = 0
-            #try: Later
-            if str(self.start_ip.GetValue()[:4]) != 'BCPU':
-                raise ValueError(self.start_ip.GetValue())
+
             start = str(self.start_ip.GetValue()[4:])
-            #start = start.split('.')[3]
+
             finish = str(self.finish_ip.GetValue()[4:])
-            #finish = finish.split('.')[3]
+
             for bcpu in range(int(start), (int(finish)+1)):
                 for port in range(4):
                     dgx_gen = 'BCPU' + str(bcpu) + '_' + str(port + 1)
                     self.data.append(dgx_gen)
-                    #count += 1
+
         except ValueError as error:
-            dlg = wx.MessageDialog(parent=self, message='The value(' + 
-                                    error[0].split(':')[-1] + ') you ' +
-                                    'entered is invalid',
+            dlg = wx.MessageDialog(parent=self, message='This command didn\'t' +
+                                   ' complete. The error text was ' + 
+                                    error[0].split(':')[-1] + ' Most likely ' +
+                                    'the board name you entered is invalid',
                                    caption='Build DGX list',
                                    style=wx.OK)
             dlg.ShowModal()
