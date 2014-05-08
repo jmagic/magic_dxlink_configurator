@@ -3,11 +3,6 @@
 import wx
 import csv
 
-
-class MyException(Exception):
-    """Allow custom exceptions"""
-    pass
-
 class PreferencesConfig(wx.Dialog):
     def __init__(self, parent):
 
