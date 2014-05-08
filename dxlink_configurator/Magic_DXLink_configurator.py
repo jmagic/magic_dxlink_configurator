@@ -37,8 +37,8 @@ import webbrowser
 
 from pydispatch import dispatcher
 
-from scripts import (config_menus, dhcp_sniffer, multi_send, multi_ping, \
-                    plot_class, telnet_class, telnetto_class)
+from scripts import (config_menus, dhcp_sniffer, multi_send, multi_ping, 
+                    mse_baseline, plot_class, telnet_class, telnetto_class)
 
 try:
     import winsound
@@ -415,12 +415,34 @@ class MainPanel(wx.Panel):
                 return
             self.mse_active_list.append(obj.mac_address)
             if obj.ip_address[:3] == "COM":
-              #DGX_BCPU5:1
-              self.serial_active.append(obj.mac_address)
-              self.telnet_job_queue.put(['dgx-mse', obj, self.telnet_timeout_seconds])
+                #DGX_BCPU5:1
+                self.serial_active.append(obj.mac_address)
+                self.telnet_job_queue.put(['dgx-mse', obj, 
+                                                  self.telnet_timeout_seconds])
             else:
-              self.telnet_job_queue.put(['mse', obj, self.telnet_timeout_seconds])
+                self.telnet_job_queue.put(['mse', obj,
+                                                  self.telnet_timeout_seconds])
             dia = plot_class.Multi_Plot(self, obj, '-1500')
+            dia.Show()
+
+    def mse_baseline(self, _):
+        """Shows the MSE baseline"""
+        if self.check_for_none_selected():
+            return
+
+        for obj in self.main_list.GetSelectedObjects():
+            if obj.mac_address in self.mse_active_list:
+                dlg = wx.MessageDialog(parent=self, message='You are already ' +
+                                       'showing the MSE Baseline for this',
+                                       caption='Are you crazy?',
+                                       style=wx.OK)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+            self.mse_active_list.append(obj.mac_address)
+            self.telnet_job_queue.put(['mse', obj,
+                                                  self.telnet_timeout_seconds])
+            dia = mse_baseline.MSE_Baseline(self, obj)
             dia.Show()
 
     def multi_ping(self, _):
@@ -1156,6 +1178,9 @@ class MainFrame(wx.Frame):
         titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
         self.Bind(wx.EVT_MENU, self.panel.multi_ping, titem)
 
+        titem = tools_menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE')
+        self.Bind(wx.EVT_MENU, self.panel.plot_mse, titem)
+
         titem = tools_menu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
         self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
 
@@ -1245,8 +1270,8 @@ class MainFrame(wx.Frame):
         rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
         self.Bind(wx.EVT_MENU, self.panel.reboot_unit, rcitem)
 
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Plot MSE')
-        self.Bind(wx.EVT_MENU, self.panel.plot_mse, rcitem)
+        rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
+        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Open device in webbrowser')
         self.Bind(wx.EVT_MENU, self.panel.open_url, rcitem)
