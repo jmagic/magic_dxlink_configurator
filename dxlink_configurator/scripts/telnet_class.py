@@ -99,7 +99,7 @@ class Telnetjobs(Thread):
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
 
-            if connection_info[0] == 'TCP':
+            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
                     obj.system = '0'
@@ -317,7 +317,7 @@ class Telnetjobs(Thread):
                     obj.master = connection_info[7]
                     obj.system = connection_info[4]
 
-            if connection_info[0] == 'TCP':
+            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
                     obj.system = 0
@@ -367,7 +367,7 @@ class Telnetjobs(Thread):
                 else:
                     obj.master = connection_info[7]
 
-            if connection_info[0] == 'TCP':
+            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
                 if connection_info[8] == '(n/a)':
                     obj.master = 'not connected'
                     obj.system = 0

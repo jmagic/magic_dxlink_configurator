@@ -440,7 +440,13 @@ class MainPanel(wx.Panel):
                 dlg.Destroy()
                 return
             self.mse_active_list.append(obj.mac_address)
-            self.telnet_job_queue.put(['mse', obj,
+            if obj.ip_address[:3] == "COM":
+                #DGX_BCPU5_1
+                self.serial_active.append(obj.mac_address)
+                self.telnet_job_queue.put(['dgx-mse', obj, 
+                                                  self.telnet_timeout_seconds])
+            else:
+                self.telnet_job_queue.put(['mse', obj,
                                                   self.telnet_timeout_seconds])
             dia = mse_baseline.MSE_Baseline(self, obj)
             dia.Show()
@@ -792,6 +798,12 @@ class MainPanel(wx.Panel):
         dia.ShowModal()
         dia.Destroy()
 
+    def generate_DGX_list(self, _):
+        """Generates a list of ip addresses"""
+        dia = config_menus.DGXListGen(self)
+        dia.ShowModal()
+        dia.Destroy()
+
     def add_line(self, _):
         """Adds a line to the main list"""
         data = Unit(' ',
@@ -868,11 +880,13 @@ class MainPanel(wx.Panel):
             self.main_list.SetObjects([data])
         else:
             for obj in self.main_list.GetObjects():
+                print "obj", obj.mac_address, "data", data.mac_address
                 if obj.mac_address == data.mac_address:
                     obj.ip_address = data.ip_address
                     obj.hostname = data.hostname
                     obj.arrival_time = data.arrival_time
-                    break
+                    self.main_list.RemoveObjects([obj])
+                    #break
             else:
                 self.main_list.AddObject(data)
         self.main_list.RepopulateList()
@@ -983,9 +997,9 @@ class MainPanel(wx.Panel):
                 self.abort = False
                 return
         if self.configure_list == []:
-          return
+            return
         else:
-          self.display_progress()
+            self.display_progress()
 
 
     def configure_prefs(self, _):
@@ -1033,7 +1047,7 @@ class MainPanel(wx.Panel):
         """Close program if user closes window"""
         self.parent.Hide()
         if self.ping_window != None:
-          self.ping_window.Hide()
+            self.ping_window.Hide()
         self.ping_active = False
         self.mse_active_list = []
         self.telnet_job_queue.join()
@@ -1187,6 +1201,10 @@ class MainFrame(wx.Frame):
         titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
                                   'Generate IP List')
         self.Bind(wx.EVT_MENU, self.panel.generate_list, titem)
+
+        titem = tools_menu.Append(wx.ID_ANY, 'Generate DGX List', \
+                                  'Generate DGX List')
+        self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
         self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, titem)
