@@ -271,7 +271,7 @@ class MainPanel(wx.Panel):
             phil = " "
 
         completiontext = ""
-        for i in xrange(len(self.completionlist)):
+        for i in range(len(self.completionlist)):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
@@ -879,7 +879,7 @@ class MainPanel(wx.Panel):
             self.main_list.SetObjects([data])
         else:
             for obj in self.main_list.GetObjects():
-                print "obj", obj.mac_address, "data", data.mac_address
+                #print "obj", obj.mac_address, "data", data.mac_address
                 if obj.mac_address == data.mac_address:
                     obj.ip_address = data.ip_address
                     obj.hostname = data.hostname
