@@ -271,7 +271,7 @@ class MainPanel(wx.Panel):
             phil = " "
 
         completiontext = ""
-        for i in xrange(len(self.completionlist)):
+        for i in range(len(self.completionlist)):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
