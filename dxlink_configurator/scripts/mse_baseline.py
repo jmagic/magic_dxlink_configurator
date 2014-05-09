@@ -217,6 +217,7 @@ class MSE_Baseline(wx.Dialog):
 
         #self.plot_length = int(plot_length)
         self.error = [False, '']
+        self.complete = False
         self.ten_seconds = 0
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_BUTTON, self.on_close, self.m_sdbsizer1cancel)
@@ -278,10 +279,14 @@ class MSE_Baseline(wx.Dialog):
 
             self.m_statictext2.SetLabel(str(len(self.plot_obj.mse_data.data0)))
             
-            cha_common = Counter(self.plot_obj.mse_data.data0).most_common(1)[0][0]
-            chb_common = Counter(self.plot_obj.mse_data.data1).most_common(1)[0][0]
-            chc_common = Counter(self.plot_obj.mse_data.data2).most_common(1)[0][0]
-            chd_common = Counter(self.plot_obj.mse_data.data3).most_common(1)[0][0]
+            cha_common = Counter(self.plot_obj.mse_data.data0).\
+                                                            most_common(1)[0][0]
+            chb_common = Counter(self.plot_obj.mse_data.data1).\
+                                                            most_common(1)[0][0]
+            chc_common = Counter(self.plot_obj.mse_data.data2).\
+                                                            most_common(1)[0][0]
+            chd_common = Counter(self.plot_obj.mse_data.data3).\
+                                                            most_common(1)[0][0]
 
             self.m_statictext14.SetLabel('ChA = ' + 
                                           str(cha_common))
@@ -330,16 +335,21 @@ class MSE_Baseline(wx.Dialog):
     def on_complete(self):
         """Stop taking mse values"""
         self.redraw_timer.Stop()
-        #print self.plot_obj.mse_data.data0
+        self.parent.mse_active_list.remove(self.obj.mac_address)
+        if self.obj.ip_address[:3] == "COM":
+            self.parent.serial_active.remove(self.obj.mac_address)
+        self.complete = True
 
     def on_close(self, _):
         """User closes the plot window"""
         self.redraw_timer.Stop()
-        self.parent.mse_active_list.remove(self.obj.mac_address)
-        if self.obj.ip_address[:3] == "COM":
-            self.parent.serial_active.remove(self.obj.mac_address)
+        if not self.complete:
+            self.parent.mse_active_list.remove(self.obj.mac_address)
+            if self.obj.ip_address[:3] == "COM":
+                self.parent.serial_active.remove(self.obj.mac_address)
         self.plot_obj.mse_data = []
-        self.Destroy()
+        self.Destroy()        
+
 
     def __del__(self):
         pass
