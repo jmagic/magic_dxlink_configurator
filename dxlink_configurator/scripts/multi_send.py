@@ -187,6 +187,7 @@ class MultiSendCommandConfig (wx.Dialog):
         self.completionlist = []
         self.errorlist = []
         self.waiting_result = True
+        self.action_combo.Enable(False)
 
         self.device_list.CreateCheckStateColumn()
         self.device_list.SetObjects(device_list)
@@ -261,10 +262,10 @@ class MultiSendCommandConfig (wx.Dialog):
             phil = " "
 
         completiontext = ""
-        for i in xrange(len(self.completionlist)):
+        for i in range(len(self.completionlist)):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
-        if len(self.errorlist) == len(self.device_list.GetCheckedObjects()):
+        if len(self.completionlist) == 0:
             dlg = wx.MessageDialog(parent=self,
                                    message='Failed to connect to' + 
                                               '\n=======================' + 
@@ -273,8 +274,7 @@ class MultiSendCommandConfig (wx.Dialog):
                                    style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
-        elif len(self.completionlist) == \
-             len(self.device_list.GetCheckedObjects()):
+        elif len(self.errorlist) == 0:
             dlg = wx.MessageDialog(parent=self,
                                        message='Successfully connected to: \n' +
                                                '=======================' + 
@@ -301,7 +301,8 @@ class MultiSendCommandConfig (wx.Dialog):
 
     def on_command_combo(self, _):
         """Updates the command combo box"""
-
+        if not self.send_query.GetValue():
+            self.action_combo.Enable(True)
         self.action_combo.SetValue('Actions')
         self.update_action_combo(self.command_combo.GetValue())
         self.send.Enable()
@@ -311,7 +312,7 @@ class MultiSendCommandConfig (wx.Dialog):
         self.update_string()
         
     def on_query(self, _):
-        """Switches to query commands"""        
+        """Switches to query or commands"""        
         old = self.command_combo.GetValue()
         self.command_combo.Clear()
         self.description.Clear()
@@ -342,7 +343,7 @@ class MultiSendCommandConfig (wx.Dialog):
                     self.string_port.Clear()
                     self.stringcommand.Clear()
         else:
-            self.action_combo.Enable(True)
+            self.action_combo.Enable(False)
             for item in self.command_combo.GetItems():
                 if item == old[1:]:
                     self.command_combo.SetValue(item)
@@ -358,7 +359,6 @@ class MultiSendCommandConfig (wx.Dialog):
         # "mftx": self.mftxList }
         self.action_combo.Clear()
         for item in self.rx_tx_commands[self.dxlink_model][selection][1]:
-            #print item
             self.action_combo.Append(item)
             self.port = self.rx_tx_commands[self.dxlink_model][selection][0]
             self.description.SetValue(self.rx_tx_commands[self.dxlink_model]
@@ -403,6 +403,8 @@ class MultiSendCommandConfig (wx.Dialog):
         if self.check_for_none_selected(): 
             return
         self.result_string = ''
+        self.errorlist = []
+        self.completionlist = []
         if self.get_all.GetValue():
             self.on_send_all()
             return  
@@ -426,11 +428,11 @@ class MultiSendCommandConfig (wx.Dialog):
                       "\"\'" + 
                       str(self.stringcommand.GetValue()) + 
                       "\'\"")
-            print 'output =', output
             self.parent.telnet_job_queue.put(['send_command', obj, 
                                      self.parent.telnet_timeout_seconds, 
                                      output, 
-                                     str(self.port)])               
+                                     str(self.port)])
+
         self.display_progress()
 
     def on_send_all(self):
@@ -444,8 +446,7 @@ class MultiSendCommandConfig (wx.Dialog):
                 system = 0
             else:
                 system = obj.system
-                
-            self.waiting_result = True
+
             total = len(self.command_combo.GetItems()) + 1
             dlg = wx.ProgressDialog('Sending command to selected ' +
                                     'device with results listed ' +
@@ -463,7 +464,6 @@ class MultiSendCommandConfig (wx.Dialog):
             count = 0
              
             for item in self.command_combo.GetItems():
-
                 count += 1                        
                 output = ("send_command " + 
                            str(device) + 
@@ -483,31 +483,23 @@ class MultiSendCommandConfig (wx.Dialog):
                 
                 self.time_out.Start(5000)
                 self.waiting_result = True
-                print "now sending =", output
-                print 'len of items =', len(self.command_combo.GetItems())
-                print 'count = ', count
                 while self.waiting_result: 
-                    #(len(self.completionlist) + len(self.errorlist)) < count:
-                    time.sleep(.5)
                     (continue_sending, _) = dlg.Update(count,
                                         ('Sending command ' + str(count) + 
                                         ' of ' + str(total - 1) + ' to device ' 
                                         + str(device) +
                                         '\n' + self.result_string))
-                    print 'in while loop and wait is ', self.waiting_result
                     if not continue_sending:
                         self.time_out.Stop()
+                        self.waiting_result = False
                         self.result_string = ''
-                        continue
-                print 'done sending =', output
+                if not continue_sending:
+                    break # this skips the rest of the commands     
             self.time_out.Stop()
-            self.waiting_result = False
-
-                
-            print 'at display progress after loop'
-            self.display_progress()
+            #self.waiting_result = False
             self.result_string = ''
             dlg.Destroy()
+        self.display_progress()
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -525,7 +517,7 @@ class MultiSendCommandConfig (wx.Dialog):
     def on_time_out(self, _):
         """Timer has expired"""
         self.waiting_result = False
-        self.result_string = "*** Timed out ***"
+        self.result_string = "*** Timed out waiting for response ***"
 
     def on_result(self, sender):
         """Sets the result label""" 
