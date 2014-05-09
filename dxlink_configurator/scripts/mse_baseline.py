@@ -88,18 +88,20 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer5 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
                                          u"Baseline MSE Values"), wx.VERTICAL)
-
+        
         self.m_statictext14 = wx.StaticText(self, wx.ID_ANY, u"ChA = -00", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext14.Wrap(-1)
         self.m_statictext14.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
-        
+        #self.m_statictext14.SetBackgroundColour(wx.Colour(176, 176, 176))
+
         sbsizer5.Add(self.m_statictext14, 0, wx.ALL, 5)
         
         self.m_statictext15 = wx.StaticText(self, wx.ID_ANY, u"ChB = -00",
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext15.Wrap(-1)
         self.m_statictext15.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
+        #self.m_statictext15.SetBackgroundColour(wx.Colour(176, 176, 176))
         
         sbsizer5.Add(self.m_statictext15, 0, wx.ALL, 5)
         
@@ -107,6 +109,7 @@ class MSE_Baseline(wx.Dialog):
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext16.Wrap(-1)
         self.m_statictext16.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
+        #self.m_statictext16.SetBackgroundColour(wx.Colour(176, 176, 176))
         
         sbsizer5.Add(self.m_statictext16, 0, wx.ALL, 5)
         
@@ -114,6 +117,7 @@ class MSE_Baseline(wx.Dialog):
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext17.Wrap(-1)
         self.m_statictext17.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
+        #self.m_statictext17.SetBackgroundColour(wx.Colour(176, 176, 176))
         
         sbsizer5.Add(self.m_statictext17, 0, wx.ALL, 5)
         
@@ -185,7 +189,7 @@ class MSE_Baseline(wx.Dialog):
         m_sdbsizer1 = wx.StdDialogButtonSizer()
         #self.m_sdbsizer1save = wx.Button(self, wx.ID_SAVE)
         #m_sdbsizer1.AddButton(self.m_sdbsizer1save)
-        self.m_sdbsizer1cancel = wx.Button(self, wx.ID_CANCEL)
+        self.m_sdbsizer1cancel = wx.Button(self, wx.ID_OK)
         m_sdbsizer1.AddButton(self.m_sdbsizer1cancel)
         m_sdbsizer1.Realize()
         
@@ -316,7 +320,8 @@ class MSE_Baseline(wx.Dialog):
         if 0 >= mse_value >= -14:
             mse_color = (255, 0, 0)
         if -15 >= mse_value >= -17:
-            mse_color = (255, 255, 128)
+            mse_color = (255, 128, 64)
+        #(255, 255, 128)
         if -18 >= mse_value >= -23:
             mse_color = (0, 255, 0)
         return mse_color
