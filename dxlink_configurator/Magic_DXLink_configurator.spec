@@ -24,6 +24,7 @@ def extra_datas(icon):
 a.datas += extra_datas('icon')
 a.datas += extra_datas('sounds')
 a.datas += extra_datas('send_commands')
+a.datas += extra_datas('docs')
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,
