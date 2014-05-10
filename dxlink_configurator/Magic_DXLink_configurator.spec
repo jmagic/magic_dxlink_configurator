@@ -33,7 +33,8 @@ exe = EXE(pyz,
           debug=False,
           strip=None,
           upx=True,
-          console=False , icon='icon\\MDC_icon.ico')
+          console=False,
+          icon='icon\\MDC_icon.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
