@@ -408,6 +408,9 @@ class MainPanel(wx.Panel):
             if self.mse_rx_check(obj):
                 if not self.mse_in_active(obj):
                     self.mse_enable_thread(obj)
+                else:
+                    if obj.ip_address[:3] == "COM":
+                        self.serial_active.append(obj.mac_address)
                 self.mse_active_list.append(obj.mac_address)
                 dia = plot_class.Multi_Plot(self, obj, '-1500')
                 dia.Show()
@@ -429,9 +432,13 @@ class MainPanel(wx.Panel):
             if self.mse_rx_check(obj):
                 if not self.mse_in_active(obj):
                     self.mse_enable_thread(obj)
+                else:
+                    if obj.ip_address[:3] == "COM":
+                        self.serial_active.append(obj.mac_address)
                 self.mse_active_list.append(obj.mac_address)
                 dia = mse_baseline.MSE_Baseline(self, obj)
                 dia.Show()
+
     def mse_enable_thread(self, obj):
         """Adds mse thread for plotting / baseline"""
         if obj.ip_address[:3] == "COM":
