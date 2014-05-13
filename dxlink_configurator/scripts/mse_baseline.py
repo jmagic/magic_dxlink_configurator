@@ -283,6 +283,17 @@ class MSE_Baseline(wx.Dialog):
             chd_common = Counter(self.plot_obj.mse_data.data3).\
                                                             most_common(1)[0][0]
 
+            #sometimes unlinked MSE will show -255 
+            #just set these to 0 to elminate confusion
+            if cha_common == -255:
+                cha_common = 0
+            if chb_common == -255:
+                chb_common = 0
+            if chc_common == -255:
+                chc_common = 0
+            if chd_common == -255:
+                chd_common = 0            
+
             self.m_statictext14.SetLabel('ChA = ' + 
                                           str(cha_common))
             new_color = self.set_color(cha_common)
