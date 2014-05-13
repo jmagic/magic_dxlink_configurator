@@ -75,7 +75,7 @@ class MSE_Baseline(wx.Dialog):
         sbsizer5 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
                                          u"Baseline MSE Values"), wx.VERTICAL)
         
-        self.m_statictext14 = wx.StaticText(self, wx.ID_ANY, u"ChA = -00", 
+        self.m_statictext14 = wx.StaticText(self, wx.ID_ANY, u"ChA = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext14.Wrap(-1)
         self.m_statictext14.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -83,7 +83,7 @@ class MSE_Baseline(wx.Dialog):
 
         sbsizer5.Add(self.m_statictext14, 0, wx.ALL, 5)
         
-        self.m_statictext15 = wx.StaticText(self, wx.ID_ANY, u"ChB = -00",
+        self.m_statictext15 = wx.StaticText(self, wx.ID_ANY, u"ChB = N/A",
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext15.Wrap(-1)
         self.m_statictext15.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -91,7 +91,7 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer5.Add(self.m_statictext15, 0, wx.ALL, 5)
         
-        self.m_statictext16 = wx.StaticText(self, wx.ID_ANY, u"ChC = -00", 
+        self.m_statictext16 = wx.StaticText(self, wx.ID_ANY, u"ChC = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext16.Wrap(-1)
         self.m_statictext16.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -99,7 +99,7 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer5.Add(self.m_statictext16, 0, wx.ALL, 5)
         
-        self.m_statictext17 = wx.StaticText(self, wx.ID_ANY, u"ChD = -00", 
+        self.m_statictext17 = wx.StaticText(self, wx.ID_ANY, u"ChD = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext17.Wrap(-1)
         self.m_statictext17.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -272,8 +272,7 @@ class MSE_Baseline(wx.Dialog):
             self.m_statictext1.SetLabel(str(10 - int(self.ten_seconds)))
             self.Layout()
 
-            #self.m_statictext2.SetLabel(str(len(self.plot_obj.mse_data.data0)))
-            
+            #take all the values we have so far and find the most common
             cha_common = Counter(self.plot_obj.mse_data.data0).\
                                                             most_common(1)[0][0]
             chb_common = Counter(self.plot_obj.mse_data.data1).\
