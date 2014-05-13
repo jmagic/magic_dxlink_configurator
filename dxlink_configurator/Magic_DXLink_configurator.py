@@ -394,10 +394,10 @@ class MainPanel(wx.Panel):
         """Plots mse over time"""
         if self.check_for_none_selected(): 
             return
-        if len(self.main_list.GetSelectedObjects()) > 15:
-            dlg = wx.MessageDialog(parent=self, message='I can only graph 10' +
+        if len(self.main_list.GetSelectedObjects()) > 16:
+            dlg = wx.MessageDialog(parent=self, message='I can only graph 16' +
                                    ' devices at a time \nPlease select less ' +
-                                   'than ten devices at once',
+                                   'than sixteen devices at once',
                                    caption='How many graphs?',
                                    style=wx.OK)
             dlg.ShowModal()
@@ -405,51 +405,69 @@ class MainPanel(wx.Panel):
             return
 
         for obj in self.main_list.GetSelectedObjects():
-            if obj.mac_address in self.mse_active_list:
-                dlg = wx.MessageDialog(parent=self, message='You are already ' +
-                                       'graphing this MAC address',
-                                       caption='Are you crazy?',
-                                       style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            self.mse_active_list.append(obj.mac_address)
-            if obj.ip_address[:3] == "COM":
-                #DGX_BCPU5:1
-                self.serial_active.append(obj.mac_address)
-                self.telnet_job_queue.put(['dgx-mse', obj, 
-                                                  self.telnet_timeout_seconds])
-            else:
-                self.telnet_job_queue.put(['mse', obj,
-                                                  self.telnet_timeout_seconds])
-            dia = plot_class.Multi_Plot(self, obj, '-1500')
-            dia.Show()
+            if self.mse_rx_check(obj):
+                if not self.mse_in_active(obj):
+                    self.mse_enable_thread(obj)
+                self.mse_active_list.append(obj.mac_address)
+                dia = plot_class.Multi_Plot(self, obj, '-1500')
+                dia.Show()
 
     def mse_baseline(self, _):
         """Shows the MSE baseline"""
         if self.check_for_none_selected():
             return
-
+        if len(self.main_list.GetSelectedObjects()) > 10:
+            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
+                                  ' 10 devices at a time \nPlease select less' +
+                                  ' than ten devices at once',
+                                   caption='How many telnets?',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
         for obj in self.main_list.GetSelectedObjects():
-            if obj.mac_address in self.mse_active_list:
-                dlg = wx.MessageDialog(parent=self, message='You are already ' +
-                                       'showing the MSE Baseline for this',
-                                       caption='Are you crazy?',
-                                       style=wx.OK)
-                dlg.ShowModal()
+            if self.mse_rx_check(obj):
+                if not self.mse_in_active(obj):
+                    self.mse_enable_thread(obj)
+                self.mse_active_list.append(obj.mac_address)
+                dia = mse_baseline.MSE_Baseline(self, obj)
+                dia.Show()
+    def mse_enable_thread(self, obj):
+        """Adds mse thread for plotting / baseline"""
+        if obj.ip_address[:3] == "COM":
+            self.serial_active.append(obj.mac_address)
+            self.telnet_job_queue.put(['dgx-mse', obj, 
+                                       self.telnet_timeout_seconds])
+        else:
+            self.telnet_job_queue.put(['mse', obj,
+                                       self.telnet_timeout_seconds])
+
+    def mse_in_active(self, obj):
+        """Checks if unit is in active list"""
+        if obj.mac_address in self.mse_active_list:
+            dlg = wx.MessageDialog(parent=self, message='You are already ' +
+                                   'getting MSE from this MAC address',
+                                   caption='Are you sure?',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return True
+        return False
+
+    def mse_rx_check(self, obj):
+        """Checks if unit is a RX"""
+        if obj.model[12:14] != 'RX' and obj.ip_address[:3] != "COM":
+            dlg = wx.MessageDialog(parent=self, message='This does not ' +
+                                   'appear to be a RX unit. You can only' +
+                                   ' get MSE values from RX units. Click ' +
+                                   'OK to continue anyway.',
+                                   caption='MSE only works on RX units',
+                                   style=wx.OK|wx.CANCEL)
+            if dlg.ShowModal() != wx.ID_OK:
                 dlg.Destroy()
-                return
-            self.mse_active_list.append(obj.mac_address)
-            if obj.ip_address[:3] == "COM":
-                #DGX_BCPU5_1
-                self.serial_active.append(obj.mac_address)
-                self.telnet_job_queue.put(['dgx-mse', obj, 
-                                                  self.telnet_timeout_seconds])
-            else:
-                self.telnet_job_queue.put(['mse', obj,
-                                                  self.telnet_timeout_seconds])
-            dia = mse_baseline.MSE_Baseline(self, obj)
-            dia.Show()
+                return False
+            dlg.Destroy()
+        return True
 
     def multi_ping(self, _):
         """Ping and track results of many devices"""
