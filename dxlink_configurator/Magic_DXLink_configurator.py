@@ -1222,13 +1222,17 @@ class MainFrame(wx.Frame):
                                   'Generate DGX List')
         self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
 
-        titem = tools_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, titem)
-
         menubar.Append(tools_menu, 'Tools')
+
+        identify_menu = wx.Menu()
+
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
+        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, iitem)
+
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
+        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, iitem)
+
+        menubar.Append(identify_menu, 'Identify')
 
         listen_menu = wx.Menu()
 
