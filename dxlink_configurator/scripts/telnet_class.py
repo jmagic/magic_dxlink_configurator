@@ -467,8 +467,8 @@ class Telnetjobs(Thread):
         if len(self.parent.serial_active) == 1:
             try:
                 ser = serial.Serial(obj.ip_address, 9600, timeout=.1)
-                sio = io.TextIOWrapper(io.BufferedRWPair(ser,ser))
-            except Exception as error:
+                sio = io.TextIOWrapper(io.BufferedRWPair(ser, ser))
+            except Exception:
                 time.sleep(2) # wait for gui to start
                 dispatcher.send(signal="MSE error", sender=obj.mac_address)
                 return
@@ -491,25 +491,25 @@ class Telnetjobs(Thread):
                         #print card_line_number 
                         # lets count from the BCPU to the MSE value lines by 4's
                         for mse_line in range(card_line_number + 3, 
-                                              card_line_number + 16, 4 ): 
+                                              card_line_number + 16, 4): 
                             if str(dgx_output[mse_line][-10:-2]) != "Unlinked":
                                 #print dgx_output[mse_line]
                                 bcpu = int(block[-3:-2])
                                 #print bcpu
                                 if str(dgx_output[mse_line][6:8]) == "RX":
-                                    dgx_output[mse_line] = dgx_output[mse_line].split()[0] + " " + dgx_output[mse_line] 
+                                    dgx_output[mse_line] = (
+                                               dgx_output[mse_line].split()[0] +
+                                               " " + dgx_output[mse_line]) 
 
-                                
-                                #print 'active_dgx_mse[-3:]',active_dgx_mse[-3:], str(dgx_output[mse_line].split()[0][:3])
-                                #if active_dgx_mse[-3:] == str(dgx_output[mse_line].split()[0][:3]):
-                                #    print 'active_dgx_mse[-3:]', active_dgx_mse[-3:]
                                 row = []
                                 mline = []
-                                #row.append(str(datetime.datetime.now().strftime('%H:%M:%S.%f')))
                                 try:
                                     for mse in [4, 6, 8]:
-                                        row.append(str(dgx_output[mse_line].split()[mse][2:-3]))
-                                    row.append(str(dgx_output[mse_line].split()[10][2:-2]))#one less no comma on this one
+                                        row.append(str(dgx_output[mse_line]\
+                                                           .split()[mse][2:-3]))
+                                        #one less no comma on this one
+                                        row.append(str(dgx_output[mse_line]\
+                                                            .split()[10][2:-2]))
                                 except IndexError:
                                     #print "Index error building dgx mse row"
                                     continue
@@ -517,11 +517,16 @@ class Telnetjobs(Thread):
                                 if row != []:
                                     mline_time = [datetime.datetime.now(), row]
                                     mline.append(mline_time)
-                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
+                                    mline.append(('BCPU' + str(bcpu) + '_' + 
+                                                   str(dgx_output[mse_line]\
+                                                   .split()[0][:3])))
                                     #DGX_BCPU5_Ch1 
-                                    mline.append(('BCPU' + str(bcpu) + '_' + str(dgx_output[mse_line].split()[0][:3])))
+                                    mline.append(('BCPU' + str(bcpu) + '_' + 
+                                                   str(dgx_output[mse_line]\
+                                                   .split()[0][:3])))
                                     #print mline
-                                    dispatcher.send(signal="Incoming MSE", sender=mline)
+                                    dispatcher.send(signal="Incoming MSE", 
+                                                    sender=mline)
                                     mline = []
                                     row = []
             
