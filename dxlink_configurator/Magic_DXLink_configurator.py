@@ -1144,10 +1144,11 @@ class MainFrame(wx.Frame):
 
         import_menu = wx.Menu()
         iitem = import_menu.Append(wx.ID_ANY, 'Import from a CSV', \
-                                 'Import from a CSV')
+                                              'Import from a CSV')
         self.Bind(wx.EVT_MENU, self.panel.import_csv_file, iitem)
 
-        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', 'Import IP list')
+        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', \
+                                              'Import IP list')
         self.Bind(wx.EVT_MENU, self.panel.import_ip_list, iitem)
 
         iitem = import_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
@@ -1215,21 +1216,23 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
-                                  'Generate IP List')
+                                             'Generate IP List')
         self.Bind(wx.EVT_MENU, self.panel.generate_list, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Generate DGX List', \
-                                  'Generate DGX List')
+                                             'Generate DGX List')
         self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
 
         menubar.Append(tools_menu, 'Tools')
 
         identify_menu = wx.Menu()
 
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', \
+                                                'Turn on LED')
         self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, iitem)
 
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', \
+                                                'Turn off LED')
         self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, iitem)
 
         menubar.Append(identify_menu, 'Identify')
