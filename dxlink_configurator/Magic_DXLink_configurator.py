@@ -103,7 +103,7 @@ class MainPanel(wx.Panel):
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.2"
+        self.version = "v2.0.3"
 
         self.set_title_bar()
 
