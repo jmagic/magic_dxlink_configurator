@@ -58,15 +58,18 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer3.SetMinSize( wx.Size( 120,-1 ) )
         self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, 
-                              u"10", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_VERTICAL)
+                                          u"10", wx.DefaultPosition, 
+                                                 wx.DefaultSize, 
+                                                 wx.ALIGN_CENTER_VERTICAL)
         self.m_statictext1.Wrap(-1)
         self.m_statictext1.SetFont(wx.Font(48, 74, 90, 92, False, "Arial"))
         sbsizer3.Add(self.m_statictext1, 1, 
                     wx.ALL|
                     wx.ALIGN_CENTER_VERTICAL, 5)
         
-        bsizer3.Add( sbsizer3, 1, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
-        #bsizer3.Add(sbsizer3, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5)
+        bsizer3.Add( sbsizer3, 1, wx.ALIGN_CENTER_HORIZONTAL|
+                                  wx.EXPAND|
+                                  wx.ALIGN_CENTER_VERTICAL, 5 )
 
         bsizer2.Add(bsizer3, 0, wx.EXPAND, 5)
         
