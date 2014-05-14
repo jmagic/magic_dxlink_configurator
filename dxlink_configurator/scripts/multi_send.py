@@ -393,7 +393,7 @@ class MultiSendCommandConfig (wx.Dialog):
             self.send_query.SetValue(True)
             self.on_query(None)
         else:
-            self.action_combo.Enable(True)
+            self.action_combo.Enable(False)
             self.command_combo.Enable(True)
             self.send_command.Enable(True)
             self.send.Enable(False)
@@ -528,13 +528,15 @@ class MultiSendCommandConfig (wx.Dialog):
         
     def on_exit(self, _):
         """When user exits"""
-        self.Destroy()
         self.parent.errorlist = []
-        self.parent.completionlist = []
+        self.parent.completionlist = []       
+        self.Destroy()
 
     def on_abort(self, _):
         """When user clicks abort"""        
         self.parent.abort = True
+        self.parent.errorlist = []
+        self.parent.completionlist = []
         self.Destroy()
 
         
