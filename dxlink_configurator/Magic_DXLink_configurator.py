@@ -904,16 +904,19 @@ class MainPanel(wx.Panel):
             self.main_list.SetObjects([data])
         else:
             for obj in self.main_list.GetObjects():
-                #print "obj", obj.mac_address, "data", data.mac_address
                 if obj.mac_address == data.mac_address:
-                    obj.ip_address = data.ip_address
-                    obj.hostname = data.hostname
-                    obj.arrival_time = data.arrival_time
-                    self.main_list.RemoveObjects([obj])
-                    #break
-            else:
-                self.main_list.AddObject(data)
-        self.main_list.RepopulateList()
+                    data.model = obj.model
+                    data.serial = obj.serial
+                    data.firmware = obj.firmware
+                    data.device = obj.device
+                    data.ip_type = obj.ip_type
+                    data.gateway = obj.gateway
+                    data.subnet = obj.subnet
+                    data.master = obj.master
+                    data.system = obj.system
+                    self.main_list.RemoveObject(obj)
+            self.main_list.AddObject(data)
+        #self.main_list.RepopulateList()
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()
