@@ -187,6 +187,7 @@ class MultiSendCommandConfig (wx.Dialog):
         self.completionlist = []
         self.errorlist = []
         self.waiting_result = True
+        self.waiting_delay = True
         self.action_combo.Enable(False)
 
         self.device_list.CreateCheckStateColumn()
@@ -206,7 +207,9 @@ class MultiSendCommandConfig (wx.Dialog):
                            signal="send_command result", 
                            sender=dispatcher.Any)
         self.time_out = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.on_time_out, self.time_out) 
+        self.Bind(wx.EVT_TIMER, self.on_time_out, self.time_out)
+
+
     #----------------------------------------------------------------------
     
     def collect_completions(self, sender):
@@ -306,6 +309,7 @@ class MultiSendCommandConfig (wx.Dialog):
         self.action_combo.SetValue('Actions')
         self.update_action_combo(self.command_combo.GetValue())
         self.send.Enable()
+
         
     def on_action_combo(self, _):
         """Updates the action combo box"""
@@ -393,7 +397,7 @@ class MultiSendCommandConfig (wx.Dialog):
             self.send_query.SetValue(True)
             self.on_query(None)
         else:
-            self.action_combo.Enable(True)
+            self.action_combo.Enable(False)
             self.command_combo.Enable(True)
             self.send_command.Enable(True)
             self.send.Enable(False)
@@ -477,9 +481,11 @@ class MultiSendCommandConfig (wx.Dialog):
                            str(item) + 
                            "\'\"") 
                 
+                #while self.delay_timer.IsRunning():
+                #    pass
                 self.parent.telnet_job_queue.put(['send_command', obj, 
-                    self.parent.telnet_timeout_seconds, output, 
-                    str(self.rx_tx_commands[self.dxlink_model][item][0])])
+                        self.parent.telnet_timeout_seconds, output, 
+                        str(self.rx_tx_commands[self.dxlink_model][item][0])])
                 
                 self.time_out.Start(5000)
                 self.waiting_result = True
@@ -494,9 +500,13 @@ class MultiSendCommandConfig (wx.Dialog):
                         self.waiting_result = False
                         self.result_string = ''
                 if not continue_sending:
-                    break # this skips the rest of the commands     
+                    break # this skips the rest of the commands 
+
+                start = time.time()
+                while time.time() - start <= .5:
+                    pass
+
             self.time_out.Stop()
-            #self.waiting_result = False
             self.result_string = ''
             dlg.Destroy()
         self.display_progress()
@@ -528,13 +538,15 @@ class MultiSendCommandConfig (wx.Dialog):
         
     def on_exit(self, _):
         """When user exits"""
-        self.Destroy()
         self.parent.errorlist = []
-        self.parent.completionlist = []
+        self.parent.completionlist = []       
+        self.Destroy()
 
     def on_abort(self, _):
         """When user clicks abort"""        
         self.parent.abort = True
+        self.parent.errorlist = []
+        self.parent.completionlist = []
         self.Destroy()
 
         

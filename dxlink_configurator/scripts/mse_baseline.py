@@ -51,45 +51,34 @@ class MSE_Baseline(wx.Dialog):
         
         bsizer2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bsizer3 = wx.BoxSizer(wx.VERTICAL)
+        bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
         
         sbsizer3 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
-                                             u"Seconds elapsed"), wx.VERTICAL)
+                                           u"Seconds remaining"), wx.HORIZONTAL)
         
+        sbsizer3.SetMinSize( wx.Size( 120,-1 ) )
         self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, 
-                              u"0.0", wx.DefaultPosition, wx.Size(160, -1), 
-                              wx.ALIGN_CENTRE)
+                                          u"10", wx.DefaultPosition, 
+                                                 wx.DefaultSize, 
+                                                 wx.ALIGN_CENTER_VERTICAL)
         self.m_statictext1.Wrap(-1)
         self.m_statictext1.SetFont(wx.Font(48, 74, 90, 92, False, "Arial"))
         sbsizer3.Add(self.m_statictext1, 1, 
                     wx.ALL|
-                    wx.ALIGN_CENTER_HORIZONTAL, 5)
+                    wx.ALIGN_CENTER_VERTICAL, 5)
         
-        bsizer3.Add(sbsizer3, 1, wx.EXPAND, 5)
+        bsizer3.Add( sbsizer3, 1, wx.ALIGN_CENTER_HORIZONTAL|
+                                  wx.EXPAND|
+                                  wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        sbsizer4 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
-                                            u"MSE Values taken"), wx.VERTICAL)
-        
-        self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, 
-                     u"0", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE)
-        self.m_statictext2.Wrap(-1)
-        self.m_statictext2.SetFont(wx.Font(48, 74, 90, 92, False, "Arial"))
-        
-        sbsizer4.Add(self.m_statictext2, 0, 
-                                           wx.ALL|
-                                           wx.ALIGN_LEFT, 5)
-        
-        
-        bsizer3.Add(sbsizer4, 1, wx.EXPAND, 5)
-
-        bsizer2.Add(bsizer3, 0, 0, 5)
+        bsizer2.Add(bsizer3, 0, wx.EXPAND, 5)
         
         bsizer4 = wx.BoxSizer(wx.HORIZONTAL)
         
         sbsizer5 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
                                          u"Baseline MSE Values"), wx.VERTICAL)
         
-        self.m_statictext14 = wx.StaticText(self, wx.ID_ANY, u"ChA = -00", 
+        self.m_statictext14 = wx.StaticText(self, wx.ID_ANY, u"ChA = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext14.Wrap(-1)
         self.m_statictext14.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -97,7 +86,7 @@ class MSE_Baseline(wx.Dialog):
 
         sbsizer5.Add(self.m_statictext14, 0, wx.ALL, 5)
         
-        self.m_statictext15 = wx.StaticText(self, wx.ID_ANY, u"ChB = -00",
+        self.m_statictext15 = wx.StaticText(self, wx.ID_ANY, u"ChB = N/A",
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext15.Wrap(-1)
         self.m_statictext15.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -105,7 +94,7 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer5.Add(self.m_statictext15, 0, wx.ALL, 5)
         
-        self.m_statictext16 = wx.StaticText(self, wx.ID_ANY, u"ChC = -00", 
+        self.m_statictext16 = wx.StaticText(self, wx.ID_ANY, u"ChC = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext16.Wrap(-1)
         self.m_statictext16.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -113,7 +102,7 @@ class MSE_Baseline(wx.Dialog):
         
         sbsizer5.Add(self.m_statictext16, 0, wx.ALL, 5)
         
-        self.m_statictext17 = wx.StaticText(self, wx.ID_ANY, u"ChD = -00", 
+        self.m_statictext17 = wx.StaticText(self, wx.ID_ANY, u"ChD = N/A", 
                                           wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_statictext17.Wrap(-1)
         self.m_statictext17.SetFont(wx.Font(18, 74, 90, 90, False, "Arial"))
@@ -136,7 +125,7 @@ class MSE_Baseline(wx.Dialog):
                                                               wx.DefaultSize, 0)
         
         # Grid
-        self.m_grid1.CreateGrid(7, 2)
+        self.m_grid1.CreateGrid(7, 3)
         self.m_grid1.EnableEditing(False)
         self.m_grid1.EnableGridLines(True)
         self.m_grid1.EnableDragGridSize(False)
@@ -144,12 +133,15 @@ class MSE_Baseline(wx.Dialog):
         
         # Columns
         self.m_grid1.SetColSize(0, 120)
-        self.m_grid1.SetColSize(1, 160)
+        self.m_grid1.SetColSize(1, 20)
+        self.m_grid1.SetColSize(2, 160)
+
         self.m_grid1.EnableDragColMove(False)
         self.m_grid1.EnableDragColSize(False)
         self.m_grid1.SetColLabelSize(30)
         self.m_grid1.SetColLabelValue(0, u"MSE Value")
-        self.m_grid1.SetColLabelValue(1, u"Cable Quality")
+        self.m_grid1.SetColLabelValue(1, u" ")
+        self.m_grid1.SetColLabelValue(2, u"Cable Quality")
         self.m_grid1.SetColLabelAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
         
         # Rows
@@ -165,19 +157,24 @@ class MSE_Baseline(wx.Dialog):
         self.m_grid1.SetDefaultCellAlignment(wx.ALIGN_LEFT, wx.ALIGN_TOP)
 
         #self.m_grid.SetCellValue(row, col,"cell (%d,%d)" % (row, col))
-        cell_text = [('Unlinked', 'No cable connected'),
-                     ('0dB to -8dB', 'Unusable -- Likely no link made'),
-                     ('-9dB to -11dB', 'Bad -- Likely no video'),
-                     ('-12dB to -14dB', 'Poor -- Frequent video drops'), 
-                     ('-15dB to -17dB', 'OK -- Rare video drops'),
-                     ('-18dB to -20dB', 'Good -- Stable'),
-                     ('-21dB to -23dB', 'Ideal -- Very robust')]
+        cell_text = [('Unlinked', ' ', 'No cable connected'),
+                     ('0dB to -8dB', ' ', 'Unusable -- Likely no link made'),
+                     ('-9dB to -11dB', ' ', 'Bad -- Likely no video'),
+                     ('-12dB to -14dB', ' ', 'Poor -- Frequent video drops'), 
+                     ('-15dB to -17dB', ' ', 'OK -- Rare video drops'),
+                     ('-18dB to -20dB', ' ', 'Good -- Stable'),
+                     ('-21dB to -23dB', ' ', 'Ideal -- Very robust')]
         for idx, item in enumerate(cell_text):
             self.m_grid1.SetCellValue(idx, 0, item[0])
             self.m_grid1.SetCellValue(idx, 1, item[1])
+            self.m_grid1.SetCellValue(idx, 2, item[2])
+        for i in range(4):
+            self.m_grid1.SetCellBackgroundColour(i, 1, (255, 0, 0))
+        self.m_grid1.SetCellBackgroundColour(4, 1, (255, 128, 64))
+        for i in range(5, 7):
+            self.m_grid1.SetCellBackgroundColour(i, 1, (0, 255, 0))
 
-
-
+        self.m_grid1.SetCellHighlightPenWidth(0)
         sbsizer1.Add(self.m_grid1, 0, wx.ALL, 5)
         
         bsizer5.Add(sbsizer1, 1, wx.EXPAND, 5)
@@ -275,10 +272,10 @@ class MSE_Baseline(wx.Dialog):
             pass
         else:
             self.ten_seconds = self.ten_seconds + .1
-            self.m_statictext1.SetLabel(str(int(self.ten_seconds)))
+            self.m_statictext1.SetLabel(str(10 - int(self.ten_seconds)))
+            self.Layout()
 
-            self.m_statictext2.SetLabel(str(len(self.plot_obj.mse_data.data0)))
-            
+            #take all the values we have so far and find the most common
             cha_common = Counter(self.plot_obj.mse_data.data0).\
                                                             most_common(1)[0][0]
             chb_common = Counter(self.plot_obj.mse_data.data1).\
@@ -287,6 +284,17 @@ class MSE_Baseline(wx.Dialog):
                                                             most_common(1)[0][0]
             chd_common = Counter(self.plot_obj.mse_data.data3).\
                                                             most_common(1)[0][0]
+
+            #sometimes unlinked MSE will show -255 
+            #just set these to 0 to elminate confusion
+            if cha_common == -255:
+                cha_common = 0
+            if chb_common == -255:
+                chb_common = 0
+            if chc_common == -255:
+                chc_common = 0
+            if chd_common == -255:
+                chd_common = 0            
 
             self.m_statictext14.SetLabel('ChA = ' + 
                                           str(cha_common))

@@ -1,4 +1,4 @@
-"""Configurator is a program that integrates unit discovery and telnet commands 
+"""Configurator is a program that integrates device discovery and telnet commands 
 to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
@@ -103,7 +103,7 @@ class MainPanel(wx.Panel):
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.2"
+        self.version = "v2.0.3"
 
         self.set_title_bar()
 
@@ -394,10 +394,10 @@ class MainPanel(wx.Panel):
         """Plots mse over time"""
         if self.check_for_none_selected(): 
             return
-        if len(self.main_list.GetSelectedObjects()) > 15:
-            dlg = wx.MessageDialog(parent=self, message='I can only graph 10' +
+        if len(self.main_list.GetSelectedObjects()) > 16:
+            dlg = wx.MessageDialog(parent=self, message='I can only graph 16' +
                                    ' devices at a time \nPlease select less ' +
-                                   'than ten devices at once',
+                                   'than sixteen devices at once',
                                    caption='How many graphs?',
                                    style=wx.OK)
             dlg.ShowModal()
@@ -405,51 +405,76 @@ class MainPanel(wx.Panel):
             return
 
         for obj in self.main_list.GetSelectedObjects():
-            if obj.mac_address in self.mse_active_list:
-                dlg = wx.MessageDialog(parent=self, message='You are already ' +
-                                       'graphing this MAC address',
-                                       caption='Are you crazy?',
-                                       style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return
-            self.mse_active_list.append(obj.mac_address)
-            if obj.ip_address[:3] == "COM":
-                #DGX_BCPU5:1
-                self.serial_active.append(obj.mac_address)
-                self.telnet_job_queue.put(['dgx-mse', obj, 
-                                                  self.telnet_timeout_seconds])
-            else:
-                self.telnet_job_queue.put(['mse', obj,
-                                                  self.telnet_timeout_seconds])
-            dia = plot_class.Multi_Plot(self, obj, '-1500')
-            dia.Show()
+            if self.mse_rx_check(obj):
+                if not self.mse_in_active(obj):
+                    self.mse_enable_thread(obj)
+                else:
+                    if obj.ip_address[:3] == "COM":
+                        self.serial_active.append(obj.mac_address)
+                self.mse_active_list.append(obj.mac_address)
+                dia = plot_class.Multi_Plot(self, obj, '-1500')
+                dia.Show()
 
     def mse_baseline(self, _):
         """Shows the MSE baseline"""
         if self.check_for_none_selected():
             return
-
+        if len(self.main_list.GetSelectedObjects()) > 10:
+            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
+                                  ' 10 devices at a time \nPlease select less' +
+                                  ' than ten devices at once',
+                                   caption='How many telnets?',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
         for obj in self.main_list.GetSelectedObjects():
-            if obj.mac_address in self.mse_active_list:
-                dlg = wx.MessageDialog(parent=self, message='You are already ' +
-                                       'showing the MSE Baseline for this',
-                                       caption='Are you crazy?',
-                                       style=wx.OK)
-                dlg.ShowModal()
+            if self.mse_rx_check(obj):
+                if not self.mse_in_active(obj):
+                    self.mse_enable_thread(obj)
+                else:
+                    if obj.ip_address[:3] == "COM":
+                        self.serial_active.append(obj.mac_address)
+                self.mse_active_list.append(obj.mac_address)
+                dia = mse_baseline.MSE_Baseline(self, obj)
+                dia.Show()
+
+    def mse_enable_thread(self, obj):
+        """Adds mse thread for plotting / baseline"""
+        if obj.ip_address[:3] == "COM":
+            self.serial_active.append(obj.mac_address)
+            self.telnet_job_queue.put(['dgx-mse', obj, 
+                                       self.telnet_timeout_seconds])
+        else:
+            self.telnet_job_queue.put(['mse', obj,
+                                       self.telnet_timeout_seconds])
+
+    def mse_in_active(self, obj):
+        """Checks if device is in active list"""
+        if obj.mac_address in self.mse_active_list:
+            dlg = wx.MessageDialog(parent=self, message='You are already ' +
+                                   'getting MSE from this MAC address',
+                                   caption='Are you sure?',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return True
+        return False
+
+    def mse_rx_check(self, obj):
+        """Checks if device is a RX"""
+        if obj.model[12:14] != 'RX' and obj.ip_address[:3] != "COM":
+            dlg = wx.MessageDialog(parent=self, message='This does not ' +
+                                   'appear to be a RX device. You can only' +
+                                   ' get MSE values from RX devices. Click ' +
+                                   'OK to continue anyway.',
+                                   caption='MSE only works on RX devices',
+                                   style=wx.OK|wx.CANCEL)
+            if dlg.ShowModal() != wx.ID_OK:
                 dlg.Destroy()
-                return
-            self.mse_active_list.append(obj.mac_address)
-            if obj.ip_address[:3] == "COM":
-                #DGX_BCPU5_1
-                self.serial_active.append(obj.mac_address)
-                self.telnet_job_queue.put(['dgx-mse', obj, 
-                                                  self.telnet_timeout_seconds])
-            else:
-                self.telnet_job_queue.put(['mse', obj,
-                                                  self.telnet_timeout_seconds])
-            dia = mse_baseline.MSE_Baseline(self, obj)
-            dia.Show()
+                return False
+            dlg.Destroy()
+        return True
 
     def multi_ping(self, _):
         """Ping and track results of many devices"""
@@ -482,7 +507,7 @@ class MainPanel(wx.Panel):
         dia.Show()
 
     def factory_av(self, _):
-        """Reset unit AV settings to factory defaults"""
+        """Reset device AV settings to factory defaults"""
         if self.check_for_none_selected():
             return
 
@@ -494,7 +519,7 @@ class MainPanel(wx.Panel):
 
 
     def reset_factory(self, _):
-        """Reset unit to factory defaults"""
+        """Reset device to factory defaults"""
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
@@ -511,8 +536,8 @@ class MainPanel(wx.Panel):
         self.display_progress()
 
 
-    def reboot_unit(self, _):
-        """Reboots unit"""
+    def reboot_device(self, _):
+        """Reboots device"""
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
@@ -599,7 +624,7 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected():
             return
         save_file_dialog = wx.FileDialog(self, message='Select file to add ' +
-                                       'units to or create a new file',
+                                       'devices to or create a new file',
                                        defaultDir=self.path,
                                        defaultFile="",
                                        wildcard="CSV files (*.csv)|*.csv",
@@ -879,16 +904,19 @@ class MainPanel(wx.Panel):
             self.main_list.SetObjects([data])
         else:
             for obj in self.main_list.GetObjects():
-                #print "obj", obj.mac_address, "data", data.mac_address
                 if obj.mac_address == data.mac_address:
-                    obj.ip_address = data.ip_address
-                    obj.hostname = data.hostname
-                    obj.arrival_time = data.arrival_time
-                    self.main_list.RemoveObjects([obj])
-                    #break
-            else:
-                self.main_list.AddObject(data)
-        self.main_list.RepopulateList()
+                    data.model = obj.model
+                    data.serial = obj.serial
+                    data.firmware = obj.firmware
+                    data.device = obj.device
+                    data.ip_type = obj.ip_type
+                    data.gateway = obj.gateway
+                    data.subnet = obj.subnet
+                    data.master = obj.master
+                    data.system = obj.system
+                    self.main_list.RemoveObject(obj)
+            self.main_list.AddObject(data)
+        #self.main_list.RepopulateList()
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()
@@ -1144,10 +1172,11 @@ class MainFrame(wx.Frame):
 
         import_menu = wx.Menu()
         iitem = import_menu.Append(wx.ID_ANY, 'Import from a CSV', \
-                                 'Import from a CSV')
+                                              'Import from a CSV')
         self.Bind(wx.EVT_MENU, self.panel.import_csv_file, iitem)
 
-        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', 'Import IP list')
+        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', \
+                                              'Import IP list')
         self.Bind(wx.EVT_MENU, self.panel.import_ip_list, iitem)
 
         iitem = import_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
@@ -1197,9 +1226,9 @@ class MainFrame(wx.Frame):
                                    'Reset selected devices to factory settings')
         self.Bind(wx.EVT_MENU, self.panel.reset_factory, aitem)
 
-        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Unit', \
+        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Device', \
                                    'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_unit, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot_device, aitem)
 
         menubar.Append(action_menu, '&Actions')
 
@@ -1215,20 +1244,26 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
-                                  'Generate IP List')
+                                             'Generate IP List')
         self.Bind(wx.EVT_MENU, self.panel.generate_list, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Generate DGX List', \
-                                  'Generate DGX List')
+                                             'Generate DGX List')
         self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
 
-        titem = tools_menu.Append(wx.ID_ANY, 'Turn on LED\'s', 'Turn on LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Turn off LED\'s', 'Turn off LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, titem)
-
         menubar.Append(tools_menu, 'Tools')
+
+        identify_menu = wx.Menu()
+
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', \
+                                                'Turn on LED')
+        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, iitem)
+
+        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', \
+                                                'Turn off LED')
+        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, iitem)
+
+        menubar.Append(identify_menu, 'Identify')
 
         listen_menu = wx.Menu()
 
@@ -1264,8 +1299,8 @@ class MainFrame(wx.Frame):
         hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
         self.Bind(wx.EVT_MENU, self.panel.on_about_box, hitem)
 
-        hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
+        #hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
+        #self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
 
         menubar.Append(help_menu, '&Help')
 
@@ -1302,7 +1337,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.factory_av, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_unit, rcitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot_device, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
         self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)
