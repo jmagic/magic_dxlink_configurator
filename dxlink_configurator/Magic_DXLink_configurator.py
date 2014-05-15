@@ -1299,8 +1299,8 @@ class MainFrame(wx.Frame):
         hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
         self.Bind(wx.EVT_MENU, self.panel.on_about_box, hitem)
 
-        hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
+        #hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
+        #self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
 
         menubar.Append(help_menu, '&Help')
 
