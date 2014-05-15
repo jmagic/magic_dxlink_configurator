@@ -96,7 +96,7 @@ class Telnetjobs(Thread):
                     obj.master = 'not connected'
                     obj.system = '0'
                 else:
-                    obj.master = connection_info[7]
+                    obj.master = connection_info[6]
                     obj.system = connection_info[4]
 
             if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
