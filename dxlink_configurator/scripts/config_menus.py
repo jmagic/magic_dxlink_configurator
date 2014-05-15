@@ -933,7 +933,7 @@ class DGXListGen(wx.Dialog):
 
             for bcpu in range(int(start), (int(finish)+1)):
                 for port in range(4):
-                    dgx_gen = 'BCPU' + str(bcpu) + '_' + str(port + 1)
+                    dgx_gen = 'BCPU' + str(bcpu) + '_Ch' + str(port + 1)
                     self.data.append(dgx_gen)
 
         except ValueError as error:
