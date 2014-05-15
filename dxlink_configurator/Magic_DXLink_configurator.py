@@ -1,4 +1,4 @@
-"""Configurator is a program that integrates unit discovery and telnet commands 
+"""Configurator is a program that integrates device discovery and telnet commands 
 to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
@@ -450,7 +450,7 @@ class MainPanel(wx.Panel):
                                        self.telnet_timeout_seconds])
 
     def mse_in_active(self, obj):
-        """Checks if unit is in active list"""
+        """Checks if device is in active list"""
         if obj.mac_address in self.mse_active_list:
             dlg = wx.MessageDialog(parent=self, message='You are already ' +
                                    'getting MSE from this MAC address',
@@ -462,13 +462,13 @@ class MainPanel(wx.Panel):
         return False
 
     def mse_rx_check(self, obj):
-        """Checks if unit is a RX"""
+        """Checks if device is a RX"""
         if obj.model[12:14] != 'RX' and obj.ip_address[:3] != "COM":
             dlg = wx.MessageDialog(parent=self, message='This does not ' +
-                                   'appear to be a RX unit. You can only' +
-                                   ' get MSE values from RX units. Click ' +
+                                   'appear to be a RX device. You can only' +
+                                   ' get MSE values from RX devices. Click ' +
                                    'OK to continue anyway.',
-                                   caption='MSE only works on RX units',
+                                   caption='MSE only works on RX devices',
                                    style=wx.OK|wx.CANCEL)
             if dlg.ShowModal() != wx.ID_OK:
                 dlg.Destroy()
@@ -507,7 +507,7 @@ class MainPanel(wx.Panel):
         dia.Show()
 
     def factory_av(self, _):
-        """Reset unit AV settings to factory defaults"""
+        """Reset device AV settings to factory defaults"""
         if self.check_for_none_selected():
             return
 
@@ -519,7 +519,7 @@ class MainPanel(wx.Panel):
 
 
     def reset_factory(self, _):
-        """Reset unit to factory defaults"""
+        """Reset device to factory defaults"""
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
@@ -536,8 +536,8 @@ class MainPanel(wx.Panel):
         self.display_progress()
 
 
-    def reboot_unit(self, _):
-        """Reboots unit"""
+    def reboot_device(self, _):
+        """Reboots device"""
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
@@ -624,7 +624,7 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected():
             return
         save_file_dialog = wx.FileDialog(self, message='Select file to add ' +
-                                       'units to or create a new file',
+                                       'devices to or create a new file',
                                        defaultDir=self.path,
                                        defaultFile="",
                                        wildcard="CSV files (*.csv)|*.csv",
@@ -1226,9 +1226,9 @@ class MainFrame(wx.Frame):
                                    'Reset selected devices to factory settings')
         self.Bind(wx.EVT_MENU, self.panel.reset_factory, aitem)
 
-        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Unit', \
+        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Device', \
                                    'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_unit, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot_device, aitem)
 
         menubar.Append(action_menu, '&Actions')
 
@@ -1337,7 +1337,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.factory_av, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_unit, rcitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot_device, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
         self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)
