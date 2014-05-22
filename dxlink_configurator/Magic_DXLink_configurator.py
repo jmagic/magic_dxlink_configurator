@@ -1,5 +1,5 @@
-"""Configurator is a program that integrates device discovery and telnet commands 
-to ease configuration and management of AMX DXLink devices.
+"""Configurator is a program that integrates device discovery and telnet 
+commands to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
 
@@ -403,7 +403,17 @@ class MainPanel(wx.Panel):
             dlg.ShowModal()
             dlg.Destroy()
             return
-
+        dlg = wx.MessageDialog(parent=self, message='Warning: MSE values may ' + 
+                               'intermittently show values at -5 or -6.\n\n' +
+                               'You can safely ignore these values.\n\nIf you '+
+                               'want to verify your MSE baseline please use ' +
+                               'the \"MSE baseline\" under the tools menu.',
+                               caption=('Warning MSE values may ' +
+                               'intermittently show low values '),
+                               style=wx.OK|
+                               wx.ICON_EXCLAMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
         for obj in self.main_list.GetSelectedObjects():
             if self.mse_rx_check(obj):
                 if not self.mse_in_active(obj):
@@ -1236,6 +1246,9 @@ class MainFrame(wx.Frame):
 
         titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
         self.Bind(wx.EVT_MENU, self.panel.multi_ping, titem)
+
+        titem = tools_menu.Append(wx.ID_ANY, 'MSE Baseline', 'MSE Baseline')
+        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, titem)
 
         titem = tools_menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE')
         self.Bind(wx.EVT_MENU, self.panel.plot_mse, titem)
