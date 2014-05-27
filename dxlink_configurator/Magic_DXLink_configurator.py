@@ -649,7 +649,8 @@ class MainPanel(wx.Panel):
                                | wx.PD_AUTO_HIDE
                                | wx.PD_ELAPSED_TIME)
             count = 0
-            with open(path, 'a') as store_file:
+            with open(path, 'ab') as store_file:
+                write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
                 for obj in self.main_list.GetSelectedObjects():
                     count += 1
                     dlg.Update(count)
@@ -667,7 +668,7 @@ class MainPanel(wx.Panel):
                             obj.master,
                             obj.system
                             ]
-                    write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
+                    
                     write_csv.writerow(data)
             self.dump_pickle()
 
