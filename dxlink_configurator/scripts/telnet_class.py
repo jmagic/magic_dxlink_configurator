@@ -333,7 +333,7 @@ class Telnetjobs(Thread):
                        ":" + 
                        str(obj.system) + 
                        " , " + 
-                       "\"\'Factory_AV\'\" \r")
+                       "\"\'FactoryAV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
