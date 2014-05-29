@@ -74,6 +74,7 @@ class Telnetjobs(Thread):
 
             telnet_session.write('get ip \r')
             telnet_session.read_until('HostName:', int(job[2]))
+            # need to get hostnames with spaces temp = telnet_session.readline()
             ip_info = telnet_session.read_very_eager().split()
             if ip_info[0] == "Type:":
                 obj.hostname = " "
@@ -85,9 +86,9 @@ class Telnetjobs(Thread):
                 obj.ip_type = "s"
             if ip_info[2] == "DHCP":
                 obj.ip_type = "d"
-            obj.subnet = ip_info[8]
-            obj.gateway = ip_info[11]
-            obj.mac_address = ip_info[14]
+            obj.subnet = ip_info[-5]
+            obj.gateway = ip_info[-3]
+            obj.mac_address = ip_info[-1]
             telnet_session.write('get connection \r')
             telnet_session.read_until('Mode:', int(job[2]))
             connection_info = telnet_session.read_very_eager().split()
@@ -332,7 +333,7 @@ class Telnetjobs(Thread):
                        ":" + 
                        str(obj.system) + 
                        " , " + 
-                       "\"\'Factory_AV\'\" \r")
+                       "\"\'FactoryAV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
