@@ -537,16 +537,12 @@ class MultiSendCommandConfig (wx.Dialog):
 
         
     def on_exit(self, _):
-        """When user exits"""
-        self.parent.errorlist = []
-        self.parent.completionlist = []       
+        """When user exits"""       
         self.Destroy()
 
     def on_abort(self, _):
         """When user clicks abort"""        
         self.parent.abort = True
-        self.parent.errorlist = []
-        self.parent.completionlist = []
         self.Destroy()
 
         
