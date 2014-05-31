@@ -623,6 +623,8 @@ class MainPanel(wx.Panel):
                                    style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
+        self.errorlist = []
+        self.completionlist = []
 
     def dump_pickle(self):
         """Saves list data to a file"""
