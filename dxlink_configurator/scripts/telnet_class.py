@@ -335,13 +335,14 @@ class Telnetjobs(Thread):
                        ":" + 
                        str(obj.system) + 
                        " , " + 
-                       "\"\'FactoryAV\'\" \r")
+                       "\"\'FACTORYAV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_very_eager()
             if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
-
+            telnet_session.write('reboot \r')
+            telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
             self.communication_success(obj)
