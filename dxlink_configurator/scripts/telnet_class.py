@@ -89,7 +89,8 @@ class Telnetjobs(Thread):
             obj.subnet = ip_subnet[-2]
             ip_gateway = telnet_session.read_until('MAC').split()
             obj.gateway = ip_gateway[-2]
-            telnet_session.read_very_eager()
+            ip_mac = telnet_session.read_very_eager().split()
+            obj.mac_address = ip_mac[1]
 
             telnet_session.write('get connection \r')
             telnet_session.read_until('Mode:', int(job[2]))
