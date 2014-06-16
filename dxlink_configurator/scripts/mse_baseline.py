@@ -51,27 +51,27 @@ class MSE_Baseline(wx.Dialog):
         
         bsizer2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
+        # bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
         
-        sbsizer3 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
-                                           u"Seconds remaining"), wx.HORIZONTAL)
+        # sbsizer3 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 
+        #                                  u"Seconds remaining"), wx.HORIZONTAL)
         
-        sbsizer3.SetMinSize( wx.Size( 120,-1 ) )
-        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, 
-                                          u"10", wx.DefaultPosition, 
-                                                 wx.DefaultSize, 
-                                                 wx.ALIGN_CENTER_VERTICAL)
-        self.m_statictext1.Wrap(-1)
-        self.m_statictext1.SetFont(wx.Font(48, 74, 90, 92, False, "Arial"))
-        sbsizer3.Add(self.m_statictext1, 1, 
-                    wx.ALL|
-                    wx.ALIGN_CENTER_VERTICAL, 5)
+        # sbsizer3.SetMinSize( wx.Size( 120,-1 ) )
+        # self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, 
+        #                                   u"10", wx.DefaultPosition, 
+        #                                          wx.DefaultSize, 
+        #                                          wx.ALIGN_CENTER_VERTICAL)
+        # self.m_statictext1.Wrap(-1)
+        # self.m_statictext1.SetFont(wx.Font(48, 74, 90, 92, False, "Arial"))
+        # sbsizer3.Add(self.m_statictext1, 1, 
+        #             wx.ALL|
+        #             wx.ALIGN_CENTER_VERTICAL, 5)
         
-        bsizer3.Add( sbsizer3, 1, wx.ALIGN_CENTER_HORIZONTAL|
-                                  wx.EXPAND|
-                                  wx.ALIGN_CENTER_VERTICAL, 5 )
+        # bsizer3.Add( sbsizer3, 1, wx.ALIGN_CENTER_HORIZONTAL|
+        #                           wx.EXPAND|
+        #                           wx.ALIGN_CENTER_VERTICAL, 5 )
 
-        bsizer2.Add(bsizer3, 0, wx.EXPAND, 5)
+        # bsizer2.Add(bsizer3, 0, wx.EXPAND, 5)
         
         bsizer4 = wx.BoxSizer(wx.HORIZONTAL)
         
@@ -272,8 +272,8 @@ class MSE_Baseline(wx.Dialog):
             pass
         else:
             self.ten_seconds = self.ten_seconds + .1
-            self.m_statictext1.SetLabel(str(10 - int(self.ten_seconds)))
-            self.Layout()
+            #self.m_statictext1.SetLabel(str(10 - int(self.ten_seconds)))
+            #self.Layout()
 
             #take all the values we have so far and find the most common
             cha_common = Counter(self.plot_obj.mse_data.data0).\
