@@ -557,19 +557,7 @@ class Telnetjobs(Thread):
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
-    
-        '''if error.split()[0] == '(113,' or \
-           error.split()[0] == '(111,' or \
-           error.split()[0] == "('timed" or \
-           error.split()[0] == '(2,':
-            data = (obj.ip_address, 'IP unreachable or offline')
-        elif error.split()[0] == "('Not,'":
-            data = (obj.ip_address, 'Not a DXLink device')
-        elif error.split()[0] == "('list":
-            data = (obj.ip_address, 
-                           'I\'m having trouble communicating with this device')
-        elif error.split()[0] == "('Command":
-            data = (obj.ip_address, 'Command not sent')'''
+
         if str(error) == 'Not an AMX device':
             data = (obj.ip_address, 'Warning, not a recognized dxlink device')
         else:
