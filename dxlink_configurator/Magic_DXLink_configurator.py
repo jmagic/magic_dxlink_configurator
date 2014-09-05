@@ -103,7 +103,7 @@ class MainPanel(wx.Panel):
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.6"
+        self.version = "v2.0.7"
 
         self.set_title_bar()
 
@@ -453,10 +453,10 @@ class MainPanel(wx.Panel):
         """Adds mse thread for plotting / baseline"""
         if obj.ip_address[:3] == "COM":
             self.serial_active.append(obj.mac_address)
-            self.telnet_job_queue.put(['dgx-mse', obj, 
+            self.telnet_job_queue.put(['get_dgx_mse', obj, 
                                        self.telnet_timeout_seconds])
         else:
-            self.telnet_job_queue.put(['mse', obj,
+            self.telnet_job_queue.put(['get_dxlink_mse', obj,
                                        self.telnet_timeout_seconds])
 
     def mse_in_active(self, obj):
@@ -523,8 +523,7 @@ class MainPanel(wx.Panel):
 
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['factory_av', obj, 
-                                       self.telnet_timeout_seconds, 
-                                       'factory_av', 1])
+                                       self.telnet_timeout_seconds])
         self.display_progress()
 
 
@@ -539,19 +538,19 @@ class MainPanel(wx.Panel):
                                    style=wx.OK|wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:
                 dlg.Destroy()
-                self.telnet_job_queue.put(['set_factory', obj, 
+                self.telnet_job_queue.put(['reset_factory', obj, 
                                            self.telnet_timeout_seconds])
             else:
                 return
         self.display_progress()
 
 
-    def reboot_device(self, _):
+    def reboot(self, _):
         """Reboots device"""
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
-            self.telnet_job_queue.put(['set_reboot', obj,
+            self.telnet_job_queue.put(['reboot', obj,
                                        self.telnet_timeout_seconds])
         self.display_progress()
 
@@ -1241,7 +1240,7 @@ class MainFrame(wx.Frame):
 
         aitem = action_menu.Append(wx.ID_ANY, 'Reboot Device', \
                                    'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_device, aitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot, aitem)
 
         menubar.Append(action_menu, '&Actions')
 
@@ -1353,7 +1352,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panel.factory_av, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
-        self.Bind(wx.EVT_MENU, self.panel.reboot_device, rcitem)
+        self.Bind(wx.EVT_MENU, self.panel.reboot, rcitem)
 
         rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
         self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)

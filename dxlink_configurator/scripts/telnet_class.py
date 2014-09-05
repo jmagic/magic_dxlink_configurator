@@ -21,31 +21,7 @@ class Telnetjobs(Thread):
         while True:
             # gets the job from the queue
             job = self.queue.get()
-
-            if job[0] == "get_config_info":
-                self.get_config_info(job)
-            elif job[0] == "set_factory":
-                self.set_factory(job)
-            elif job[0] == "set_reboot":
-                self.set_reboot(job)
-            elif job[0] == "DeviceConfig":
-                self.set_device_config(job)
-            elif job[0] == "factory_av":
-                self.factory_av(job)
-            elif job[0] == "send_command":
-                self.send_command(job)
-            elif job[0] == "turn_on_leds":
-                self.set_turn_on_led(job)
-            elif job[0] == "turn_off_leds":
-                self.set_turn_off_led(job)
-            elif job[0] == "mse":
-                self.set_mse(job)
-            elif job[0] == "dgx-mse":
-                self.set_dgx_mse(job)
-            elif job[0] == "Ping":
-                self.set_ping(job)
-            else:                
-                return
+            getattr(self, job[0])(job)
 
             # send a signal to the queue that the job is done
             self.queue.task_done()
@@ -101,49 +77,8 @@ class Telnetjobs(Thread):
         except (IOError, Exception) as error:
             self.error_processing(obj, error)
 
-    def set_master(self, job):
-        """Sets master address"""
 
-        obj = job[1]
-        master = job[3]
-        device = job[4]
-        #print master, device, ip
-
-        try:
-
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('set connection\r')
-            telnet_session.read_until('Enter:', int(job[2]))
-            telnet_session.write('t\r')
-            telnet_session.read_until('URL:', int(job[2]))
-            telnet_session.write(master + '\r')
-            telnet_session.read_until('Port:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('User:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Password:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Password:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Enter ->', int(job[2]))
-            telnet_session.write('y\r')
-            telnet_session.read_until('written.', int(job[2]))
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('set device ' + str(device) + '\r')
-            telnet_session.read_until('device', int(job[2]))
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('reboot\r')
-            telnet_session.read_until('Rebooting....', int(job[2]))
-            telnet_session.close()
-
-            self.communication_success(obj)
-
-        except Exception as error:
-            self.error_processing(obj, error)
-
-    def set_factory(self, job):
+    def reset_factory(self, job):
         """Sets unit to factory defaults"""
 
         obj = job[1]
@@ -160,7 +95,7 @@ class Telnetjobs(Thread):
         except IOError, error:
             self.error_processing(obj, error)
 
-    def set_reboot(self, job):
+    def reboot(self, job):
 
         obj = job[1]
 
@@ -345,7 +280,7 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
-    def set_turn_on_led(self, job):
+    def turn_on_leds(self, job):
         """Turns on LEDs"""
 
         obj = job[1]
@@ -362,7 +297,7 @@ class Telnetjobs(Thread):
             self.error_processing(obj, error)
 
 
-    def set_turn_off_led(self, job):
+    def turn_off_leds(self, job):
         """Turns off leds"""
         obj = job[1]
 
@@ -378,7 +313,7 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
-    def set_mse(self, job):
+    def get_dxlink_mse(self, job):
         """Gathers MSE values"""
         obj = job[1]
         try:
@@ -412,7 +347,7 @@ class Telnetjobs(Thread):
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
 
-    def set_dgx_mse(self, job):
+    def get_dgx_mse(self, job):
         "Gathers DGX MSE values"
         obj = job[1]
 
@@ -484,7 +419,7 @@ class Telnetjobs(Thread):
             
 
 
-    def set_ping(self, job):
+    def ping(self, job):
         """Ping devices constantly for troubleshooting"""        
         obj = job[1]
         startupinfo = subprocess.STARTUPINFO()
