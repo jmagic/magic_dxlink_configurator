@@ -91,25 +91,7 @@ class Telnetjobs(Thread):
             obj.gateway = ip_gateway[-2]
             ip_mac = telnet_session.read_very_eager().split()
             obj.mac_address = ip_mac[1]
-
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = '0'
-                else:
-                    obj.master = connection_info[6]
-                    obj.system = connection_info[4]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = '0'
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             telnet_session.write('exit')
             telnet_session.close()
@@ -309,25 +291,7 @@ class Telnetjobs(Thread):
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            #print connection_info
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             command = ("send_command " +
                        str(obj.device) + 
@@ -361,24 +325,7 @@ class Telnetjobs(Thread):
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            #print connection_info
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             command = command_sent  + " \r"
             #print command
@@ -581,7 +528,28 @@ class Telnetjobs(Thread):
                     break  
         ping.kill()
 
-        
+    def get_connection(self, obj, session, timeout):
+        """ Function to get connection information """
+        session.write('get connection \r')
+        session.read_until('Mode:', timeout)
+        connection_info = session.read_very_eager().split()
+        if connection_info[0] == 'NDP':
+            if connection_info[7] == '(n/a)':
+                obj.master = 'not connected'
+                obj.system = '0'
+            else:
+                obj.master = connection_info[6]
+                obj.system = connection_info[3]
+
+        if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
+            if connection_info[8] == '(n/a)':
+                obj.master = 'not connected'
+                obj.system = '0'
+            else:
+                obj.master = connection_info[7]
+                obj.system = connection_info[4]
+
+
     def communication_success(self, obj):
         """Send notification of success to main"""
         data = [obj.ip_address, 'Success']
