@@ -602,7 +602,7 @@ class DeviceConfig(wx.Dialog):
         else:
             setdhcp = False
 
-        info = ['DeviceConfig',
+        info = ['set_device_config',
                 self.obj,
                 self.parent.telnet_timeout_seconds,
                 setdhcp, 

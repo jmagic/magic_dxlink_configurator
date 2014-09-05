@@ -129,7 +129,7 @@ class MultiPing(wx.Dialog):
         self.log_files = {}
 
         for obj in device_list:
-            self.parent.telnet_job_queue.put(['Ping', obj, 
+            self.parent.telnet_job_queue.put(['ping', obj, 
                                             self.parent.telnet_timeout_seconds])
             
         for obj in self.ping_objects:

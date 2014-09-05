@@ -21,31 +21,7 @@ class Telnetjobs(Thread):
         while True:
             # gets the job from the queue
             job = self.queue.get()
-
-            if job[0] == "get_config_info":
-                self.get_config_info(job)
-            elif job[0] == "set_factory":
-                self.set_factory(job)
-            elif job[0] == "set_reboot":
-                self.set_reboot(job)
-            elif job[0] == "DeviceConfig":
-                self.set_device_config(job)
-            elif job[0] == "factory_av":
-                self.factory_av(job)
-            elif job[0] == "send_command":
-                self.send_command(job)
-            elif job[0] == "turn_on_leds":
-                self.set_turn_on_led(job)
-            elif job[0] == "turn_off_leds":
-                self.set_turn_off_led(job)
-            elif job[0] == "mse":
-                self.set_mse(job)
-            elif job[0] == "dgx-mse":
-                self.set_dgx_mse(job)
-            elif job[0] == "Ping":
-                self.set_ping(job)
-            else:                
-                return
+            getattr(self, job[0])(job)
 
             # send a signal to the queue that the job is done
             self.queue.task_done()
@@ -91,25 +67,7 @@ class Telnetjobs(Thread):
             obj.gateway = ip_gateway[-2]
             ip_mac = telnet_session.read_very_eager().split()
             obj.mac_address = ip_mac[1]
-
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = '0'
-                else:
-                    obj.master = connection_info[6]
-                    obj.system = connection_info[4]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = '0'
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             telnet_session.write('exit')
             telnet_session.close()
@@ -119,49 +77,8 @@ class Telnetjobs(Thread):
         except (IOError, Exception) as error:
             self.error_processing(obj, error)
 
-    def set_master(self, job):
-        """Sets master address"""
 
-        obj = job[1]
-        master = job[3]
-        device = job[4]
-        #print master, device, ip
-
-        try:
-
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('set connection\r')
-            telnet_session.read_until('Enter:', int(job[2]))
-            telnet_session.write('t\r')
-            telnet_session.read_until('URL:', int(job[2]))
-            telnet_session.write(master + '\r')
-            telnet_session.read_until('Port:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('User:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Password:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Password:', int(job[2]))
-            telnet_session.write('\r')
-            telnet_session.read_until('Enter ->', int(job[2]))
-            telnet_session.write('y\r')
-            telnet_session.read_until('written.', int(job[2]))
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('set device ' + str(device) + '\r')
-            telnet_session.read_until('device', int(job[2]))
-            telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('reboot\r')
-            telnet_session.read_until('Rebooting....', int(job[2]))
-            telnet_session.close()
-
-            self.communication_success(obj)
-
-        except Exception as error:
-            self.error_processing(obj, error)
-
-    def set_factory(self, job):
+    def reset_factory(self, job):
         """Sets unit to factory defaults"""
 
         obj = job[1]
@@ -178,7 +95,7 @@ class Telnetjobs(Thread):
         except IOError, error:
             self.error_processing(obj, error)
 
-    def set_reboot(self, job):
+    def reboot(self, job):
 
         obj = job[1]
 
@@ -309,25 +226,7 @@ class Telnetjobs(Thread):
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            #print connection_info
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-                    obj.system = connection_info[4]
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             command = ("send_command " +
                        str(obj.device) + 
@@ -361,24 +260,7 @@ class Telnetjobs(Thread):
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
 
             telnet_session.read_until('>', int(job[2]))
-            telnet_session.write('get connection \r')
-            telnet_session.read_until('Mode:', int(job[2]))
-            connection_info = telnet_session.read_very_eager().split()
-            #print connection_info
-            if connection_info[0] == 'NDP':
-                if connection_info[7] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-
-            if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
-                if connection_info[8] == '(n/a)':
-                    obj.master = 'not connected'
-                    obj.system = 0
-                else:
-                    obj.master = connection_info[7]
-
+            self.get_connection(obj, telnet_session, int(job[2]))
 
             command = command_sent  + " \r"
             #print command
@@ -398,7 +280,7 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
-    def set_turn_on_led(self, job):
+    def turn_on_leds(self, job):
         """Turns on LEDs"""
 
         obj = job[1]
@@ -415,7 +297,7 @@ class Telnetjobs(Thread):
             self.error_processing(obj, error)
 
 
-    def set_turn_off_led(self, job):
+    def turn_off_leds(self, job):
         """Turns off leds"""
         obj = job[1]
 
@@ -431,7 +313,7 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
-    def set_mse(self, job):
+    def get_dxlink_mse(self, job):
         """Gathers MSE values"""
         obj = job[1]
         try:
@@ -465,7 +347,7 @@ class Telnetjobs(Thread):
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
 
-    def set_dgx_mse(self, job):
+    def get_dgx_mse(self, job):
         "Gathers DGX MSE values"
         obj = job[1]
 
@@ -537,7 +419,7 @@ class Telnetjobs(Thread):
             
 
 
-    def set_ping(self, job):
+    def ping(self, job):
         """Ping devices constantly for troubleshooting"""        
         obj = job[1]
         startupinfo = subprocess.STARTUPINFO()
@@ -581,7 +463,28 @@ class Telnetjobs(Thread):
                     break  
         ping.kill()
 
-        
+    def get_connection(self, obj, session, timeout):
+        """ Function to get connection information """
+        session.write('get connection \r')
+        session.read_until('Mode:', timeout)
+        connection_info = session.read_very_eager().split()
+        if connection_info[0] == 'NDP':
+            if connection_info[7] == '(n/a)':
+                obj.master = 'not connected'
+                obj.system = '0'
+            else:
+                obj.master = connection_info[6]
+                obj.system = connection_info[3]
+
+        if connection_info[0] == 'TCP' or connection_info[0] == 'UDP':
+            if connection_info[8] == '(n/a)':
+                obj.master = 'not connected'
+                obj.system = '0'
+            else:
+                obj.master = connection_info[7]
+                obj.system = connection_info[4]
+
+
     def communication_success(self, obj):
         """Send notification of success to main"""
         data = [obj.ip_address, 'Success']
@@ -589,19 +492,7 @@ class Telnetjobs(Thread):
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
-    
-        '''if error.split()[0] == '(113,' or \
-           error.split()[0] == '(111,' or \
-           error.split()[0] == "('timed" or \
-           error.split()[0] == '(2,':
-            data = (obj.ip_address, 'IP unreachable or offline')
-        elif error.split()[0] == "('Not,'":
-            data = (obj.ip_address, 'Not a DXLink device')
-        elif error.split()[0] == "('list":
-            data = (obj.ip_address, 
-                           'I\'m having trouble communicating with this device')
-        elif error.split()[0] == "('Command":
-            data = (obj.ip_address, 'Command not sent')'''
+
         if str(error) == 'Not an AMX device':
             data = (obj.ip_address, 'Warning, not a recognized dxlink device')
         else:
