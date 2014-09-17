@@ -18,8 +18,12 @@ class TelnetToThread(threading.Thread):
             obj = self.queue.get()
 
             if os.name == 'nt':
-                
-                subprocess.call((self.parent.path + self.parent.telnet_client +
+                if self.parent.telnet_client == 'putty.exe':
+                    subprocess.call([(self.parent.path + 
+                                      self.parent.telnet_client),
+                                      ('telnet://' + obj.ip_address)])
+                else:                
+                    subprocess.call((self.parent.path + self.parent.telnet_client +
                                   " " + obj.ip_address))
             if os.name == 'posix':
                 subprocess.call(('telnet', obj.ip_address)) 
