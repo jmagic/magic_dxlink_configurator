@@ -1014,7 +1014,7 @@ class MainPanel(wx.Panel):
         config.set('Settings', 'default device number', '10001')
         config.set('Settings', 'default enable dhcp', True)
         config.set('Settings', 'number of threads', 20)
-        config.set('Settings', 'telnet client executable', ('puttytel.exe'))
+        config.set('Settings', 'telnet client executable', ('putty.exe'))
         config.set('Settings', 'telnet timeout in seconds', '4')
         config.set('Settings', 
                    'display notification of successful connections', True)
