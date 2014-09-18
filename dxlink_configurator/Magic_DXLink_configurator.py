@@ -374,7 +374,39 @@ class MainPanel(wx.Panel):
             if os.path.exists((self.path + self.telnet_client)):
 
                 for obj in self.main_list.GetSelectedObjects():
-                    self.telnet_to_queue.put(obj)
+                    self.telnet_to_queue.put([obj, 'telnet'])
+            else:
+                dlg = wx.MessageDialog(parent=self, message='Could not find ' +
+                                      'telnet client \nPlease put ' + 
+                                      '%s in \n%s' % (self.telnet_client,
+                                       self.path),
+                                       caption='No %s' % self.telnet_client,
+                                       style=wx.OK)
+                dlg.ShowModal()
+                dlg.Destroy()
+            return
+
+        if os.name == 'posix':
+            for obj in self.main_list.GetSelectedObjects():
+                self.telnet_to_queue.put(obj)
+    def ssh_to(self, _):
+        """Telnet to the selected device(s)"""
+        if self.check_for_none_selected(): 
+            return
+        if len(self.main_list.GetSelectedObjects()) > 10:
+            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
+                                  ' 10 devices at a time \nPlease select less' +
+                                  ' than ten devices at once',
+                                   caption='How many telnets?',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return
+        if os.name == 'nt':
+            if os.path.exists((self.path + self.telnet_client)):
+
+                for obj in self.main_list.GetSelectedObjects():
+                    self.telnet_to_queue.put([obj, 'ssh'])
             else:
                 dlg = wx.MessageDialog(parent=self, message='Could not find ' +
                                       'telnet client \nPlease put ' + 
@@ -1230,6 +1262,14 @@ class MainFrame(wx.Frame):
         aitem = action_menu.Append(wx.ID_ANY, 'Configure Device', \
                                    'Configure Devices Connection')
         self.Bind(wx.EVT_MENU, self.panel.configure_device, aitem)
+
+        aitem = action_menu.Append(wx.ID_ANY, 'Telnet to Device', \
+                                   'Launch a telnet connetion to Device')
+        self.Bind(wx.EVT_MENU, self.panel.telnet_to, aitem)
+
+        aitem = action_menu.Append(wx.ID_ANY, 'SSH to Device', \
+                                   'Launch a SSH connetion to Device')
+        self.Bind(wx.EVT_MENU, self.panel.ssh_to, aitem)
 
         aitem = action_menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
         self.Bind(wx.EVT_MENU, self.panel.send_commands, aitem)
