@@ -103,7 +103,7 @@ class MainPanel(wx.Panel):
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.7"
+        self.version = "v2.0.8"
 
         self.set_title_bar()
 
@@ -1361,6 +1361,7 @@ class MainFrame(wx.Frame):
 
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_CLOSE, self.panel.on_close)
+        self.Center()
 
         if self.panel.port_error:
             self.panel.port_errors()
@@ -1410,7 +1411,7 @@ class MainFrame(wx.Frame):
 
 
 ########################################################################
-class GenApp(wx.App):
+'''class GenApp(wx.App):
 
     #----------------------------------------------------------------------
     def __init__(self, redirect=False, filename=None):
@@ -1421,10 +1422,37 @@ class GenApp(wx.App):
         # create frame here
         frame = MainFrame()
         frame.Show()
-        return True
+        return True'''
+
+def show_splash():
+    """create, show and return the splash screen"""
+    bitmap = wx.Bitmap('media/splash.jpg')
+    splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN|
+                                wx.SPLASH_TIMEOUT, 1700, None, -1)
+    splash.Show()
+    return splash
+
+def main():
+    """run the main program"""
+    dxlink_configurator = wx.App()
+    splash = show_splash()
+
+
+    # do processing/initialization here and create main window
+    dxlink_frame = MainFrame()
+    time.sleep(1)
+    dxlink_frame.Show()
+
+    #splash.Destroy()
+    dxlink_configurator.MainLoop()
+
+if __name__ == '__main__':
+    main()
+
+
 
 #----------------------------------------------------------------------
-def main():
+'''def main():
 
     app = GenApp()
     app.MainLoop()
@@ -1432,3 +1460,4 @@ def main():
 # Run the program
 if __name__ == "__main__":
     main()
+'''
