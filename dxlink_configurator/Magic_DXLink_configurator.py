@@ -35,9 +35,10 @@ from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
 
+
 from pydispatch import dispatcher
 
-from scripts import (config_menus, dhcp_sniffer, multi_send, multi_ping, 
+from scripts import (config_menus, dhcp_sniffer, mdc_gui, multi_send, multi_ping, 
                     mse_baseline, plot_class, telnet_class, telnetto_class)
 
 try:
@@ -75,13 +76,21 @@ class Unit(object):
         self.system = system
 
 
-class MainPanel(wx.Panel):
+#class MainPanel(wx.Panel):
 
-    #----------------------------------------------------------------------
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=wx.ID_ANY)
+class MainFrame( mdc_gui.MainFrame ):
+    def __init__( self, parent ):
+        mdc_gui.MainFrame.__init__( self, parent )
+
+        #----------------------------------------------------------------------
+        #    def __init__(self, parent):
+        #        wx.Panel.__init__(self, parent, id=wx.ID_ANY)
 
         self.parent = parent
+
+        icon_bundle = wx.IconBundle()
+        icon_bundle.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(icon_bundle)
 
         self.master_address = None
         self.device_number = None
@@ -103,7 +112,7 @@ class MainPanel(wx.Panel):
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.7"
+        self.version = "v3.x.x"
 
         self.set_title_bar()
 
@@ -118,10 +127,11 @@ class MainPanel(wx.Panel):
         self.ping_window = None
         self.abort = False
 
-        self.main_list = ObjectListView(self, wx.ID_ANY, 
-                                      style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
+                                        style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.on_right_click)
+        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
+                            self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
         self.columns = []
@@ -144,9 +154,10 @@ class MainPanel(wx.Panel):
         self.update_status_bar()
 
         # Create some sizers
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(main_sizer)
+        #main_sizer = wx.BoxSizer(wx.VERTICAL)
+        #main_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
+        #self.SetSizer(main_sizer)
+        self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
@@ -156,8 +167,8 @@ class MainPanel(wx.Panel):
         # create a telenetto thread pool and assign them to a queue
         self.telnet_to_queue = Queue.Queue()
         for _ in range(10):
-            self.telnet_to_thread = telnetto_class.TelnetToThread(self, 
-                                                        self.telnet_to_queue)
+            self.telnet_to_thread = telnetto_class.TelnetToThread(
+                self, self.telnet_to_queue)
             self.telnet_to_thread.setDaemon(True)
             self.telnet_to_thread.start()
 
@@ -165,8 +176,8 @@ class MainPanel(wx.Panel):
         # create a telnetjob thread pool and assign them to a queue
         self.telnet_job_queue = Queue.Queue()
         for _ in range(int(self.thread_number)):
-            self.telnet_job_thread = telnet_class.Telnetjobs(self, 
-                                                        self.telnet_job_queue)
+            self.telnet_job_thread = telnet_class.Telnetjobs(
+                self, self.telnet_job_queue)
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
@@ -186,11 +197,11 @@ class MainPanel(wx.Panel):
         key = event.GetKeyCode()
         if key == wx.WXK_DELETE:
             dlg = wx.MessageDialog(parent=self,
-                  message=
-            'Are you sure? \n\nThis will delete all selected items in the list',
+                                   message=
+                                   'Are you sure? \n\nThis will delete all ' +
+                                   'selected items in the list',
                                    caption='Delete All Selected Items',
-                                   style=wx.OK|wx.CANCEL
-                                   )
+                                   style=wx.OK|wx.CANCEL)
 
             if dlg.ShowModal() == wx.ID_OK:
                 self.delete_item(None)
@@ -217,29 +228,31 @@ class MainPanel(wx.Panel):
 
     def port_errors(self):
         """Shows when the listening port is in use"""
-        dlg = wx.MessageDialog(self.parent,
-           message='Unable to use port 67\n No DHCP requests will be added.',
-           caption='Port in use',
-           style=wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self,
+            message='Unable to use port 67\n No DHCP requests will be added.',
+            caption='Port in use',
+            style=wx.ICON_INFORMATION)
         dlg.ShowModal()
-        self.parent.listenfilter.Enable(False)
-        self.parent.listenDHCP.Enable(False)
+        self.listenfilter.Enable(False)
+        self.listenDHCP.Enable(False)
 
 
     def display_progress(self):
         """Shows progress of connections"""
         if len(self.main_list.GetSelectedObjects()) == 1:
 
-            dlg = wx.ProgressDialog("Attempting connect to selected device",
-                                    'Attempting connection to selected device',
-                            maximum=len(self.main_list.GetSelectedObjects()),
-                            parent=self.parent,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH)
+            dlg = wx.ProgressDialog(
+                'Attempting connect to selected device',
+                'Attempting connection to selected device',
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                                    len(self.main_list.GetSelectedObjects())):
+                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
                 dlg.Pulse()
@@ -247,7 +260,7 @@ class MainPanel(wx.Panel):
             dlg = wx.ProgressDialog("Attempting connect to selected devices",
                               'Attempting connection to all selected devices',
                             maximum=len(self.main_list.GetSelectedObjects()),
-                            parent=self.parent,
+                            parent=self,
                             style=wx.PD_APP_MODAL
                              | wx.PD_AUTO_HIDE
                              | wx.PD_SMOOTH
@@ -903,7 +916,7 @@ class MainPanel(wx.Panel):
     def incoming_packet(self, sender):
         """Receives dhcp requests with and adds them to objects to display"""
         data = self.make_unit(sender)
-        self.parent.status_bar.SetStatusText(
+        self.status_bar.SetStatusText(
                                     data.arrival_time.strftime('%I:%M:%S%p') +
                                     ' -- ' + data.hostname +
                                     ' ' + data.ip_address +
@@ -1020,7 +1033,7 @@ class MainPanel(wx.Panel):
 
     def set_title_bar(self):
         """Sets title bar text"""
-        self.parent.SetTitle(self.name + " " + self.version)
+        self.SetTitle(self.name + " " + self.version)
 
     def configure_device(self, _):
         """Configures a DXLink devices ip master and device number"""
@@ -1085,29 +1098,34 @@ class MainPanel(wx.Panel):
                 panel_width = panel_width + columns_width[i]
         if panel_width < 400:
             panel_width = 400
-        self.parent.SetSize((panel_width, 600))
+        self.SetSize((panel_width, 600))
 
     def update_status_bar(self):
         """Updates the status bar."""
-        self.parent.status_bar.SetFieldsCount(4)
-        master_width = wx.ClientDC(self.parent.status_bar).\
+        self.status_bar.SetFieldsCount(4)
+        master_width = wx.ClientDC(self.status_bar).\
                        GetTextExtent(self.master_address)[0] + 0
-        device_width = wx.ClientDC(self.parent.status_bar).\
+        device_width = wx.ClientDC(self.status_bar).\
                        GetTextExtent(self.device_number)[0] + 0
-        self.parent.status_bar.SetStatusWidths([-1, master_width, \
+        self.status_bar.SetStatusWidths([-1, master_width, \
                                                 device_width, 30])
-        self.parent.status_bar.SetStatusText(self.master_address, 1)
-        self.parent.status_bar.SetStatusText(self.device_number, 2)
+        self.status_bar.SetStatusText(self.master_address, 1)
+        self.status_bar.SetStatusText(self.device_number, 2)
 
     def on_close(self, _):
         """Close program if user closes window"""
-        self.parent.Hide()
+        self.Hide()
         if self.ping_window != None:
             self.ping_window.Hide()
         self.ping_active = False
         self.mse_active_list = []
         self.telnet_job_queue.join()
-        self.parent.Destroy()
+        self.Destroy()
+
+    def on_quit(self, _):
+        """Save list and close the program"""
+        self.dump_pickle()
+        self.Close()
 
     def on_about_box(self, _):
         """Show the About information"""
@@ -1161,8 +1179,11 @@ SOFTWARE."""
         dlg.Destroy()
 
 
+
+
+
 ########################################################################
-class MainFrame(wx.Frame):
+'''class MainFrame(wx.Frame):
     #----------------------------------------------------------------------
     def __init__(self):
 
@@ -1366,7 +1387,7 @@ class MainFrame(wx.Frame):
     def on_quit(self, _):
         """Save list and close the program"""
         self.panel.dump_pickle()
-        self.Close()
+        self.Close()'''
 
 
 ########################################################################
@@ -1379,7 +1400,7 @@ class GenApp(wx.App):
     #----------------------------------------------------------------------
     def OnInit(self):
         # create frame here
-        frame = MainFrame()
+        frame = MainFrame(None)
         frame.Show()
         return True
 
