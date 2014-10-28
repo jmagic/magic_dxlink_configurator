@@ -48,6 +48,11 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer1.Add( bSizer2, 1, wx.EXPAND, 5 )
 		
+		self.m_infoCtrl1 = wx.InfoBar( self )
+		self.m_infoCtrl1.SetShowHideEffects( wx.SHOW_EFFECT_SLIDE_TO_RIGHT, wx.SHOW_EFFECT_SLIDE_TO_LEFT )
+		self.m_infoCtrl1.SetEffectDuration( 500 )
+		bSizer1.Add( self.m_infoCtrl1, 0, wx.ALL, 5 )
+		
 		
 		self.SetSizer( bSizer1 )
 		self.Layout()
@@ -149,9 +154,18 @@ class MainFrame ( wx.Frame ):
 		self.m_menubar1.Append( self.m_menu9, u"Listen" ) 
 		
 		self.m_menu10 = wx.Menu()
+		self.m_menuItem34 = wx.MenuItem( self.m_menu10, wx.ID_ANY, u"Delete Item", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu10.AppendItem( self.m_menuItem34 )
+		
+		self.m_menuItem35 = wx.MenuItem( self.m_menu10, wx.ID_ANY, u"Delete All Items", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu10.AppendItem( self.m_menuItem35 )
+		
 		self.m_menubar1.Append( self.m_menu10, u"Delete" ) 
 		
 		self.m_menu111 = wx.Menu()
+		self.m_menuItem36 = wx.MenuItem( self.m_menu111, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
+		self.m_menu111.AppendItem( self.m_menuItem36 )
+		
 		self.m_menubar1.Append( self.m_menu111, u"Help" ) 
 		
 		self.SetMenuBar( self.m_menubar1 )
@@ -199,6 +213,37 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.import_plot, id = self.m_menuItem4.GetId() )
 		self.Bind( wx.EVT_MENU, self.export_to_csv, id = self.m_menuItem8.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_quit, id = self.m_menuItem9.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_select_all, id = self.m_menuItem10.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_select_none, id = self.m_menuItem11.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_prefs, id = self.m_menuItem12.GetId() )
+		self.Bind( wx.EVT_MENU, self.get_config_info, id = self.m_menuItem13.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem14.GetId() )
+		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem15.GetId() )
+		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem16.GetId() )
+		self.Bind( wx.EVT_MENU, self.reboot, id = self.m_menuItem17.GetId() )
+		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.m_menuItem18.GetId() )
+		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.m_menuItem19.GetId() )
+		self.Bind( wx.EVT_MENU, self.plot_mse, id = self.m_menuItem20.GetId() )
+		self.Bind( wx.EVT_MENU, self.add_line, id = self.m_menuItem21.GetId() )
+		self.Bind( wx.EVT_MENU, self.generate_list, id = self.m_menuItem22.GetId() )
+		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.m_menuItem23.GetId() )
+		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.m_menuItem24.GetId() )
+		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.m_menuItem25.GetId() )
+		self.Bind( wx.EVT_MENU, self.toggle_dhcp_sniffing, id = self.listenDHCP.GetId() )
+		self.Bind( wx.EVT_MENU, self.amx_only_filter, id = self.listenfilter.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
+		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.m_menuItem36.GetId() )
+		self.Bind( wx.EVT_MENU, self.get_config_info, id = self.m_menuItem2.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem251.GetId() )
+		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem261.GetId() )
+		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem271.GetId() )
+		self.Bind( wx.EVT_MENU, self.delete_item, id = self.m_menuItem28.GetId() )
+		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.m_menuItem29.GetId() )
+		self.Bind( wx.EVT_MENU, self.factory_av, id = self.m_menuItem30.GetId() )
+		self.Bind( wx.EVT_MENU, self.reboot, id = self.m_menuItem31.GetId() )
+		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.m_menuItem32.GetId() )
+		self.Bind( wx.EVT_MENU, self.open_url, id = self.m_menuItem33.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -218,6 +263,87 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def on_quit( self, event ):
+		event.Skip()
+	
+	def on_select_all( self, event ):
+		event.Skip()
+	
+	def on_select_none( self, event ):
+		event.Skip()
+	
+	def configure_prefs( self, event ):
+		event.Skip()
+	
+	def get_config_info( self, event ):
+		event.Skip()
+	
+	def configure_device( self, event ):
+		event.Skip()
+	
+	def send_commands( self, event ):
+		event.Skip()
+	
+	def reset_factory( self, event ):
+		event.Skip()
+	
+	def reboot( self, event ):
+		event.Skip()
+	
+	def multi_ping( self, event ):
+		event.Skip()
+	
+	def mse_baseline( self, event ):
+		event.Skip()
+	
+	def plot_mse( self, event ):
+		event.Skip()
+	
+	def add_line( self, event ):
+		event.Skip()
+	
+	def generate_list( self, event ):
+		event.Skip()
+	
+	def generate_dgx_list( self, event ):
+		event.Skip()
+	
+	def turn_on_leds( self, event ):
+		event.Skip()
+	
+	def turn_off_leds( self, event ):
+		event.Skip()
+	
+	def toggle_dhcp_sniffing( self, event ):
+		event.Skip()
+	
+	def amx_only_filter( self, event ):
+		event.Skip()
+	
+	def on_delete_item( self, event ):
+		event.Skip()
+	
+	def delete_all_items( self, event ):
+		event.Skip()
+	
+	def on_about_box( self, event ):
+		event.Skip()
+	
+	
+	
+	
+	
+	def delete_item( self, event ):
+		event.Skip()
+	
+	def telnet_to( self, event ):
+		event.Skip()
+	
+	def factory_av( self, event ):
+		event.Skip()
+	
+	
+	
+	def open_url( self, event ):
 		event.Skip()
 	
 	def m_splitter1OnIdle( self, event ):

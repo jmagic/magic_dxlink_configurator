@@ -38,8 +38,9 @@ import webbrowser
 
 from pydispatch import dispatcher
 
-from scripts import (config_menus, dhcp_sniffer, mdc_gui, multi_send, multi_ping, 
-                    mse_baseline, plot_class, telnet_class, telnetto_class)
+from scripts import (config_menus, dhcp_sniffer, mdc_gui, multi_send, 
+                     multi_ping, mse_baseline, plot_class, telnet_class,
+                     telnetto_class)
 
 try:
     import winsound
@@ -78,13 +79,9 @@ class Unit(object):
 
 #class MainPanel(wx.Panel):
 
-class MainFrame( mdc_gui.MainFrame ):
-    def __init__( self, parent ):
-        mdc_gui.MainFrame.__init__( self, parent )
-
-        #----------------------------------------------------------------------
-        #    def __init__(self, parent):
-        #        wx.Panel.__init__(self, parent, id=wx.ID_ANY)
+class MainFrame(mdc_gui.MainFrame):
+    def __init__(self, parent):
+        mdc_gui.MainFrame.__init__(self, parent)
 
         self.parent = parent
 
@@ -105,10 +102,10 @@ class MainFrame( mdc_gui.MainFrame ):
         self.columns_config = None
         if os.name == 'nt':
             self.path = os.path.expanduser(
-                                    '~\\Documents\\Magic_DXLink_Configurator\\')
+                '~\\Documents\\Magic_DXLink_Configurator\\')
         else:
             self.path = os.path.expanduser(
-                                    '~/Documents/Magic_DXLink_Configurator/')
+                '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
@@ -153,10 +150,6 @@ class MainFrame( mdc_gui.MainFrame ):
         self.load_data_pickle()
         self.update_status_bar()
 
-        # Create some sizers
-        #main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #main_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
-        #self.SetSizer(main_sizer)
         self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
 
         # Create DHCP listening thread
@@ -196,12 +189,13 @@ class MainFrame( mdc_gui.MainFrame ):
         """Grab Delete key presses"""
         key = event.GetKeyCode()
         if key == wx.WXK_DELETE:
-            dlg = wx.MessageDialog(parent=self,
-                                   message=
-                                   'Are you sure? \n\nThis will delete all ' +
-                                   'selected items in the list',
-                                   caption='Delete All Selected Items',
-                                   style=wx.OK|wx.CANCEL)
+            dlg = wx.MessageDialog(
+                parent=self,
+                message=
+                'Are you sure? \n\nThis will delete all selected items in ' +
+                'the list',
+                caption='Delete All Selected Items',
+                style=wx.OK|wx.CANCEL)
 
             if dlg.ShowModal() == wx.ID_OK:
                 self.delete_item(None)
@@ -252,25 +246,27 @@ class MainFrame( mdc_gui.MainFrame ):
                 | wx.PD_SMOOTH)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                    len(self.main_list.GetSelectedObjects())):
+                   len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
                 dlg.Pulse()
         else:
-            dlg = wx.ProgressDialog("Attempting connect to selected devices",
-                              'Attempting connection to all selected devices',
-                            maximum=len(self.main_list.GetSelectedObjects()),
-                            parent=self,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH
-                             | wx.PD_ELAPSED_TIME)
+            dlg = wx.ProgressDialog(
+                'Attempting connect to selected devices',
+                'Attempting connection to all selected devices',
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH
+                | wx.PD_ELAPSED_TIME)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                    len(self.main_list.GetSelectedObjects())):
+                   len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 dlg.Update(count, "Attempting connection to %s of %s devices" %
-                        ((count + 1), len(self.main_list.GetSelectedObjects())))
+                           ((count + 1), 
+                            len(self.main_list.GetSelectedObjects())))
 
         dlg.Destroy()
         errortext = ""
@@ -288,34 +284,34 @@ class MainFrame( mdc_gui.MainFrame ):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
-            dlg = wx.MessageDialog(parent=self,
-                                   message='Failed to connect to' + 
-                                              '\n=======================' + 
-                                              ' \n%s ' % errortext,
-                                   caption='Failed connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='Failed to connect to \n=======================' + 
+                ' \n%s ' % errortext,
+                caption='Failed connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         elif len(self.completionlist) == \
              len(self.main_list.GetSelectedObjects()):
             if self.displaysuccess:
-                dlg = wx.MessageDialog(parent=self,
-                                       message='Successfully connected to: \n' +
-                                               '=======================' + 
-                                               '\n%s' % completiontext,
-                                       caption='Connection list',
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self,
+                    message='Successfully connected to: \n' +
+                    '=======================\n%s' % completiontext,
+                    caption='Connection list',
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
         else:
-            dlg = wx.MessageDialog(parent=self, 
-                                   message='Failed to connect to: \n========' +
-                                   '=============== \n%s \n \n' % (errortext) +
-                                   'Successfully connected to: \n============' +
-                                   '===========' +
-                                   ' \n%s' % (completiontext),
-                                   caption='Connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='Failed to connect to: \n======================= ' +
+                '\n%s \n \n' % (errortext) +
+                'Successfully connected to: \n=======================' +
+                ' \n%s' % (completiontext),
+                caption='Connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         self.main_list.RefreshObjects(self.main_list.GetObjects())
@@ -342,7 +338,7 @@ class MainFrame( mdc_gui.MainFrame ):
         self.columns = []
         for i in range(len(self.columns_setup)):
             self.columns.append((int(self.columns_config[i]),
-                                     self.columns_setup[i]))
+                                 self.columns_setup[i]))
         todisplay = []
         for item in self.columns:
             if item[0] == 1:
@@ -352,11 +348,11 @@ class MainFrame( mdc_gui.MainFrame ):
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
         if len(self.main_list.GetSelectedObjects()) == 0:
-            dlg = wx.MessageDialog(parent=self, message='Nothing selected...' +
-                                   '\nPlease click on the device you want ' + 
-                                   'to select',
-                                   caption='Nothing Selected',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='Nothing selected...\nPlease click on ' +
+                'the device you want to select',
+                caption='Nothing Selected',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return True
@@ -375,11 +371,12 @@ class MainFrame( mdc_gui.MainFrame ):
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='I can only telnet to 10 devices at a time \nPlease ' +
+                'select less than ten devices at once',
+                caption='How many telnets?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -389,12 +386,12 @@ class MainFrame( mdc_gui.MainFrame ):
                 for obj in self.main_list.GetSelectedObjects():
                     self.telnet_to_queue.put(obj)
             else:
-                dlg = wx.MessageDialog(parent=self, message='Could not find ' +
-                                      'telnet client \nPlease put ' + 
-                                      '%s in \n%s' % (self.telnet_client,
-                                       self.path),
-                                       caption='No %s' % self.telnet_client,
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self, 
+                    message='Could not find telnet client \nPlease put ' + 
+                    '%s in \n%s' % (self.telnet_client, self.path),
+                    caption='No %s' % self.telnet_client,
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
             return
@@ -408,23 +405,23 @@ class MainFrame( mdc_gui.MainFrame ):
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 16:
-            dlg = wx.MessageDialog(parent=self, message='I can only graph 16' +
-                                   ' devices at a time \nPlease select less ' +
-                                   'than sixteen devices at once',
-                                   caption='How many graphs?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='I can only graph 16 devices at a time ' +
+                '\nPlease select less than sixteen devices at once',
+                caption='How many graphs?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
-        dlg = wx.MessageDialog(parent=self, message='Warning: MSE values may ' + 
-                               'intermittently show values at -5 or -6.\n\n' +
-                               'You can safely ignore these values.\n\nIf you '+
-                               'want to verify your MSE baseline please use ' +
-                               'the \"MSE baseline\" under the tools menu.',
-                               caption=('Warning MSE values may ' +
-                               'intermittently show low values '),
-                               style=wx.OK|
-                               wx.ICON_EXCLAMATION)
+
+        dlg = wx.MessageDialog(
+            parent=self, message='Warning: MSE values may intermittently ' +
+            'show values at -5 or -6.\n\nYou can safely ignore these values.' +
+            '\n\nIf you want to verify your MSE baseline please use the \"MSE' +
+            ' baseline\" under the tools menu.',
+            caption=('Warning MSE values may intermittently show low values '),
+            style=wx.OK|wx.ICON_EXCLAMATION)
+
         dlg.ShowModal()
         dlg.Destroy()
         for obj in self.main_list.GetSelectedObjects():
@@ -443,11 +440,12 @@ class MainFrame( mdc_gui.MainFrame ):
         if self.check_for_none_selected():
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='I can only telnet to 10 devices at a time \nPlease ' +
+                'select less than ten devices at once',
+                caption='How many telnets?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -583,7 +581,7 @@ class MainFrame( mdc_gui.MainFrame ):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
-                                        self.telnet_timeout_seconds])
+                                       self.telnet_timeout_seconds])
         self.display_progress()
 
     def turn_on_leds(self, _):
@@ -601,7 +599,7 @@ class MainFrame( mdc_gui.MainFrame ):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_off_leds', obj,
-                                      self.telnet_timeout_seconds])
+                                       self.telnet_timeout_seconds])
         self.display_progress()
 
     def send_commands(self, _):
@@ -640,28 +638,30 @@ class MainFrame( mdc_gui.MainFrame ):
 
     def dump_pickle(self):
         """Saves list data to a file"""
-        pickle.dump(self.main_list.GetObjects(), open((self.path + 
-                                  'data_' + self.version + '.pkl'), 'wb'))
+        pickle.dump(self.main_list.GetObjects(), open(
+            (self.path + 'data_' + self.version + '.pkl'), 'wb'))
 
     def export_to_csv(self, _):
         """Store list items in a CSV file"""
         if self.check_for_none_selected():
             return
-        save_file_dialog = wx.FileDialog(self, message='Select file to add ' +
-                                       'devices to or create a new file',
-                                       defaultDir=self.path,
-                                       defaultFile="",
-                                       wildcard="CSV files (*.csv)|*.csv",
-                                       style=wx.SAVE)
+        save_file_dialog = wx.FileDialog(
+            self, 
+            message='Select file to add devices to or create a new file',
+            defaultDir=self.path,
+            defaultFile="",
+            wildcard="CSV files (*.csv)|*.csv",
+            style=wx.SAVE)
         if save_file_dialog.ShowModal() == wx.ID_OK:
             path = save_file_dialog.GetPath()
-            dlg = wx.ProgressDialog("Storing Device Information",
-                              "Storing Device Information",
-                              maximum=len(self.main_list.GetSelectedObjects()),
-                              parent=self,
-                              style=wx.PD_APP_MODAL
-                               | wx.PD_AUTO_HIDE
-                               | wx.PD_ELAPSED_TIME)
+            dlg = wx.ProgressDialog(
+                "Storing Device Information",
+                "Storing Device Information",
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_ELAPSED_TIME)
             count = 0
             with open(path, 'ab') as store_file:
                 write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
@@ -680,8 +680,7 @@ class MainFrame( mdc_gui.MainFrame ):
                             obj.gateway,
                             obj.subnet,
                             obj.master,
-                            obj.system
-                            ]
+                            obj.system]
                     
                     write_csv.writerow(data)
             self.dump_pickle()
@@ -708,21 +707,21 @@ class MainFrame( mdc_gui.MainFrame ):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                               item[0],
-                               item[1],
-                               item[2],
-                               item[3],
-                               item[4],
-                               item[5],
-                               item[6],
-                               datetime.datetime.strptime((item[7]),
-                                            "%Y-%m-%d %H:%M:%S.%f"), 
-                               item[8],
-                               item[9],
-                               item[10],
-                               item[11],
-                               item[12]
-                              )
+                        item[0],
+                        item[1],
+                        item[2],
+                        item[3],
+                        item[4],
+                        item[5],
+                        item[6],
+                        datetime.datetime.strptime(
+                            (item[7]), "%Y-%m-%d %H:%M:%S.%f"), 
+                        item[8],
+                        item[9],
+                        item[10],
+                        item[11],
+                        item[12])
+
                     self.main_list.AddObject(data)
             self.dump_pickle()
 
@@ -745,20 +744,19 @@ class MainFrame( mdc_gui.MainFrame ):
                 header = csv_data.next()
                 plot_object = []
                 data = Unit(
-                         '',
-                         '',
-                         '',
-                         '',
-                         header[7],
-                         header[6],
-                         header[5],
-                         '',
-                         '',
-                         '',
-                         '',
-                         '',
-                         ''
-                        )
+                    '',
+                    '',
+                    '',
+                    '',
+                    header[7],
+                    header[6],
+                    header[5],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '')
                 plot_object.append(data)
                 obj = plot_object[0]
                 row_count = (sum(1 for row in csv_data)-1)*-1
@@ -770,21 +768,20 @@ class MainFrame( mdc_gui.MainFrame ):
                 header = csv_data.next()
                 plot_object = []
                 data = [Unit(
-                         '',
-                         '',
-                         '',
-                         '',
-                         header[7],
-                         header[6],
-                         header[5],
-                         '',
-                         '',
-                         '',
-                         '',
-                         '',
-                         ''
-                        )
-                    ]
+                    '',
+                    '',
+                    '',
+                    '',
+                    header[7],
+                    header[6],
+                    header[5],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '')]
+
                 plot_object.append(data[0])
                 obj = plot_object[0]
                 self.mse_active_list.append(obj.mac_address)
@@ -794,8 +791,8 @@ class MainFrame( mdc_gui.MainFrame ):
                     for i in range(4):
                         data.append(item[i+1])
                         #print data
-                    mse_time = [datetime.datetime.strptime((item[0]), 
-                                                          '%H:%M:%S.%f'), data]
+                    mse_time = [datetime.datetime.strptime(
+                        (item[0]), '%H:%M:%S.%f'), data]
                     mse.append(mse_time)
                     mse.append(header[5])
                     mse.append(header[6])
@@ -808,12 +805,11 @@ class MainFrame( mdc_gui.MainFrame ):
     def import_ip_list(self, _):
         """Imports a list of IP addresses"""
         open_file_dialog = wx.FileDialog(
-                                       self, message="Open IP List",
-                                       defaultDir=self.path,
-                                       defaultFile="",
-                                       wildcard="CSV files (*.csv)|*.csv",
-                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-                                       )
+            self, message="Open IP List",
+            defaultDir=self.path,
+            defaultFile="",
+            wildcard="CSV files (*.csv)|*.csv",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if open_file_dialog.ShowModal() == wx.ID_OK:
             self.main_list.DeleteAllItems()
@@ -821,20 +817,20 @@ class MainFrame( mdc_gui.MainFrame ):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 item[0],
-                                 datetime.datetime.now(),
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' '
-                                )
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        item[0],
+                        datetime.datetime.now(),
+                        '',
+                        '',
+                        '',
+                        '',
+                        '')
+
                     self.main_list.AddObject(data)
             self.dump_pickle()
             open_file_dialog.Destroy()
@@ -847,7 +843,7 @@ class MainFrame( mdc_gui.MainFrame ):
         dia.ShowModal()
         dia.Destroy()
 
-    def generate_DGX_list(self, _):
+    def generate_dgx_list(self, _):
         """Generates a list of ip addresses"""
         dia = config_menus.DGXListGen(self)
         dia.ShowModal()
@@ -896,8 +892,8 @@ class MainFrame( mdc_gui.MainFrame ):
         else:
             return
 
-    def make_unit(self, sender):
-        """ Takes a (hostname,mac,ip) and creates a new main list object"""
+    def incoming_packet(self, sender):
+        """Receives dhcp requests with and adds them to objects to display"""
         data = Unit('',
                     sender[0],
                     '',
@@ -911,16 +907,12 @@ class MainFrame( mdc_gui.MainFrame ):
                     '',
                     '',
                     '')
-        return data
 
-    def incoming_packet(self, sender):
-        """Receives dhcp requests with and adds them to objects to display"""
-        data = self.make_unit(sender)
         self.status_bar.SetStatusText(
-                                    data.arrival_time.strftime('%I:%M:%S%p') +
-                                    ' -- ' + data.hostname +
-                                    ' ' + data.ip_address +
-                                    ' ' + data.mac_address)
+            data.arrival_time.strftime('%I:%M:%S%p') +
+            ' -- ' + data.hostname +
+            ' ' + data.ip_address +
+            ' ' + data.mac_address)
         if self.amx_only_filter:
             if data.mac_address[0:8] != '00:60:9f':
                 return
@@ -951,26 +943,26 @@ class MainFrame( mdc_gui.MainFrame ):
         config = ConfigParser.RawConfigParser()
         try:  # read the settings file
             config.read((self.path + "settings.txt"))
-            self.master_address = (config.get('Settings', 
-                                  'default master address'))
-            self.device_number = (config.get('Settings', 
-                                 'default device number'))
-            self.default_dhcp = (config.getboolean('Settings', 
-                                'default enable DHCP'))
-            self.thread_number = (config.get('Settings', 
-                                 'number of threads'))
-            self.telnet_client = (config.get('Settings', 
-                                 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.get('Settings', 
-                                          'telnet timeout in seconds'))
-            self.displaysuccess = (config.getboolean('Settings', 
-                              'display notification of successful connections'))
-            self.dhcp_sniffing = (config.getboolean('Settings', 
-                                 'DHCP sniffing enabled'))
-            self.amx_only_filter = (config.getboolean('Settings', 
-                                   'filter incoming DHCP for AMX only'))
-            self.play_sounds = (config.getboolean('Settings', 
-                               'play sounds'))
+            self.master_address = (config.get(
+                'Settings', 'default master address'))
+            self.device_number = (config.get(
+                'Settings', 'default device number'))
+            self.default_dhcp = (config.getboolean(
+                'Settings', 'default enable DHCP'))
+            self.thread_number = (config.get(
+                'Settings', 'number of threads'))
+            self.telnet_client = (config.get(
+                'Settings', 'telnet client executable'))
+            self.telnet_timeout_seconds = (config.get(
+                'Settings', 'telnet timeout in seconds'))
+            self.displaysuccess = (config.getboolean(
+                'Settings', 'display notification of successful connections'))
+            self.dhcp_sniffing = (config.getboolean(
+                'Settings', 'DHCP sniffing enabled'))
+            self.amx_only_filter = (config.getboolean(
+                'Settings', 'filter incoming DHCP for AMX only'))
+            self.play_sounds = (config.getboolean(
+                'Settings', 'play sounds'))
             self.columns_config = (config.get('Config', 'columns_config'))
         except (ConfigParser.Error, IOError):   
             # Make a new settings file, because we couldn't read the old one
@@ -1003,9 +995,10 @@ class MainFrame( mdc_gui.MainFrame ):
         config.set('Settings', 'filter incoming DHCP for AMX only', False)
         config.set('Settings', 'play sounds', True)
         config.add_section('Config')
-        config.set('Config', 'Columns are with a 1 are displayed. ', 
-                             'Unless you know what your doing, ' + 
-                             'please change these in the application')
+        config.set('Config', 
+                   'Columns are with a 1 are displayed. ', 
+                   'Unless you know what your doing, ' + 
+                   'please change these in the application')
         config.set('Config', 'columns_config', '11111111110')
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
@@ -1020,12 +1013,12 @@ class MainFrame( mdc_gui.MainFrame ):
         config.set('Settings', 'number of threads', self.thread_number)
         config.set('Settings', 'telnet client executable', self.telnet_client)
         config.set('Settings', 'telnet timeout in seconds', 
-                    self.telnet_timeout_seconds)
+                   self.telnet_timeout_seconds)
         config.set('Settings', 'display notification of successful connections',
-                    self.displaysuccess)
+                   self.displaysuccess)
         config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
         config.set('Settings', 'filter incoming DHCP for AMX only', 
-                    self.amx_only_filter)
+                   self.amx_only_filter)
         config.set('Settings', 'play sounds', self.play_sounds)
         config.set('Config', 'columns_config', self.columns_config)
         with open((self.path + "settings.txt"), 'w') as configfile:
@@ -1065,8 +1058,8 @@ class MainFrame( mdc_gui.MainFrame ):
         """Loads main list from data file"""
         if os.path.exists(self.path + 'data_' + self.version + '.pkl'):
             try:
-                with open((self.path + 'data_' + self.version + 
-                                                    '.pkl'), 'rb') as data_file:
+                with open((self.path + 'data_' + self.version + '.pkl'),
+                          'rb')  as data_file:
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
             except (IOError, KeyError):
