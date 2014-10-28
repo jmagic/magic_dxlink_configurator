@@ -25,33 +25,17 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer2 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_splitter1 = wx.SplitterWindow( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.SP_3D )
-		self.m_splitter1.Bind( wx.EVT_IDLE, self.m_splitter1OnIdle )
-		
-		self.olv_panel = wx.Panel( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.olv_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.olv_sizer = wx.BoxSizer( wx.VERTICAL )
 		
 		
 		self.olv_panel.SetSizer( self.olv_sizer )
 		self.olv_panel.Layout()
 		self.olv_sizer.Fit( self.olv_panel )
-		self.m_panel3 = wx.Panel( self.m_splitter1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		self.extra_sizer = wx.BoxSizer( wx.VERTICAL )
-		
-		
-		self.m_panel3.SetSizer( self.extra_sizer )
-		self.m_panel3.Layout()
-		self.extra_sizer.Fit( self.m_panel3 )
-		self.m_splitter1.SplitVertically( self.olv_panel, self.m_panel3, 640 )
-		bSizer2.Add( self.m_splitter1, 1, wx.EXPAND, 5 )
+		bSizer2.Add( self.olv_panel, 1, wx.EXPAND, 5 )
 		
 		
 		bSizer1.Add( bSizer2, 1, wx.EXPAND, 5 )
-		
-		self.m_infoCtrl1 = wx.InfoBar( self )
-		self.m_infoCtrl1.SetShowHideEffects( wx.SHOW_EFFECT_SLIDE_TO_RIGHT, wx.SHOW_EFFECT_SLIDE_TO_LEFT )
-		self.m_infoCtrl1.SetEffectDuration( 500 )
-		bSizer1.Add( self.m_infoCtrl1, 0, wx.ALL, 5 )
 		
 		
 		self.SetSizer( bSizer1 )
@@ -147,6 +131,7 @@ class MainFrame ( wx.Frame ):
 		self.m_menu9 = wx.Menu()
 		self.listenDHCP = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
 		self.m_menu9.AppendItem( self.listenDHCP )
+		self.listenDHCP.Check( True )
 		
 		self.listenfilter = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only show AMX devices", wx.EmptyString, wx.ITEM_CHECK )
 		self.m_menu9.AppendItem( self.listenfilter )
@@ -345,10 +330,6 @@ class MainFrame ( wx.Frame ):
 	
 	def open_url( self, event ):
 		event.Skip()
-	
-	def m_splitter1OnIdle( self, event ):
-		self.m_splitter1.SetSashPosition( 640 )
-		self.m_splitter1.Unbind( wx.EVT_IDLE )
 	
 	def MainFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.rc_menu, event.GetPosition() )

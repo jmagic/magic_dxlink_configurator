@@ -248,7 +248,7 @@ class MainFrame(mdc_gui.MainFrame):
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                time.sleep(.01)
+                #time.sleep(.01)
                 dlg.Pulse()
         else:
             dlg = wx.ProgressDialog(
@@ -523,9 +523,9 @@ class MainFrame(mdc_gui.MainFrame):
             return   
             
         self.ping_active = True
-        dia = multi_ping.MultiPing(self, self.main_list.GetSelectedObjects())
-        self.ping_window = dia
-        dia.Show()
+        self.ping_window = multi_ping.MultiPing(
+            self, self.main_list.GetSelectedObjects())
+        self.ping_window.Show()
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
@@ -767,7 +767,7 @@ class MainFrame(mdc_gui.MainFrame):
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plot_object = []
-                data = [Unit(
+                data = Unit(
                     '',
                     '',
                     '',
@@ -780,9 +780,9 @@ class MainFrame(mdc_gui.MainFrame):
                     '',
                     '',
                     '',
-                    '')]
+                    '')
 
-                plot_object.append(data[0])
+                plot_object.append(data)
                 obj = plot_object[0]
                 self.mse_active_list.append(obj.mac_address)
                 for item in csv_data:
