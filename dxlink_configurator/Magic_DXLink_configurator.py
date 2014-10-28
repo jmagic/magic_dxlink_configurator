@@ -28,7 +28,6 @@ import ConfigParser
 import wx
 import pickle
 import datetime
-import time
 import os
 import csv
 from ObjectListView import ObjectListView, ColumnDefn
