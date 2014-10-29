@@ -335,3 +335,35 @@ class MainFrame ( wx.Frame ):
 		self.PopupMenu( self.rc_menu, event.GetPosition() )
 		
 
+###########################################################################
+## Class MultiPing
+###########################################################################
+
+class MultiPing ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 730,300 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer4 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.olv_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.olv_sizer = wx.BoxSizer( wx.VERTICAL )
+		
+		
+		self.olv_panel.SetSizer( self.olv_sizer )
+		self.olv_panel.Layout()
+		self.olv_sizer.Fit( self.olv_panel )
+		bSizer4.Add( self.olv_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer4 )
+		self.Layout()
+		
+		self.Centre( wx.BOTH )
+	
+	def __del__( self ):
+		pass
+	
+

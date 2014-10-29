@@ -85,7 +85,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.parent = parent
 
         icon_bundle = wx.IconBundle()
-        icon_bundle.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
 
         self.master_address = None
