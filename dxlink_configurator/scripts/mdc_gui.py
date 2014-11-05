@@ -336,6 +336,155 @@ class MainFrame ( wx.Frame ):
 		
 
 ###########################################################################
+## Class Preferences
+###########################################################################
+
+class Preferences ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Preferences", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_DIALOG_STYLE )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer10 = wx.BoxSizer( wx.VERTICAL )
+		
+		sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Configuration Default Values" ), wx.VERTICAL )
+		
+		bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer14 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2.Wrap( -1 )
+		bSizer14.Add( self.m_staticText2, 0, wx.ALL, 5 )
+		
+		
+		bSizer11.Add( bSizer14, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		bSizer13 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.master_address_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer13.Add( self.master_address_txt, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		bSizer11.Add( bSizer13, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		sbSizer1.Add( bSizer11, 1, wx.EXPAND, 5 )
+		
+		bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer16 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText3.Wrap( -1 )
+		bSizer16.Add( self.m_staticText3, 0, wx.ALL, 5 )
+		
+		
+		bSizer15.Add( bSizer16, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		bSizer17 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.device_number_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		bSizer15.Add( bSizer17, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		sbSizer1.Add( bSizer15, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer10.Add( sbSizer1, 0, wx.EXPAND|wx.ALL, 5 )
+		
+		sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Notifications" ), wx.VERTICAL )
+		
+		self.success_chk = wx.CheckBox( self, wx.ID_ANY, u"Display Successful Connections", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.success_chk.SetValue(True) 
+		sbSizer2.Add( self.success_chk, 0, wx.ALL, 5 )
+		
+		self.sounds_chk = wx.CheckBox( self, wx.ID_ANY, u"Play Sounds", wx.DefaultPosition, wx.DefaultSize, 0 )
+		sbSizer2.Add( self.sounds_chk, 0, wx.ALL, 5 )
+		
+		
+		bSizer10.Add( sbSizer2, 0, wx.EXPAND|wx.ALL, 5 )
+		
+		sbSizer3 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Columns To Display" ), wx.VERTICAL )
+		
+		gSizer1 = wx.GridSizer( 0, 2, 0, 0 )
+		
+		self.time_chk = wx.CheckBox( self, wx.ID_ANY, u"Time", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.time_chk, 0, wx.ALL, 5 )
+		
+		self.model_chk = wx.CheckBox( self, wx.ID_ANY, u"Model", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.model_chk, 0, wx.ALL, 5 )
+		
+		self.mac_chk = wx.CheckBox( self, wx.ID_ANY, u"MAC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.mac_chk, 0, wx.ALL, 5 )
+		
+		self.ip_chk = wx.CheckBox( self, wx.ID_ANY, u"IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.ip_chk, 0, wx.ALL, 5 )
+		
+		self.hostname_chk = wx.CheckBox( self, wx.ID_ANY, u"Hostname", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.hostname_chk, 0, wx.ALL, 5 )
+		
+		self.serial_chk = wx.CheckBox( self, wx.ID_ANY, u"Serial Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.serial_chk, 0, wx.ALL, 5 )
+		
+		self.firmware_chk = wx.CheckBox( self, wx.ID_ANY, u"Firmware", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.firmware_chk, 0, wx.ALL, 5 )
+		
+		self.device_chk = wx.CheckBox( self, wx.ID_ANY, u"Device", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.device_chk, 0, wx.ALL, 5 )
+		
+		self.static_chk = wx.CheckBox( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.static_chk, 0, wx.ALL, 5 )
+		
+		self.master_chk = wx.CheckBox( self, wx.ID_ANY, u"Master", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.master_chk, 0, wx.ALL, 5 )
+		
+		self.system_chk = wx.CheckBox( self, wx.ID_ANY, u"System", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1.Add( self.system_chk, 0, wx.ALL, 5 )
+		
+		
+		sbSizer3.Add( gSizer1, 0, wx.EXPAND, 5 )
+		
+		
+		bSizer10.Add( sbSizer3, 0, wx.EXPAND|wx.ALL, 5 )
+		
+		m_sdbSizer3 = wx.StdDialogButtonSizer()
+		self.m_sdbSizer3OK = wx.Button( self, wx.ID_OK )
+		m_sdbSizer3.AddButton( self.m_sdbSizer3OK )
+		self.m_sdbSizer3Cancel = wx.Button( self, wx.ID_CANCEL )
+		m_sdbSizer3.AddButton( self.m_sdbSizer3Cancel )
+		m_sdbSizer3.Realize();
+		
+		bSizer10.Add( m_sdbSizer3, 1, wx.EXPAND|wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer10 )
+		self.Layout()
+		bSizer10.Fit( self )
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.m_sdbSizer3Cancel.Bind( wx.EVT_BUTTON, self.on_cancel )
+		self.m_sdbSizer3OK.Bind( wx.EVT_BUTTON, self.on_ok )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_cancel( self, event ):
+		event.Skip()
+	
+	def on_ok( self, event ):
+		event.Skip()
+	
+
+###########################################################################
 ## Class MultiPing
 ###########################################################################
 

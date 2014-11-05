@@ -2,350 +2,67 @@
 
 import wx
 import csv
+from scripts import mdc_gui
 
-class PreferencesConfig(wx.Dialog):
+class MultiPing(mdc_gui.MultiPing):
+    def __init__(self, parent, device_list):
+        mdc_gui.MultiPing.__init__(self, parent)
+
+class PreferencesConfig(mdc_gui.Preferences):
     def __init__(self, parent):
-
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 
-                             pos=wx.DefaultPosition, size=wx.DefaultSize, 
-                             style=wx.DEFAULT_DIALOG_STYLE)
-
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+        mdc_gui.Preferences.__init__(self, parent)
 
         self.parent = parent
-
-        bsizer1 = wx.BoxSizer(wx.VERTICAL)
-
-        bsizer2 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, u"Preferences", 
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_statictext1.Wrap(-1)
-        bsizer2.Add(self.m_statictext1, 0, 
-                    wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-
-        bsizer1.Add(bsizer2, 0, wx.EXPAND, 5)
-
-        bsizer3 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_staticline1 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
-                                           wx.DefaultSize, wx.LI_HORIZONTAL)
-        bsizer3.Add(self.m_staticline1, 0, wx.ALL|wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer3, 0, wx.EXPAND, 5)
-
-        bsizer4 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, 
-                                           u"Default values for:", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext2.Wrap(-1)
-        bsizer4.Add(self.m_statictext2, 0, wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer4, 0, wx.EXPAND, 5)
-
-        bsizer6 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_statictext4 = wx.StaticText(self, wx.ID_ANY, u"Master Address", 
-                                         wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_statictext4.Wrap(-1)
-        bsizer6.Add(self.m_statictext4, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.master_address = wx.TextCtrl(self, wx.ID_ANY, 
-                                          self.parent.master_address, 
-                                          wx.DefaultPosition, 
-                                          wx.DefaultSize, 0)
-        bsizer6.Add(self.master_address, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-
-        bsizer1.Add(bsizer6, 0, wx.EXPAND, 5)
-
-        bsizer7 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_statictext5 = wx.StaticText(self, wx.ID_ANY, u"Device Number",
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_statictext5.Wrap(-1)
-        bsizer7.Add(self.m_statictext5, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.device_number = wx.TextCtrl(self, wx.ID_ANY, 
-                                         self.parent.device_number, 
-                                         wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer7.Add(self.device_number, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-
-        bsizer1.Add(bsizer7, 0, wx.EXPAND, 5)
-
-        bsizer8 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_staticline2 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition, 
-                                            wx.DefaultSize, wx.LI_HORIZONTAL)
-        bsizer8.Add(self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer8, 0, wx.EXPAND, 5)
-
-        bsizer9 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_statictext6 = wx.StaticText(self, wx.ID_ANY, u"Notifications",
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext6.Wrap(-1)
-        bsizer9.Add(self.m_statictext6, 0, wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer9, 0, wx.EXPAND, 5)
-
-        bsizer10 = wx.BoxSizer(wx.VERTICAL)
-
-        self.success = wx.CheckBox(self, wx.ID_ANY, 
-                                   u"Display Successful Connections", 
-                                   wx.DefaultPosition, wx.DefaultSize, 0)
-        self.success.SetValue(self.parent.displaysuccess)
-        bsizer10.Add(self.success, 0, wx.ALL, 5)
-
-        self.sounds = wx.CheckBox(self, wx.ID_ANY, u"Play Sounds",
-                                  wx.DefaultPosition, wx.DefaultSize, 0)
-        self.sounds.SetValue(self.parent.play_sounds)
-        bsizer10.Add(self.sounds, 0, wx.ALL, 5)
-
-        bsizer1.Add(bsizer10, 0, wx.EXPAND, 5)
-
-        bsizer11 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_staticline3 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
-                                           wx.DefaultSize, wx.LI_HORIZONTAL)
-        bsizer11.Add(self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer11, 0, wx.EXPAND, 5)
-
-        bsizer12 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_statictext7 = wx.StaticText(self, wx.ID_ANY, 
-                                           u"Columns To Display", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext7.Wrap(-1)
-        bsizer12.Add(self.m_statictext7, 0, wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer12, 0, wx.EXPAND, 5)
-
-        bsizer13 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer22 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_time = wx.CheckBox(self, wx.ID_ANY, u"Time", 
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_time.SetValue((int(self.parent.columns_config[0])))
-        bsizer22.Add(self.display_time, 0, wx.ALL, 5)
-
-
-        bsizer13.Add(bsizer22, 1, 0, 5)
-
-        bsizer23 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_model = wx.CheckBox(self, wx.ID_ANY, u"Model", 
-                                         wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_model.SetValue((int(self.parent.columns_config[1])))
-        bsizer23.Add(self.display_model, 0, wx.ALL, 5)
-
-
-        bsizer13.Add(bsizer23, 1, 0, 5)
-
-
-        bsizer1.Add(bsizer13, 0, wx.EXPAND, 5)
-
-        bsizer14 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer24 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_mac = wx.CheckBox(self, wx.ID_ANY, u"MAC", 
-                                       wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_mac.SetValue((int(self.parent.columns_config[2])))
-        bsizer24.Add(self.display_mac, 0, wx.ALL, 5)
-
-
-        bsizer14.Add(bsizer24, 1, wx.EXPAND, 5)
-
-        bsizer25 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_ip = wx.CheckBox(self, wx.ID_ANY, u"IP", 
-                                      wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_ip.SetValue((int(self.parent.columns_config[3])))
-        bsizer25.Add(self.display_ip, 0, wx.ALL, 5)
-
-
-        bsizer14.Add(bsizer25, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer14, 0, wx.EXPAND, 5)
-
-        bsizer15 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer26 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_hostname = wx.CheckBox(self, wx.ID_ANY, u"Hostname",
-                                            wx.DefaultPosition, 
-                                            wx.DefaultSize, 0)
-        self.display_hostname.SetValue((int(self.parent.columns_config[4])))
-        bsizer26.Add(self.display_hostname, 0, wx.ALL, 5)
-
-
-        bsizer15.Add(bsizer26, 1, wx.EXPAND, 5)
-
-        bsizer27 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_serial = wx.CheckBox(self, wx.ID_ANY, u"Serial Number",
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_serial.SetValue((int(self.parent.columns_config[5])))
-        bsizer27.Add(self.display_serial, 0, wx.ALL, 5)
-
-
-        bsizer15.Add(bsizer27, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer15, 0, wx.EXPAND, 5)
-
-        bsizer16 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer28 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_firmware = wx.CheckBox(self, wx.ID_ANY, u"Firmware", 
-                                            wx.DefaultPosition, 
-                                            wx.DefaultSize, 0)
-        self.display_firmware.SetValue((int(self.parent.columns_config[6])))
-        bsizer28.Add(self.display_firmware, 0, wx.ALL, 5)
-
-
-        bsizer16.Add(bsizer28, 1, wx.EXPAND, 5)
-
-        bsizer29 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_device = wx.CheckBox(self, wx.ID_ANY, u"Device",  
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_device.SetValue((int(self.parent.columns_config[7])))
-        bsizer29.Add(self.display_device, 0, wx.ALL, 5)
-
-
-        bsizer16.Add(bsizer29, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer16, 0, wx.EXPAND, 5)
-
-        bsizer17 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer30 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_static = wx.CheckBox(self, wx.ID_ANY, u"Static",
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_static.SetValue((int(self.parent.columns_config[8])))
-        bsizer30.Add(self.display_static, 0, wx.ALL, 5)
-
-
-        bsizer17.Add(bsizer30, 1, wx.EXPAND, 5)
-
-        bsizer31 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_master = wx.CheckBox(self, wx.ID_ANY, u"Master", 
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_master.SetValue((int(self.parent.columns_config[9])))
-        bsizer31.Add(self.display_master, 0, wx.ALL, 5)
-
-        bsizer17.Add(bsizer31, 1, wx.EXPAND, 5)
-
-        bsizer1.Add(bsizer17, 0, wx.EXPAND, 5)
-
-        bsizer20 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer32 = wx.BoxSizer(wx.VERTICAL)
-
-        self.display_system = wx.CheckBox(self, wx.ID_ANY, u"System", 
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.display_system.SetValue((int(self.parent.columns_config[10])))
-        bsizer32.Add(self.display_system, 0, wx.ALL, 5)
-
-
-        bsizer20.Add(bsizer32, 1, wx.EXPAND, 5)
-
-        bsizer33 = wx.BoxSizer(wx.VERTICAL)
-
-
-        bsizer20.Add(bsizer33, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer20, 0, wx.EXPAND, 5)
-
-        bsizer21 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_staticline4 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
-                                           wx.DefaultSize, wx.LI_HORIZONTAL)
-        bsizer21.Add(self.m_staticline4, 0, wx.EXPAND |wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer21, 0, wx.EXPAND, 5)
-
-        bsizer34 = wx.BoxSizer(wx.VERTICAL)
-
-        choice = wx.StdDialogButtonSizer()
-        self.choice_ok = wx.Button(self, wx.ID_OK)
-        choice.AddButton(self.choice_ok)
-        self.choice_cancel = wx.Button(self, wx.ID_CANCEL)
-        choice.AddButton(self.choice_cancel)
-        choice.Realize()
-
-        bsizer34.Add(choice, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer34, 0, wx.EXPAND, 5)
-
-        bsizer35 = wx.BoxSizer(wx.VERTICAL)
-
-        self.m_staticline5 = wx.StaticLine(self, wx.ID_ANY, wx.DefaultPosition,
-                                           wx.DefaultSize, wx.LI_HORIZONTAL)
-        bsizer35.Add(self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5)
-
-
-        bsizer1.Add(bsizer35, 0, wx.EXPAND, 5)
-
-
-        self.SetSizer(bsizer1)
-        self.Layout()
-        bsizer1.Fit(self)
-
-        self.Centre(wx.BOTH)
-
-        # Connect Events
-        self.choice_cancel.Bind(wx.EVT_BUTTON, self.on_click)
-        self.choice_ok.Bind(wx.EVT_BUTTON, self.on_click)
-
-
-    def on_click(self, _):
+        self.set_values()
+
+    def set_values(self):
+        """Set the field values"""
+        self.master_address_txt.SetValue(self.parent.master_address)
+        self.device_number_txt.SetValue(self.parent.device_number)
+        
+        self.success_chk.SetValue(int(self.parent.displaysuccess))
+        self.sounds_chk.SetValue(int(self.parent.play_sounds))  
+        
+        self.time_chk.SetValue(int(self.parent.columns_config[0]))
+        self.model_chk.SetValue(int(self.parent.columns_config[1]))
+        self.mac_chk.SetValue(int(self.parent.columns_config[2]))
+        self.ip_chk.SetValue(int(self.parent.columns_config[3]))
+        self.hostname_chk.SetValue(int(self.parent.columns_config[4]))
+        self.serial_chk.SetValue(int(self.parent.columns_config[5]))
+        self.firmware_chk.SetValue(int(self.parent.columns_config[6]))
+        self.device_chk.SetValue(int(self.parent.columns_config[7]))
+        self.static_chk.SetValue(int(self.parent.columns_config[8]))
+        self.master_chk.SetValue(int(self.parent.columns_config[9]))
+        self.system_chk.SetValue(int(self.parent.columns_config[10]))
+
+
+    def on_ok(self, _):
         """When user clicks ok"""
-        self.parent.columns_config = (str((int(self.display_time.GetValue()))) +
-                               str(int(self.display_model.GetValue())) +
-                               str(int(self.display_mac.GetValue())) +
-                               str(int(self.display_ip.GetValue())) +
-                               str(int(self.display_hostname.GetValue())) +
-                               str(int(self.display_serial.GetValue())) +
-                               str(int(self.display_firmware.GetValue())) +
-                               str(int(self.display_device.GetValue())) +
-                               str(int(self.display_static.GetValue())) +
-                               str(int(self.display_master.GetValue())) +
-                               str(int(self.display_system.GetValue())))
+        self.parent.columns_config = (
+            str(int(self.time_chk.GetValue())) +
+            str(int(self.model_chk.GetValue())) +
+            str(int(self.mac_chk.GetValue())) +
+            str(int(self.ip_chk.GetValue())) +
+            str(int(self.hostname_chk.GetValue())) +
+            str(int(self.serial_chk.GetValue())) +
+            str(int(self.firmware_chk.GetValue())) +
+            str(int(self.device_chk.GetValue())) +
+            str(int(self.static_chk.GetValue())) +
+            str(int(self.master_chk.GetValue())) +
+            str(int(self.system_chk.GetValue())))
 
-        self.parent.master_address = self.master_address.GetValue()
-        self.parent.device_number = self.device_number.GetValue()
-        self.parent.displaysuccess = self.success.GetValue()
-        self.parent.play_sounds = self.sounds.GetValue()
+        self.parent.master_address = self.master_address_txt.GetValue()
+        self.parent.device_number = self.device_number_txt.GetValue()
+        self.parent.displaysuccess = self.success_chk.GetValue()
+        self.parent.play_sounds = self.sounds_chk.GetValue()
         self.parent.update_status_bar()
         self.parent.write_config_file()
         self.parent.select_columns()
         self.parent.resize_frame()
+        self.Destroy()
+
+    def on_cancel(self, _):
+        """When user clicks cancel"""
         self.Destroy()
 
 
