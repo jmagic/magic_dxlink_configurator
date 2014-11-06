@@ -4,10 +4,6 @@ import wx
 import csv
 from scripts import mdc_gui
 
-class MultiPing(mdc_gui.MultiPing):
-    def __init__(self, parent, device_list):
-        mdc_gui.MultiPing.__init__(self, parent)
-
 class PreferencesConfig(mdc_gui.Preferences):
     def __init__(self, parent):
         mdc_gui.Preferences.__init__(self, parent)
@@ -66,16 +62,11 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.Destroy()
 
 
-class DeviceConfig(wx.Dialog):
+class DeviceConfig(mdc_gui.DeviceConfiguration):
     def __init__(self, parent, obj):
+        mdc_gui.DeviceConfiguration.__init__(self, parent)
 
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, 
-                            title=wx.EmptyString, 
-                            pos=wx.DefaultPosition, 
-                            size=wx.DefaultSize, 
-                            style=wx.DEFAULT_DIALOG_STYLE)
-
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+        '''self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         bsizer1 = wx.BoxSizer(wx.VERTICAL)
 
@@ -244,7 +235,7 @@ class DeviceConfig(wx.Dialog):
         self.Layout()
         bsizer1.Fit(self)
 
-        self.Centre(wx.BOTH)
+        self.Centre(wx.BOTH)'''
 
         self.parent = parent
         self.obj = obj
@@ -274,11 +265,11 @@ class DeviceConfig(wx.Dialog):
             self.device_txt.SetValue(self.parent.device_number)
 
         if obj.ip_type == 's':
-            self.dhcp_btn.SetValue(False)
-            self.static_btn.SetValue(True)
+            self.dhcp_chk.SetValue(False)
+            self.static_chk.SetValue(True)
         else:
-            self.dhcp_btn.SetValue(True)
-            self.static_btn.SetValue(False)
+            self.dhcp_chk.SetValue(True)
+            self.static_chk.SetValue(False)
 
         self.on_dhcp(None) #call to update dhcp / static
 
@@ -286,7 +277,7 @@ class DeviceConfig(wx.Dialog):
     def on_dhcp(self, _):
         """Sets DHCP mode on or off and enables the DHCP options"""
 
-        if self.dhcp_btn.GetValue() == True:
+        if self.dhcp_chk.GetValue() == True:
             self.ip_address_txt.Enable(False)
             self.subnet_txt.Enable(False)
             self.gateway_txt.Enable(False)
@@ -314,7 +305,7 @@ class DeviceConfig(wx.Dialog):
 
     def on_set(self, _):
         """Sends the setting to the device"""
-        if self.dhcp_btn.GetValue() == True:
+        if self.dhcp_chk.GetValue() == True:
             setdhcp = True
         else:
             setdhcp = False
