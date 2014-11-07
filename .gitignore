@@ -1,0 +1,4 @@
+dxlink_configurator/dist/
+*.pyc
+dxlink_configurator/build/
+*.TMP
