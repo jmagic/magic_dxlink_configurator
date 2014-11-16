@@ -215,7 +215,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.m_menuItem24.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.m_menuItem25.GetId() )
 		self.Bind( wx.EVT_MENU, self.toggle_dhcp_sniffing, id = self.listenDHCP.GetId() )
-		self.Bind( wx.EVT_MENU, self.amx_only_filter, id = self.listenfilter.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.listenfilter.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
 		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.m_menuItem36.GetId() )
@@ -301,7 +301,7 @@ class MainFrame ( wx.Frame ):
 	def toggle_dhcp_sniffing( self, event ):
 		event.Skip()
 	
-	def amx_only_filter( self, event ):
+	def on_amx_only_filter( self, event ):
 		event.Skip()
 	
 	def on_delete_item( self, event ):

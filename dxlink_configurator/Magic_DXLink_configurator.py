@@ -325,7 +325,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.write_config_file()
 
 
-    def toggle_filter_amx(self, _):
+    def on_amx_only_filter(self, _):
         """Turns amx filtering on and off"""
 
         self.amx_only_filter = not self.amx_only_filter
@@ -912,7 +912,8 @@ class MainFrame(mdc_gui.MainFrame):
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)
-        if self.amx_only_filter:
+        print "amx_only = ", self.amx_only_filter, "data.mac_address=", data.mac_address[0:8]
+        if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
                 return
         selected_items = self.main_list.GetSelectedObjects()
