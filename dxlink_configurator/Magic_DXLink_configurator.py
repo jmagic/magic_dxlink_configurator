@@ -37,7 +37,7 @@ import webbrowser
 
 from pydispatch import dispatcher
 
-from scripts import (config_menus, dhcp_sniffer, mdc_gui, multi_send, 
+from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
                      multi_ping, mse_baseline, plot_class, telnet_class,
                      telnetto_class)
 
@@ -87,6 +87,19 @@ class MainFrame(mdc_gui.MainFrame):
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
+        
+        self.dxtx_models_default = (
+            'DXLINK-HDMI-MFTX, ' +
+            'DXLINK-HDMI-WP, ' +
+            'DXLINK-HDMI-WDP')
+
+        self.dxrx_models_default = (
+            'DXLINK-HDMI-RX.c, ' +
+            'DXLINK-HDMI-RX.e')
+        self.dxftx_models_default = (
+            'DXFTX, Test')
+        self.dxfrx_models_default = (
+            'DXFRX, Test')
 
         self.master_address = None
         self.device_number = None
@@ -99,6 +112,11 @@ class MainFrame(mdc_gui.MainFrame):
         self.amx_only_filter = None
         self.play_sounds = None
         self.columns_config = None
+        self.dxtx_models = []
+        self.dxrx_models = []
+        self.dxftx_models = []
+        self.dxfrx_models = []
+        self.config_fail = False
         if os.name == 'nt':
             self.path = os.path.expanduser(
                 '~\\Documents\\Magic_DXLink_Configurator\\')
@@ -229,8 +247,8 @@ class MainFrame(mdc_gui.MainFrame):
             caption='Port in use',
             style=wx.ICON_INFORMATION)
         dlg.ShowModal()
-        self.listenfilter_chk.Enable(False)
-        self.listenDHCP_chk.Enable(False)
+        self.dhcp_sniffing_chk.Enable(False)
+        self.amx_only_filter_chk.Enable(False)
 
 
     def display_progress(self):
@@ -367,6 +385,18 @@ class MainFrame(mdc_gui.MainFrame):
     def on_select_none(self, _):
         """Select none of the items in the list"""
         self.main_list.DeselectAll()
+
+    def config_fail_dia(self):
+        """show config fail"""
+        dlg = wx.MessageDialog(
+            parent=self,
+            message=
+            'New setting file created \n\n I\'ve had to create a new '  +
+            'settings file, because the old one couldn\'t be read.',
+            caption='Default settings file created',
+            style=wx.OK)
+
+        dlg.ShowModal()
 
 
     def telnet_to(self, _):
@@ -520,7 +550,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def mse_rx_check(self, obj):
         """Checks if device is a RX"""
-        if obj.model[12:14] != 'RX' and obj.ip_address[:3] != "COM":
+        if obj.model not in self.dxrx_models and obj.ip_address[:3] != "COM":
             dlg = wx.MessageDialog(parent=self, message='This does not ' +
                                    'appear to be a RX device. You can only' +
                                    ' get MSE values from RX devices. Click ' +
@@ -642,27 +672,39 @@ class MainFrame(mdc_gui.MainFrame):
         """Send commands to selected devices"""
         if self.check_for_none_selected():
             return
-        tx_devices = []
-        rx_devices = []
+        dxtx_devices = []
+        dxrx_devices = []
+        dxftx_devices = []
+        dxfrx_devices = []
         for obj in self.main_list.GetSelectedObjects():
-            if obj.model[12:14] == 'TX' or \
-               obj.model[12:14] == 'WP' or \
-               obj.model[12:15] == 'DWP'or \
-               obj.model[12:16] == 'MFTX':
-                tx_devices.append(obj)
-            elif obj.model[12:14] == 'RX':
-                rx_devices.append(obj)
+            if obj.model in self.dxtx_models:
+                dxtx_devices.append(obj)
+            elif obj.model in self.dxrx_models:
+                dxrx_devices.append(obj)
+            elif obj.model in self.dxftx_models:
+                dxftx_devices.append(obj)
+            elif obj.model in self.dxfrx_models:
+                dxfrx_devices.append(obj)
             else:
                 pass
-        if len(tx_devices) != 0:
-            dia = multi_send.MultiSendCommandConfig(self, tx_devices, 'tx')
+        if len(dxtx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxtx_devices, 'dxtx')
             dia.ShowModal()
             dia.Destroy()
-        if len(rx_devices) != 0:
-            dia = multi_send.MultiSendCommandConfig(self, rx_devices, 'rx')
+        if len(dxrx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxrx_devices, 'dxrx')
             dia.ShowModal()
             dia.Destroy()
-        if (len(tx_devices)+len(rx_devices)) == 0:
+        if len(dxftx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxftx_devices, 'dxftx')
+            dia.ShowModal()
+            dia.Destroy()
+        if len(dxfrx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxfrx_devices, 'dxfrx')
+            dia.ShowModal()
+            dia.Destroy()
+        if (len(dxtx_devices) + len(dxrx_devices) + 
+                len(dxftx_devices) + len(dxfrx_devices)) == 0:
             dlg = wx.MessageDialog(parent=self, message='No DXLink Devices' +
                                    'Selected',
                                    caption='Cannot send commands',
@@ -1004,14 +1046,41 @@ class MainFrame(mdc_gui.MainFrame):
             self.play_sounds = (config.getboolean(
                 'Settings', 'play sounds'))
             self.columns_config = (config.get('Config', 'columns_config'))
+            for item in config.get(
+                    'Config', 'DXLink TX Models').split(','):
+                self.dxtx_models.append(item.strip())
+                for item in self.dxtx_models_default.split(','):
+                    if item.strip() not in self.dxtx_models:
+                        self.dxtx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink RX Models').split(','):
+                self.dxrx_models.append(item.strip())
+                for item in self.dxrx_models_default.split(','):
+                    if item.strip() not in self.dxrx_models:
+                        self.dxrx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink Fibre TX Models').split(','):
+                self.dxftx_models.append(item.strip())
+                for item in self.dxtx_models_default.split(','):
+                    if item.strip() not in self.dxftx_models:
+                        self.dxftx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink Fibre RX Models').split(','):
+                self.dxfrx_models.append(item.strip())
+                for item in self.dxrx_models_default.split(','):
+                    if item.strip() not in self.dxfrx_models:
+                        self.dxfrx_models.append(item.strip())
+            
         except (ConfigParser.Error, IOError):   
             # Make a new settings file, because we couldn't read the old one
             self.create_config_file()
             self.read_config_file()
         return
 
+
     def create_config_file(self):
-        """Creates a new config file"""
+        """Creates a new config file""" 
+        self.config_fail = True             
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         try:
@@ -1036,12 +1105,19 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'play sounds', True)
         config.add_section('Config')
         config.set('Config', 
-                   'Columns are with a 1 are displayed. ', 
+                   'Columns with a 1 are displayed. ', 
                    'Unless you know what your doing, ' + 
                    'please change these in the application')
         config.set('Config', 'columns_config', '11111111110')
+        config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
+        config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
+        config.set(
+            'Config', 'DXLink Fibre TX Models', self.dxftx_models_default)
+        config.set(
+            'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
+
 
     def write_config_file(self):
         """Update values in config file"""
@@ -1228,25 +1304,13 @@ def main():
 
     # do processing/initialization here and create main window
     dxlink_frame = MainFrame(None)
-    #time.sleep(1)
     dxlink_frame.Show()
     splash.Hide()
 
     #splash.Destroy()
+    if dxlink_frame.config_fail == True:
+        dxlink_frame.config_fail_dia()
     dxlink_configurator.MainLoop()
 
 if __name__ == '__main__':
     main()
-
-
-
-#----------------------------------------------------------------------
-'''def main():
-
-    app = GenApp()
-    app.MainLoop()
-
-# Run the program
-if __name__ == "__main__":
-    main()
-'''
