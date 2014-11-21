@@ -1,3 +1,7 @@
+dxlink_configurator/dist/
+*.pyc
+dxlink_configurator/build/
+*.TMP
 *.exe
 
 *.py[cod]
@@ -36,3 +40,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+*.TMP
