@@ -148,6 +148,7 @@ class MainFrame(mdc_gui.MainFrame):
                             self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
+
         self.columns = []
         self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
@@ -169,13 +170,15 @@ class MainFrame(mdc_gui.MainFrame):
         self.load_data_pickle()
         self.update_status_bar()
 
-        self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
+        self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
         self.dhcp_listener.setDaemon(True)
         self.dhcp_listener.start()
 
+        
         # create a telenetto thread pool and assign them to a queue
         self.telnet_to_queue = Queue.Queue()
         for _ in range(10):
@@ -202,6 +205,7 @@ class MainFrame(mdc_gui.MainFrame):
         dispatcher.connect(self.collect_errors, 
                            signal="Collect Errors", 
                            sender=dispatcher.Any)
+        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
     #----------------------------------------------------------------------
 
     def on_key_down(self, event):
@@ -343,6 +347,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.dhcp_sniffing = not self.dhcp_sniffing
         self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
+        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
         self.write_config_file()
 
 
@@ -1223,19 +1228,20 @@ class MainFrame(mdc_gui.MainFrame):
 
     def on_close(self, _):
         """Close program if user closes window"""
+        self.dhcp_listener.shutdown = True
+        self.ping_active = False
+        self.dump_pickle()
         self.Hide()
         if self.ping_window != None:
             self.ping_window.Hide()
-        self.ping_active = False
+        
         self.mse_active_list = []
         self.telnet_job_queue.join()
-        #self.dhcp_sniffing
         self.Destroy()
 
     def on_quit(self, _):
-        """Save list and close the program"""
-        self.dump_pickle()
-        self.Close()
+        """Save list and close the program""" 
+        self.on_close(None)
 
     def on_about_box(self, _):
         """Show the About information"""
@@ -1305,9 +1311,8 @@ def main():
     # do processing/initialization here and create main window
     dxlink_frame = MainFrame(None)
     dxlink_frame.Show()
-    splash.Hide()
-
-    #splash.Destroy()
+    splash.Destroy()
+    
     if dxlink_frame.config_fail == True:
         dxlink_frame.config_fail_dia()
     dxlink_configurator.MainLoop()

@@ -16,6 +16,9 @@ class DHCPListener(Thread):
         self.parent = parent
         self.lis_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.dhcp_options = None
+        self.dhcp_sniffing_enabled = False
+        self.shutdown = False
+        
         Thread.__init__(self)
 
     #----------------------------------------------------------------------
@@ -33,7 +36,9 @@ class DHCPListener(Thread):
             self.parent.portError = True
 
         
-        while True:
+        
+        
+        while not self.shutdown:
             msg, _ = self.lis_sock.recvfrom(1024)
             # check if it is a DHCP "request" message
             if ((msg[240] == "\x35" and 
@@ -93,11 +98,11 @@ class DHCPListener(Thread):
                     continue
 
                 # check if we have been told to stop listening
-                if self.parent.dhcp_sniffing == True:
-
+                if not self.shutdown and self.dhcp_sniffing_enabled:
                     #send the processed packet to the main loop
                     wx.CallAfter(
                         self.send_info, (hostname, mac_address, ip_address))
+
 
 
     def read_data(self, data_length):
@@ -120,7 +125,6 @@ class DHCPListener(Thread):
         data_length = ord(self.dhcp_options[0]) # get data length
         self.dump_byte() #move to start of data
         return data_length
-
 
     #----------------------------------------------------------------------
     def send_info(self, info):

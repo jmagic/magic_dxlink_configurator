@@ -133,7 +133,7 @@ class MainFrame ( wx.Frame ):
 		self.m_menu9.AppendItem( self.dhcp_sniffing_chk )
 		self.dhcp_sniffing_chk.Check( True )
 		
-		self.amx_only_filter_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only show AMX devices", wx.EmptyString, wx.ITEM_CHECK )
+		self.amx_only_filter_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only add AMX devices", wx.EmptyString, wx.ITEM_CHECK )
 		self.m_menu9.AppendItem( self.amx_only_filter_chk )
 		
 		self.m_menubar1.Append( self.m_menu9, u"Listen" ) 
@@ -193,6 +193,7 @@ class MainFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.on_close )
 		self.Bind( wx.EVT_MENU, self.import_csv_file, id = self.m_menuItem1.GetId() )
 		self.Bind( wx.EVT_MENU, self.import_ip_list, id = self.m_menuItem3.GetId() )
 		self.Bind( wx.EVT_MENU, self.import_plot, id = self.m_menuItem4.GetId() )
@@ -214,7 +215,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.m_menuItem23.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.m_menuItem24.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.m_menuItem25.GetId() )
-		self.Bind( wx.EVT_MENU, self.toggle_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
 		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
@@ -235,6 +236,9 @@ class MainFrame ( wx.Frame ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def on_close( self, event ):
+		event.Skip()
+	
 	def import_csv_file( self, event ):
 		event.Skip()
 	
@@ -298,7 +302,7 @@ class MainFrame ( wx.Frame ):
 	def turn_off_leds( self, event ):
 		event.Skip()
 	
-	def toggle_dhcp_sniffing( self, event ):
+	def on_dhcp_sniffing( self, event ):
 		event.Skip()
 	
 	def on_amx_only_filter( self, event ):
@@ -334,6 +338,76 @@ class MainFrame ( wx.Frame ):
 	def MainFrameOnContextMenu( self, event ):
 		self.PopupMenu( self.rc_menu, event.GetPosition() )
 		
+
+###########################################################################
+## Class PingDetail
+###########################################################################
+
+class PingDetail ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Details view", pos = wx.DefaultPosition, size = wx.Size( 390,550 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer21 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.olv_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer24 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.olv_sizer = wx.BoxSizer( wx.VERTICAL )
+		
+		
+		bSizer24.Add( self.olv_sizer, 1, wx.EXPAND, 5 )
+		
+		bSizer23 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer26 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.auto_update_chk = wx.CheckBox( self.olv_panel, wx.ID_ANY, u"Auto update", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer26.Add( self.auto_update_chk, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		bSizer23.Add( bSizer26, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		bSizer27 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_button4 = wx.Button( self.olv_panel, wx.ID_ANY, u"Refresh", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer27.Add( self.m_button4, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		bSizer23.Add( bSizer27, 1, 0, 5 )
+		
+		
+		bSizer24.Add( bSizer23, 0, wx.EXPAND, 5 )
+		
+		
+		self.olv_panel.SetSizer( bSizer24 )
+		self.olv_panel.Layout()
+		bSizer24.Fit( self.olv_panel )
+		bSizer21.Add( self.olv_panel, 1, wx.EXPAND, 5 )
+		
+		
+		self.SetSizer( bSizer21 )
+		self.Layout()
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.auto_update_chk.Bind( wx.EVT_CHECKBOX, self.on_auto_update )
+		self.m_button4.Bind( wx.EVT_BUTTON, self.on_refresh )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_auto_update( self, event ):
+		event.Skip()
+	
+	def on_refresh( self, event ):
+		event.Skip()
+	
 
 ###########################################################################
 ## Class Preferences
@@ -509,12 +583,29 @@ class MultiPing ( wx.Dialog ):
 		
 		self.SetSizer( bSizer4 )
 		self.Layout()
+		self.rc_menu = wx.Menu()
+		self.m_menuItem37 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Show Details", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.m_menuItem37 )
+		
+		self.Bind( wx.EVT_RIGHT_DOWN, self.MultiPingOnContextMenu ) 
+		
 		
 		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.m_menuItem37.GetId() )
 	
 	def __del__( self ):
 		pass
 	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_show_details( self, event ):
+		event.Skip()
+	
+	def MultiPingOnContextMenu( self, event ):
+		self.PopupMenu( self.rc_menu, event.GetPosition() )
+		
 
 ###########################################################################
 ## Class DeviceConfiguration
