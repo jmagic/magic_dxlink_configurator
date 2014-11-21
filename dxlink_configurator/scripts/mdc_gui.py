@@ -129,12 +129,12 @@ class MainFrame ( wx.Frame ):
 		self.m_menubar1.Append( self.m_menu8, u"Identify" ) 
 		
 		self.m_menu9 = wx.Menu()
-		self.listenDHCP = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
-		self.m_menu9.AppendItem( self.listenDHCP )
-		self.listenDHCP.Check( True )
+		self.dhcp_sniffing_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
+		self.m_menu9.AppendItem( self.dhcp_sniffing_chk )
+		self.dhcp_sniffing_chk.Check( True )
 		
-		self.listenfilter = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only show AMX devices", wx.EmptyString, wx.ITEM_CHECK )
-		self.m_menu9.AppendItem( self.listenfilter )
+		self.amx_only_filter_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only show AMX devices", wx.EmptyString, wx.ITEM_CHECK )
+		self.m_menu9.AppendItem( self.amx_only_filter_chk )
 		
 		self.m_menubar1.Append( self.m_menu9, u"Listen" ) 
 		
@@ -214,8 +214,8 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.m_menuItem23.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.m_menuItem24.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.m_menuItem25.GetId() )
-		self.Bind( wx.EVT_MENU, self.toggle_dhcp_sniffing, id = self.listenDHCP.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.listenfilter.GetId() )
+		self.Bind( wx.EVT_MENU, self.toggle_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
 		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.m_menuItem36.GetId() )

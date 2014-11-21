@@ -146,6 +146,8 @@ class MainFrame(mdc_gui.MainFrame):
                              ]
 
         self.select_columns()
+        self.amx_only_filter_chk.Check(self.amx_only_filter)
+        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
         self.load_data_pickle()
         self.update_status_bar()
 
@@ -227,8 +229,8 @@ class MainFrame(mdc_gui.MainFrame):
             caption='Port in use',
             style=wx.ICON_INFORMATION)
         dlg.ShowModal()
-        self.listenfilter.Enable(False)
-        self.listenDHCP.Enable(False)
+        self.listenfilter_chk.Enable(False)
+        self.listenDHCP_chk.Enable(False)
 
 
     def display_progress(self):
@@ -318,10 +320,11 @@ class MainFrame(mdc_gui.MainFrame):
         self.errorlist = []
         self.completionlist = []
 
-    def toggle_dhcp_sniffing(self, _):
+    def on_dhcp_sniffing(self, _):
         """Turns sniffing on and off"""
 
         self.dhcp_sniffing = not self.dhcp_sniffing
+        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
         self.write_config_file()
 
 
@@ -329,6 +332,7 @@ class MainFrame(mdc_gui.MainFrame):
         """Turns amx filtering on and off"""
 
         self.amx_only_filter = not self.amx_only_filter
+        self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.write_config_file()
 
     def select_columns(self):
@@ -925,7 +929,7 @@ class MainFrame(mdc_gui.MainFrame):
             return
 
     def incoming_packet(self, sender):
-        """Receives dhcp requests with and adds them to objects to display"""
+        """Receives dhcp requests and adds them to objects to display"""
         data = Unit('',
                     sender[0],
                     '',
@@ -945,12 +949,14 @@ class MainFrame(mdc_gui.MainFrame):
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)
+
         if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
+                self.main_list.SetFocus()
                 return
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
-            self.main_list.SetObjects([data])
+            self.main_list.AddObject(data)
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
@@ -963,9 +969,11 @@ class MainFrame(mdc_gui.MainFrame):
                     data.subnet = obj.subnet
                     data.master = obj.master
                     data.system = obj.system
+                    if obj in selected_items:
+                        selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
-        #self.main_list.RepopulateList()
+
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()
@@ -1145,6 +1153,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.ping_active = False
         self.mse_active_list = []
         self.telnet_job_queue.join()
+        #self.dhcp_sniffing
         self.Destroy()
 
     def on_quit(self, _):
