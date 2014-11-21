@@ -385,12 +385,12 @@ class MainFrame(mdc_gui.MainFrame):
                 for obj in self.main_list.GetSelectedObjects():
                     self.telnet_to_queue.put([obj, 'telnet'])
             else:
-                dlg = wx.MessageDialog(parent=self, message='Could not find ' +
-                                      'telnet client \nPlease put ' + 
-                                      '%s in \n%s' % (self.telnet_client,
-                                       self.path),
-                                       caption='No %s' % self.telnet_client,
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self, message='Could not find ' +
+                    'telnet client \nPlease put ' + 
+                    '%s in \n%s' % (self.telnet_client, self.path),
+                    caption='No %s' % self.telnet_client,
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
             return
@@ -403,11 +403,12 @@ class MainFrame(mdc_gui.MainFrame):
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='I can only ssh to' +
+                ' 10 devices at a time \nPlease select less' +
+                ' than ten devices at once',
+                caption='How many ssh?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -944,7 +945,6 @@ class MainFrame(mdc_gui.MainFrame):
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)
-        print "amx_only = ", self.amx_only_filter, "data.mac_address=", data.mac_address[0:8]
         if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
                 return
@@ -1064,7 +1064,7 @@ class MainFrame(mdc_gui.MainFrame):
         """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
             return
-
+        self.configure_list = []
         for obj in self.main_list.GetSelectedObjects():
             self.configure_list.append(obj)
             dia = config_menus.DeviceConfig(self, obj)
@@ -1204,245 +1204,10 @@ SOFTWARE."""
         dlg.Destroy()
 
 
-
-
-
-########################################################################
-'''class MainFrame(wx.Frame):
-    #----------------------------------------------------------------------
-    def __init__(self):
-
-        self.title_text = "Starting up"
-        wx.Frame.__init__(self, parent=None, id=wx.ID_ANY, 
-                          title=self.title_text, size=(1100, 600))
-
-        icon_bundle = wx.IconBundle()
-        icon_bundle.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
-        self.SetIcons(icon_bundle)
-        #self.SetIcon(icon.MDC_icon.GetIcon())
-
-        menubar = wx.MenuBar()
-        self.status_bar = self.CreateStatusBar()
-
-        self.panel = MainPanel(self)
-
-        file_menu = wx.Menu()
-
-        import_menu = wx.Menu()
-        iitem = import_menu.Append(wx.ID_ANY, 'Import from a CSV', \
-                                              'Import from a CSV')
-        self.Bind(wx.EVT_MENU, self.panel.import_csv_file, iitem)
-
-        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', \
-                                              'Import IP list')
-        self.Bind(wx.EVT_MENU, self.panel.import_ip_list, iitem)
-
-        iitem = import_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
-        self.Bind(wx.EVT_MENU, self.panel.import_plot, iitem)
-
-        export_menu = wx.Menu()
-        eitem = export_menu.Append(wx.ID_ANY, 'Export to a CSV File', \
-                                 'Export to a CSV file')
-        self.Bind(wx.EVT_MENU, self.panel.export_to_csv, eitem)
-
-        menubar.Append(file_menu, '&File')
-        file_menu.AppendMenu(wx.ID_ANY, 'Import', import_menu)
-        file_menu.AppendMenu(wx.ID_ANY, 'Export', export_menu)
-
-        fitem = file_menu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
-        self.Bind(wx.EVT_MENU, self.on_quit, fitem)
-
-        edit_menu = wx.Menu()
-
-        select_menu = wx.Menu()
-        sitem = select_menu.Append(wx.ID_ANY, 'Select All', 'Select All')
-        self.Bind(wx.EVT_MENU, self.panel.on_select_all, sitem)
-
-        sitem = select_menu.Append(wx.ID_ANY, 'Select None', 'Select None')
-        self.Bind(wx.EVT_MENU, self.panel.on_select_none, sitem)
-
-        menubar.Append(edit_menu, '&Edit')
-        edit_menu.AppendMenu(wx.ID_ANY, 'Select', select_menu)
-
-        eitem = edit_menu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
-        self.Bind(wx.EVT_MENU, self.panel.configure_prefs, eitem)
-
-        action_menu = wx.Menu()
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Update device information', \
-                                   'Update details from selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.get_config_info, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Configure Device', \
-                                   'Configure Devices Connection')
-        self.Bind(wx.EVT_MENU, self.panel.configure_device, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Telnet to Device', \
-                                   'Launch a telnet connetion to Device')
-        self.Bind(wx.EVT_MENU, self.panel.telnet_to, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'SSH to Device', \
-                                   'Launch a SSH connetion to Device')
-        self.Bind(wx.EVT_MENU, self.panel.ssh_to, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
-        self.Bind(wx.EVT_MENU, self.panel.send_commands, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Reset Factory', \
-                                   'Reset selected devices to factory settings')
-        self.Bind(wx.EVT_MENU, self.panel.reset_factory, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Device', \
-                                   'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.reboot, aitem)
-
-        menubar.Append(action_menu, '&Actions')
-
-        tools_menu = wx.Menu()
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
-        self.Bind(wx.EVT_MENU, self.panel.multi_ping, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'MSE Baseline', 'MSE Baseline')
-        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE')
-        self.Bind(wx.EVT_MENU, self.panel.plot_mse, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
-        self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
-                                             'Generate IP List')
-        self.Bind(wx.EVT_MENU, self.panel.generate_list, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Generate DGX List', \
-                                             'Generate DGX List')
-        self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
-
-        menubar.Append(tools_menu, 'Tools')
-
-        identify_menu = wx.Menu()
-
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', \
-                                                'Turn on LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, iitem)
-
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', \
-                                                'Turn off LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, iitem)
-
-        menubar.Append(identify_menu, 'Identify')
-
-        listen_menu = wx.Menu()
-
-
-        self.listen_dhcp = listen_menu.AppendCheckItem(wx.ID_ANY, \
-                                                   "Listen for DHCP requests", \
-                                                   "Listen for DHCP requests")
-
-        self.Bind(wx.EVT_MENU, self.panel.toggle_dhcp_sniffing, 
-                  self.listen_dhcp)
-        self.listen_dhcp.Check(self.panel.dhcp_sniffing)
-
-        self.listen_filter = listen_menu.AppendCheckItem(wx.ID_ANY, \
-                                           "Filter AMX devices DHCP requests", \
-                                           "Filter AMX devices DHCP requests")
-
-        self.Bind(wx.EVT_MENU, self.panel.toggle_filter_amx, self.listen_filter)
-        self.listen_filter.Check(self.panel.amx_only_filter)
-
-        menubar.Append(listen_menu, 'Listen')
-
-        delete_menu = wx.Menu()
-        ditem = delete_menu.Append(wx.ID_ANY, '&Delete Item', 'Delete Item')
-        self.Bind(wx.EVT_MENU, self.panel.delete_item, ditem)
-
-        ditem = delete_menu.Append(wx.ID_ANY, '&Delete All Items', \
-                                   'Delete All Items')
-        self.Bind(wx.EVT_MENU, self.panel.delete_all_items, ditem)
-
-        menubar.Append(delete_menu, '&Delete')
-
-        help_menu = wx.Menu()
-        hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
-        self.Bind(wx.EVT_MENU, self.panel.on_about_box, hitem)
-
-        #hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        #self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
-
-        menubar.Append(help_menu, '&Help')
-
-        self.SetMenuBar(menubar)
-        self.Bind(wx.EVT_CLOSE, self.panel.on_close)
-        self.Center()
-
-        if self.panel.port_error:
-            self.panel.port_errors()
-
-    def on_right_click(self, _):
-        """Build a right click menu"""
-
-        rc_menu = wx.Menu()
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Update device information')
-        self.Bind(wx.EVT_MENU, self.panel.get_config_info, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Configure Device')
-        self.Bind(wx.EVT_MENU, self.panel.configure_device, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Send Commands')
-        self.Bind(wx.EVT_MENU, self.panel.send_commands, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Reset Factory')
-        self.Bind(wx.EVT_MENU, self.panel.reset_factory, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Delete')
-        self.Bind(wx.EVT_MENU, self.panel.delete_item, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Telnet to Device')
-        self.Bind(wx.EVT_MENU, self.panel.telnet_to, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'FactoryAV')
-        self.Bind(wx.EVT_MENU, self.panel.factory_av, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
-        self.Bind(wx.EVT_MENU, self.panel.reboot, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
-        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Open device in webbrowser')
-        self.Bind(wx.EVT_MENU, self.panel.open_url, rcitem)
-
-        self.PopupMenu(rc_menu)
-        rc_menu.Destroy()
-
-    def on_quit(self, _):
-        """Save list and close the program"""
-        self.panel.dump_pickle()
-        self.Close()'''
-
-
-########################################################################
-'''class GenApp(wx.App):
-
-    #----------------------------------------------------------------------
-    def __init__(self, redirect=False, filename=None):
-        wx.App.__init__(self, redirect, filename)
-
-    #----------------------------------------------------------------------
-    def OnInit(self):
-        # create frame here
-        frame = MainFrame(None)
-        frame.Show()
-        return True'''
-
 def show_splash():
     """create, show and return the splash screen"""
     bitmap = wx.Bitmap('media/splash.jpg')
-    splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN|
-                                wx.SPLASH_TIMEOUT, 1700, None, -1)
+    splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN, 1700, None, -1)
     splash.Show()
     return splash
 
@@ -1453,9 +1218,10 @@ def main():
 
 
     # do processing/initialization here and create main window
-    dxlink_frame = MainFrame()
-    time.sleep(1)
+    dxlink_frame = MainFrame(None)
+    #time.sleep(1)
     dxlink_frame.Show()
+    splash.Hide()
 
     #splash.Destroy()
     dxlink_configurator.MainLoop()

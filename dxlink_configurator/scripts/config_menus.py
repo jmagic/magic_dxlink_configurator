@@ -66,177 +66,6 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
     def __init__(self, parent, obj):
         mdc_gui.DeviceConfiguration.__init__(self, parent)
 
-        '''self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
-
-        bsizer1 = wx.BoxSizer(wx.VERTICAL)
-
-        bsizer2 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, u"Hostname", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext1.Wrap(-1)
-        bsizer2.Add(self.m_statictext1, 0, wx.ALIGN_CENTER_VERTICAL|
-                                           wx.TOP|
-                                           wx.BOTTOM|
-                                           wx.RIGHT, 5)
-
-        self.hostname_txt = wx.TextCtrl(self, wx.ID_ANY, obj.hostname,
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.hostname_txt.SetMinSize(wx.Size(150, -1))
-
-        bsizer2.Add(self.hostname_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-
-        bsizer1.Add(bsizer2, 0, wx.TOP|
-                                wx.RIGHT|
-                                wx.LEFT|
-                                wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.dhcp_btn = wx.RadioButton(self, wx.ID_ANY, u"DHCP", 
-                                       wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer3.Add(self.dhcp_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.on_dhcp, self.dhcp_btn)
-
-        self.static_btn = wx.RadioButton(self, wx.ID_ANY, u"Static", 
-                                         wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer3.Add(self.static_btn, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.on_dhcp, self.static_btn)
-
-        bsizer1.Add(bsizer3, 1, wx.ALIGN_RIGHT|wx.RIGHT|wx.LEFT|wx.EXPAND, 5)
-
-        sbsizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"IP info"),
-                                     wx.VERTICAL)
-
-        fgsizer2 = wx.FlexGridSizer(3, 2, 0, 0)
-        fgsizer2.SetFlexibleDirection(wx.BOTH)
-        fgsizer2.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-
-        self.m_statictext7 = wx.StaticText(self, wx.ID_ANY, u"IP Address", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext7.Wrap(-1)
-        fgsizer2.Add(self.m_statictext7, 0, wx.ALL|
-                                            wx.ALIGN_CENTER_HORIZONTAL|
-                                            wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.ip_address_txt = wx.TextCtrl(self, wx.ID_ANY, obj.ip_address, 
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.ip_address_txt.SetMinSize(wx.Size(150, -1))
-
-        fgsizer2.Add(self.ip_address_txt, 0, wx.ALIGN_CENTER_VERTICAL|
-                                             wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        self.m_statictext8 = wx.StaticText(self, wx.ID_ANY, u"Subnet Mask", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext8.Wrap(-1)
-        fgsizer2.Add(self.m_statictext8, 0, wx.ALL|
-                                            wx.ALIGN_CENTER_HORIZONTAL|
-                                            wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.subnet_txt = wx.TextCtrl(self, wx.ID_ANY, obj.subnet, 
-                                      wx.DefaultPosition, wx.DefaultSize, 0)
-        self.subnet_txt.SetMinSize(wx.Size(150, -1))
-
-        fgsizer2.Add(self.subnet_txt, 1, wx.ALL, 5)
-
-        self.m_statictext9 = wx.StaticText(self, wx.ID_ANY, u"Gateway IP", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext9.Wrap(-1)
-        fgsizer2.Add(self.m_statictext9, 0, wx.ALL|
-                                            wx.ALIGN_CENTER_VERTICAL|
-                                            wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        self.gateway_txt = wx.TextCtrl(self, wx.ID_ANY, obj.gateway, 
-                                       wx.DefaultPosition, wx.DefaultSize, 0)
-        self.gateway_txt.SetMinSize(wx.Size(150, -1))
-
-        fgsizer2.Add(self.gateway_txt, 0, wx.ALL, 5)
-
-
-        sbsizer1.Add(fgsizer2, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-
-        bsizer1.Add(sbsizer1, 0, wx.EXPAND|wx.ALL, 5)
-
-        sbsizer2 = wx.StaticBoxSizer(wx.StaticBox(self, 
-                                     wx.ID_ANY, u"Master Info"), wx.VERTICAL)
-
-        fgsizer3 = wx.FlexGridSizer(2, 2, 0, 0)
-        fgsizer3.SetFlexibleDirection(wx.BOTH)
-        fgsizer3.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-
-        self.m_statictext10 = wx.StaticText(self, wx.ID_ANY, u"Master Address", 
-                                            wx.DefaultPosition, 
-                                            wx.DefaultSize, 0)
-        self.m_statictext10.Wrap(-1)
-        fgsizer3.Add(self.m_statictext10, 0, wx.ALL|
-                                             wx.ALIGN_CENTER_HORIZONTAL|
-                                             wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.master_txt = wx.TextCtrl(self, wx.ID_ANY, obj.master, 
-                                      wx.DefaultPosition, wx.DefaultSize, 0)
-        self.master_txt.SetMinSize(wx.Size(150, -1))
-
-        fgsizer3.Add(self.master_txt, 0, wx.ALL|
-                                         wx.ALIGN_CENTER_HORIZONTAL|
-                                         wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.m_statictext11 = wx.StaticText(self, wx.ID_ANY, u"Device Number",
-                                            wx.DefaultPosition,
-                                            wx.DefaultSize, 0)
-        self.m_statictext11.Wrap(-1)
-        fgsizer3.Add(self.m_statictext11, 0, wx.ALL|
-                                             wx.ALIGN_CENTER_HORIZONTAL|
-                                             wx.ALIGN_CENTER_VERTICAL, 5)
-
-        self.device_txt = wx.TextCtrl(self, wx.ID_ANY, obj.device,
-                                      wx.DefaultPosition, wx.DefaultSize, 0)
-        self.device_txt.SetMinSize(wx.Size(150, -1))
-
-        fgsizer3.Add(self.device_txt, 0, wx.ALL|
-                                         wx.ALIGN_CENTER_HORIZONTAL|
-                                         wx.ALIGN_CENTER_VERTICAL, 5)
-
-
-        sbsizer2.Add(fgsizer3, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-
-        bsizer1.Add(sbsizer2, 0, wx.ALL|
-                                  wx.EXPAND|
-                                  wx.ALIGN_CENTER_HORIZONTAL, 5)
-
-        bsizer4 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.set_btn = wx.Button(self, wx.ID_ANY, u"Set", 
-                                 wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer4.Add(self.set_btn, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_set, self.set_btn)
-
-        self.cancel_btn = wx.Button(self, wx.ID_ANY, u"Cancel", 
-                                    wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer4.Add(self.cancel_btn, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_cancel, self.cancel_btn)
-
-        self.abort_btn = wx.Button(self, wx.ID_ANY, u"Abort", 
-                                   wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer4.Add(self.abort_btn, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_abort, self.abort_btn)
-
-
-        bsizer1.Add(bsizer4, 0, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5)
-
-        self.Bind(wx.EVT_CLOSE, self.on_abort)
-        self.SetSizer(bsizer1)
-        self.Layout()
-        bsizer1.Fit(self)
-
-        self.Centre(wx.BOTH)'''
-
         self.parent = parent
         self.obj = obj
         self.ip_org = obj.ip_address
@@ -249,20 +78,21 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.master = obj.master
         self.device = obj.device
 
-        if self.hostname == ' ':
+        if self.hostname == '':
             self.hostname = 'hostname'
-        if self.ip_address == ' ':
+        if self.ip_address == '':
             self.ip_address = '0.0.0.0'
-        if self.subnet == ' ':
+        if self.subnet == '':
             self.subnet = '255.255.255.0'
         if self.gateway == ' ':
             self.gateway = '0.0.0.0'
-        if self.master == ' ' or self.master == 'not connected':
+        if self.master == '' or self.master == 'not connected':
             self.master = str(self.parent.master_address)
-            self.master_txt.SetValue(self.parent.master_address)
-        if self.device == ' ' or obj.device == '0':
+            
+        if self.device == '' or obj.device == '0':
             self.device = str(self.parent.device_number)
-            self.device_txt.SetValue(self.parent.device_number)
+            
+        self.hostname_txt.SetLabel(self.hostname)
 
         if obj.ip_type == 's':
             self.dhcp_chk.SetValue(False)
@@ -270,6 +100,12 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         else:
             self.dhcp_chk.SetValue(True)
             self.static_chk.SetValue(False)
+
+        self.ip_address_txt.SetLabel(self.ip_address)
+        self.subnet_txt.SetLabel(self.subnet)
+        self.gateway_txt.SetLabel(self.gateway)
+        self.master_txt.SetValue(self.master)
+        self.device_txt.SetValue(self.device)
 
         self.on_dhcp(None) #call to update dhcp / static
 
@@ -292,6 +128,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         """Canel and close"""
         selected_items = self.parent.main_list.GetSelectedObjects()
         selected_items.remove(self.obj)
+        print self.parent.configure_list
         self.parent.configure_list.remove(self.obj)
         self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.Destroy()
@@ -322,9 +159,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
                 str(self.master_txt.GetValue()),
                 str(self.device_txt.GetValue())]
 
-        #self.parent.static_items.append(self.obj)
         self.parent.telnet_job_queue.put(info)
-        #self.parent.display_progress()
         self.Destroy()
 
 

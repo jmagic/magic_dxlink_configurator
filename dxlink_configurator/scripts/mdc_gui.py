@@ -644,6 +644,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.on_cancel )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.on_set )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_button3.Bind( wx.EVT_BUTTON, self.on_abort )
@@ -653,11 +654,12 @@ class DeviceConfiguration ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def on_cancel( self, event ):
+		event.Skip()
+	
 	def on_set( self, event ):
 		event.Skip()
 	
-	def on_cancel( self, event ):
-		event.Skip()
 	
 	def on_abort( self, event ):
 		event.Skip()
