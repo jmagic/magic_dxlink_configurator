@@ -28,17 +28,18 @@ import ConfigParser
 import wx
 import pickle
 import datetime
-import time
 import os
 import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
 
+
 from pydispatch import dispatcher
 
-from scripts import (config_menus, dhcp_sniffer, multi_send, multi_ping, 
-                    mse_baseline, plot_class, telnet_class, telnetto_class)
+from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
+                     multi_ping, mse_baseline, plot_class, telnet_class,
+                     telnetto_class)
 
 try:
     import winsound
@@ -75,13 +76,30 @@ class Unit(object):
         self.system = system
 
 
-class MainPanel(wx.Panel):
+#class MainPanel(wx.Panel):
 
-    #----------------------------------------------------------------------
+class MainFrame(mdc_gui.MainFrame):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, id=wx.ID_ANY)
+        mdc_gui.MainFrame.__init__(self, parent)
 
         self.parent = parent
+
+        icon_bundle = wx.IconBundle()
+        icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        self.SetIcons(icon_bundle)
+        
+        self.dxtx_models_default = (
+            'DXLINK-HDMI-MFTX, ' +
+            'DXLINK-HDMI-WP, ' +
+            'DXLINK-HDMI-WDP')
+
+        self.dxrx_models_default = (
+            'DXLINK-HDMI-RX.c, ' +
+            'DXLINK-HDMI-RX.e')
+        self.dxftx_models_default = (
+            'DXFTX, Test')
+        self.dxfrx_models_default = (
+            'DXFRX, Test')
 
         self.master_address = None
         self.device_number = None
@@ -94,16 +112,21 @@ class MainPanel(wx.Panel):
         self.amx_only_filter = None
         self.play_sounds = None
         self.columns_config = None
+        self.dxtx_models = []
+        self.dxrx_models = []
+        self.dxftx_models = []
+        self.dxfrx_models = []
+        self.config_fail = False
         if os.name == 'nt':
             self.path = os.path.expanduser(
-                                    '~\\Documents\\Magic_DXLink_Configurator\\')
+                '~\\Documents\\Magic_DXLink_Configurator\\')
         else:
             self.path = os.path.expanduser(
-                                    '~/Documents/Magic_DXLink_Configurator/')
+                '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.resize_frame()
         self.name = "Magic DXLink Configurator"
-        self.version = "v2.0.8"
+        self.version = "v3.x.x"
 
         self.set_title_bar()
 
@@ -118,11 +141,13 @@ class MainPanel(wx.Panel):
         self.ping_window = None
         self.abort = False
 
-        self.main_list = ObjectListView(self, wx.ID_ANY, 
-                                      style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
+                                        style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, parent.on_right_click)
+        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
+                            self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+
 
         self.columns = []
         self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
@@ -140,24 +165,25 @@ class MainPanel(wx.Panel):
                              ]
 
         self.select_columns()
+        self.amx_only_filter_chk.Check(self.amx_only_filter)
+        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
         self.load_data_pickle()
         self.update_status_bar()
 
-        # Create some sizers
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 5)
-        self.SetSizer(main_sizer)
+        self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
         self.dhcp_listener.setDaemon(True)
         self.dhcp_listener.start()
 
+        
         # create a telenetto thread pool and assign them to a queue
         self.telnet_to_queue = Queue.Queue()
         for _ in range(10):
-            self.telnet_to_thread = telnetto_class.TelnetToThread(self, 
-                                                        self.telnet_to_queue)
+            self.telnet_to_thread = telnetto_class.TelnetToThread(
+                self, self.telnet_to_queue)
             self.telnet_to_thread.setDaemon(True)
             self.telnet_to_thread.start()
 
@@ -165,8 +191,8 @@ class MainPanel(wx.Panel):
         # create a telnetjob thread pool and assign them to a queue
         self.telnet_job_queue = Queue.Queue()
         for _ in range(int(self.thread_number)):
-            self.telnet_job_thread = telnet_class.Telnetjobs(self, 
-                                                        self.telnet_job_queue)
+            self.telnet_job_thread = telnet_class.Telnetjobs(
+                self, self.telnet_job_queue)
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
@@ -179,18 +205,20 @@ class MainPanel(wx.Panel):
         dispatcher.connect(self.collect_errors, 
                            signal="Collect Errors", 
                            sender=dispatcher.Any)
+        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
     #----------------------------------------------------------------------
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
         key = event.GetKeyCode()
         if key == wx.WXK_DELETE:
-            dlg = wx.MessageDialog(parent=self,
-                  message=
-            'Are you sure? \n\nThis will delete all selected items in the list',
-                                   caption='Delete All Selected Items',
-                                   style=wx.OK|wx.CANCEL
-                                   )
+            dlg = wx.MessageDialog(
+                parent=self,
+                message=
+                'Are you sure? \n\nThis will delete all selected items in ' +
+                'the list',
+                caption='Delete All Selected Items',
+                style=wx.OK|wx.CANCEL)
 
             if dlg.ShowModal() == wx.ID_OK:
                 self.delete_item(None)
@@ -217,47 +245,51 @@ class MainPanel(wx.Panel):
 
     def port_errors(self):
         """Shows when the listening port is in use"""
-        dlg = wx.MessageDialog(self.parent,
-           message='Unable to use port 67\n No DHCP requests will be added.',
-           caption='Port in use',
-           style=wx.ICON_INFORMATION)
+        dlg = wx.MessageDialog(
+            self,
+            message='Unable to use port 67\n No DHCP requests will be added.',
+            caption='Port in use',
+            style=wx.ICON_INFORMATION)
         dlg.ShowModal()
-        self.parent.listenfilter.Enable(False)
-        self.parent.listenDHCP.Enable(False)
+        self.dhcp_sniffing_chk.Enable(False)
+        self.amx_only_filter_chk.Enable(False)
 
 
     def display_progress(self):
         """Shows progress of connections"""
         if len(self.main_list.GetSelectedObjects()) == 1:
 
-            dlg = wx.ProgressDialog("Attempting connect to selected device",
-                                    'Attempting connection to selected device',
-                            maximum=len(self.main_list.GetSelectedObjects()),
-                            parent=self.parent,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH)
+            dlg = wx.ProgressDialog(
+                'Attempting connect to selected device',
+                'Attempting connection to selected device',
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                                    len(self.main_list.GetSelectedObjects())):
+                   len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                time.sleep(.01)
+                #time.sleep(.01)
                 dlg.Pulse()
         else:
-            dlg = wx.ProgressDialog("Attempting connect to selected devices",
-                              'Attempting connection to all selected devices',
-                            maximum=len(self.main_list.GetSelectedObjects()),
-                            parent=self.parent,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH
-                             | wx.PD_ELAPSED_TIME)
+            dlg = wx.ProgressDialog(
+                'Attempting connect to selected devices',
+                'Attempting connection to all selected devices',
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH
+                | wx.PD_ELAPSED_TIME)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
-                    len(self.main_list.GetSelectedObjects())):
+                   len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 dlg.Update(count, "Attempting connection to %s of %s devices" %
-                        ((count + 1), len(self.main_list.GetSelectedObjects())))
+                           ((count + 1), 
+                            len(self.main_list.GetSelectedObjects())))
 
         dlg.Destroy()
         errortext = ""
@@ -275,34 +307,34 @@ class MainPanel(wx.Panel):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
-            dlg = wx.MessageDialog(parent=self,
-                                   message='Failed to connect to' + 
-                                              '\n=======================' + 
-                                              ' \n%s ' % errortext,
-                                   caption='Failed connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='Failed to connect to \n=======================' + 
+                ' \n%s ' % errortext,
+                caption='Failed connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         elif len(self.completionlist) == \
              len(self.main_list.GetSelectedObjects()):
             if self.displaysuccess:
-                dlg = wx.MessageDialog(parent=self,
-                                       message='Successfully connected to: \n' +
-                                               '=======================' + 
-                                               '\n%s' % completiontext,
-                                       caption='Connection list',
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self,
+                    message='Successfully connected to: \n' +
+                    '=======================\n%s' % completiontext,
+                    caption='Connection list',
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
         else:
-            dlg = wx.MessageDialog(parent=self, 
-                                   message='Failed to connect to: \n========' +
-                                   '=============== \n%s \n \n' % (errortext) +
-                                   'Successfully connected to: \n============' +
-                                   '===========' +
-                                   ' \n%s' % (completiontext),
-                                   caption='Connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='Failed to connect to: \n======================= ' +
+                '\n%s \n \n' % (errortext) +
+                'Successfully connected to: \n=======================' +
+                ' \n%s' % (completiontext),
+                caption='Connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         self.main_list.RefreshObjects(self.main_list.GetObjects())
@@ -310,17 +342,20 @@ class MainPanel(wx.Panel):
         self.errorlist = []
         self.completionlist = []
 
-    def toggle_dhcp_sniffing(self, _):
+    def on_dhcp_sniffing(self, _):
         """Turns sniffing on and off"""
 
         self.dhcp_sniffing = not self.dhcp_sniffing
+        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
+        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
         self.write_config_file()
 
 
-    def toggle_filter_amx(self, _):
+    def on_amx_only_filter(self, _):
         """Turns amx filtering on and off"""
 
         self.amx_only_filter = not self.amx_only_filter
+        self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.write_config_file()
 
     def select_columns(self):
@@ -329,7 +364,7 @@ class MainPanel(wx.Panel):
         self.columns = []
         for i in range(len(self.columns_setup)):
             self.columns.append((int(self.columns_config[i]),
-                                     self.columns_setup[i]))
+                                 self.columns_setup[i]))
         todisplay = []
         for item in self.columns:
             if item[0] == 1:
@@ -339,11 +374,11 @@ class MainPanel(wx.Panel):
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
         if len(self.main_list.GetSelectedObjects()) == 0:
-            dlg = wx.MessageDialog(parent=self, message='Nothing selected...' +
-                                   '\nPlease click on the device you want ' + 
-                                   'to select',
-                                   caption='Nothing Selected',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='Nothing selected...\nPlease click on ' +
+                'the device you want to select',
+                caption='Nothing Selected',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return True
@@ -356,17 +391,30 @@ class MainPanel(wx.Panel):
         """Select none of the items in the list"""
         self.main_list.DeselectAll()
 
+    def config_fail_dia(self):
+        """show config fail"""
+        dlg = wx.MessageDialog(
+            parent=self,
+            message=
+            'New setting file created \n\n I\'ve had to create a new '  +
+            'settings file, because the old one couldn\'t be read.',
+            caption='Default settings file created',
+            style=wx.OK)
+
+        dlg.ShowModal()
+
 
     def telnet_to(self, _):
         """Telnet to the selected device(s)"""
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='I can only telnet to 10 devices at a time \nPlease ' +
+                'select less than ten devices at once',
+                caption='How many telnets?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -376,12 +424,12 @@ class MainPanel(wx.Panel):
                 for obj in self.main_list.GetSelectedObjects():
                     self.telnet_to_queue.put([obj, 'telnet'])
             else:
-                dlg = wx.MessageDialog(parent=self, message='Could not find ' +
-                                      'telnet client \nPlease put ' + 
-                                      '%s in \n%s' % (self.telnet_client,
-                                       self.path),
-                                       caption='No %s' % self.telnet_client,
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self, message='Could not find ' +
+                    'telnet client \nPlease put ' + 
+                    '%s in \n%s' % (self.telnet_client, self.path),
+                    caption='No %s' % self.telnet_client,
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
             return
@@ -394,11 +442,12 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='I can only ssh to' +
+                ' 10 devices at a time \nPlease select less' +
+                ' than ten devices at once',
+                caption='How many ssh?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -408,12 +457,12 @@ class MainPanel(wx.Panel):
                 for obj in self.main_list.GetSelectedObjects():
                     self.telnet_to_queue.put([obj, 'ssh'])
             else:
-                dlg = wx.MessageDialog(parent=self, message='Could not find ' +
-                                      'telnet client \nPlease put ' + 
-                                      '%s in \n%s' % (self.telnet_client,
-                                       self.path),
-                                       caption='No %s' % self.telnet_client,
-                                       style=wx.OK)
+                dlg = wx.MessageDialog(
+                    parent=self, 
+                    message='Could not find telnet client \nPlease put ' + 
+                    '%s in \n%s' % (self.telnet_client, self.path),
+                    caption='No %s' % self.telnet_client,
+                    style=wx.OK)
                 dlg.ShowModal()
                 dlg.Destroy()
             return
@@ -427,23 +476,23 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected(): 
             return
         if len(self.main_list.GetSelectedObjects()) > 16:
-            dlg = wx.MessageDialog(parent=self, message='I can only graph 16' +
-                                   ' devices at a time \nPlease select less ' +
-                                   'than sixteen devices at once',
-                                   caption='How many graphs?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, message='I can only graph 16 devices at a time ' +
+                '\nPlease select less than sixteen devices at once',
+                caption='How many graphs?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
-        dlg = wx.MessageDialog(parent=self, message='Warning: MSE values may ' + 
-                               'intermittently show values at -5 or -6.\n\n' +
-                               'You can safely ignore these values.\n\nIf you '+
-                               'want to verify your MSE baseline please use ' +
-                               'the \"MSE baseline\" under the tools menu.',
-                               caption=('Warning MSE values may ' +
-                               'intermittently show low values '),
-                               style=wx.OK|
-                               wx.ICON_EXCLAMATION)
+
+        dlg = wx.MessageDialog(
+            parent=self, message='Warning: MSE values may intermittently ' +
+            'show values at -5 or -6.\n\nYou can safely ignore these values.' +
+            '\n\nIf you want to verify your MSE baseline please use the \"MSE' +
+            ' baseline\" under the tools menu.',
+            caption=('Warning MSE values may intermittently show low values '),
+            style=wx.OK|wx.ICON_EXCLAMATION)
+
         dlg.ShowModal()
         dlg.Destroy()
         for obj in self.main_list.GetSelectedObjects():
@@ -462,11 +511,12 @@ class MainPanel(wx.Panel):
         if self.check_for_none_selected():
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
-            dlg = wx.MessageDialog(parent=self, message='I can only telnet to' +
-                                  ' 10 devices at a time \nPlease select less' +
-                                  ' than ten devices at once',
-                                   caption='How many telnets?',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='I can only telnet to 10 devices at a time \nPlease ' +
+                'select less than ten devices at once',
+                caption='How many telnets?',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
@@ -505,7 +555,7 @@ class MainPanel(wx.Panel):
 
     def mse_rx_check(self, obj):
         """Checks if device is a RX"""
-        if obj.model[12:14] != 'RX' and obj.ip_address[:3] != "COM":
+        if obj.model not in self.dxrx_models and obj.ip_address[:3] != "COM":
             dlg = wx.MessageDialog(parent=self, message='This does not ' +
                                    'appear to be a RX device. You can only' +
                                    ' get MSE values from RX devices. Click ' +
@@ -544,9 +594,9 @@ class MainPanel(wx.Panel):
             return   
             
         self.ping_active = True
-        dia = multi_ping.MultiPing(self, self.main_list.GetSelectedObjects())
-        self.ping_window = dia
-        dia.Show()
+        self.ping_window = multi_ping.MultiPing(
+            self, self.main_list.GetSelectedObjects())
+        self.ping_window.Show()
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
@@ -602,7 +652,7 @@ class MainPanel(wx.Panel):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
-                                        self.telnet_timeout_seconds])
+                                       self.telnet_timeout_seconds])
         self.display_progress()
 
     def turn_on_leds(self, _):
@@ -620,34 +670,46 @@ class MainPanel(wx.Panel):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_off_leds', obj,
-                                      self.telnet_timeout_seconds])
+                                       self.telnet_timeout_seconds])
         self.display_progress()
 
     def send_commands(self, _):
         """Send commands to selected devices"""
         if self.check_for_none_selected():
             return
-        tx_devices = []
-        rx_devices = []
+        dxtx_devices = []
+        dxrx_devices = []
+        dxftx_devices = []
+        dxfrx_devices = []
         for obj in self.main_list.GetSelectedObjects():
-            if obj.model[12:14] == 'TX' or \
-               obj.model[12:14] == 'WP' or \
-               obj.model[12:15] == 'DWP'or \
-               obj.model[12:16] == 'MFTX':
-                tx_devices.append(obj)
-            elif obj.model[12:14] == 'RX':
-                rx_devices.append(obj)
+            if obj.model in self.dxtx_models:
+                dxtx_devices.append(obj)
+            elif obj.model in self.dxrx_models:
+                dxrx_devices.append(obj)
+            elif obj.model in self.dxftx_models:
+                dxftx_devices.append(obj)
+            elif obj.model in self.dxfrx_models:
+                dxfrx_devices.append(obj)
             else:
                 pass
-        if len(tx_devices) != 0:
-            dia = multi_send.MultiSendCommandConfig(self, tx_devices, 'tx')
+        if len(dxtx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxtx_devices, 'dxtx')
             dia.ShowModal()
             dia.Destroy()
-        if len(rx_devices) != 0:
-            dia = multi_send.MultiSendCommandConfig(self, rx_devices, 'rx')
+        if len(dxrx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxrx_devices, 'dxrx')
             dia.ShowModal()
             dia.Destroy()
-        if (len(tx_devices)+len(rx_devices)) == 0:
+        if len(dxftx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxftx_devices, 'dxftx')
+            dia.ShowModal()
+            dia.Destroy()
+        if len(dxfrx_devices) != 0:
+            dia = send_command.SendCommandConfig(self, dxfrx_devices, 'dxfrx')
+            dia.ShowModal()
+            dia.Destroy()
+        if (len(dxtx_devices) + len(dxrx_devices) + 
+                len(dxftx_devices) + len(dxfrx_devices)) == 0:
             dlg = wx.MessageDialog(parent=self, message='No DXLink Devices' +
                                    'Selected',
                                    caption='Cannot send commands',
@@ -659,28 +721,30 @@ class MainPanel(wx.Panel):
 
     def dump_pickle(self):
         """Saves list data to a file"""
-        pickle.dump(self.main_list.GetObjects(), open((self.path + 
-                                  'data_' + self.version + '.pkl'), 'wb'))
+        pickle.dump(self.main_list.GetObjects(), open(
+            (self.path + 'data_' + self.version + '.pkl'), 'wb'))
 
     def export_to_csv(self, _):
         """Store list items in a CSV file"""
         if self.check_for_none_selected():
             return
-        save_file_dialog = wx.FileDialog(self, message='Select file to add ' +
-                                       'devices to or create a new file',
-                                       defaultDir=self.path,
-                                       defaultFile="",
-                                       wildcard="CSV files (*.csv)|*.csv",
-                                       style=wx.SAVE)
+        save_file_dialog = wx.FileDialog(
+            self, 
+            message='Select file to add devices to or create a new file',
+            defaultDir=self.path,
+            defaultFile="",
+            wildcard="CSV files (*.csv)|*.csv",
+            style=wx.SAVE)
         if save_file_dialog.ShowModal() == wx.ID_OK:
             path = save_file_dialog.GetPath()
-            dlg = wx.ProgressDialog("Storing Device Information",
-                              "Storing Device Information",
-                              maximum=len(self.main_list.GetSelectedObjects()),
-                              parent=self,
-                              style=wx.PD_APP_MODAL
-                               | wx.PD_AUTO_HIDE
-                               | wx.PD_ELAPSED_TIME)
+            dlg = wx.ProgressDialog(
+                "Storing Device Information",
+                "Storing Device Information",
+                maximum=len(self.main_list.GetSelectedObjects()),
+                parent=self,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_ELAPSED_TIME)
             count = 0
             with open(path, 'ab') as store_file:
                 write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
@@ -699,8 +763,7 @@ class MainPanel(wx.Panel):
                             obj.gateway,
                             obj.subnet,
                             obj.master,
-                            obj.system
-                            ]
+                            obj.system]
                     
                     write_csv.writerow(data)
             self.dump_pickle()
@@ -727,21 +790,21 @@ class MainPanel(wx.Panel):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                               item[0],
-                               item[1],
-                               item[2],
-                               item[3],
-                               item[4],
-                               item[5],
-                               item[6],
-                               datetime.datetime.strptime((item[7]),
-                                            "%Y-%m-%d %H:%M:%S.%f"), 
-                               item[8],
-                               item[9],
-                               item[10],
-                               item[11],
-                               item[12]
-                              )
+                        item[0],
+                        item[1],
+                        item[2],
+                        item[3],
+                        item[4],
+                        item[5],
+                        item[6],
+                        datetime.datetime.strptime(
+                            (item[7]), "%Y-%m-%d %H:%M:%S.%f"), 
+                        item[8],
+                        item[9],
+                        item[10],
+                        item[11],
+                        item[12])
+
                     self.main_list.AddObject(data)
             self.dump_pickle()
 
@@ -764,20 +827,19 @@ class MainPanel(wx.Panel):
                 header = csv_data.next()
                 plot_object = []
                 data = Unit(
-                         '',
-                         '',
-                         '',
-                         '',
-                         header[7],
-                         header[6],
-                         header[5],
-                         '',
-                         '',
-                         '',
-                         '',
-                         '',
-                         ''
-                        )
+                    '',
+                    '',
+                    '',
+                    '',
+                    header[7],
+                    header[6],
+                    header[5],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '')
                 plot_object.append(data)
                 obj = plot_object[0]
                 row_count = (sum(1 for row in csv_data)-1)*-1
@@ -788,23 +850,22 @@ class MainPanel(wx.Panel):
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plot_object = []
-                data = [Unit(
-                         '',
-                         '',
-                         '',
-                         '',
-                         header[7],
-                         header[6],
-                         header[5],
-                         '',
-                         '',
-                         '',
-                         '',
-                         '',
-                         ''
-                        )
-                    ]
-                plot_object.append(data[0])
+                data = Unit(
+                    '',
+                    '',
+                    '',
+                    '',
+                    header[7],
+                    header[6],
+                    header[5],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '')
+
+                plot_object.append(data)
                 obj = plot_object[0]
                 self.mse_active_list.append(obj.mac_address)
                 for item in csv_data:
@@ -813,8 +874,8 @@ class MainPanel(wx.Panel):
                     for i in range(4):
                         data.append(item[i+1])
                         #print data
-                    mse_time = [datetime.datetime.strptime((item[0]), 
-                                                          '%H:%M:%S.%f'), data]
+                    mse_time = [datetime.datetime.strptime(
+                        (item[0]), '%H:%M:%S.%f'), data]
                     mse.append(mse_time)
                     mse.append(header[5])
                     mse.append(header[6])
@@ -827,12 +888,11 @@ class MainPanel(wx.Panel):
     def import_ip_list(self, _):
         """Imports a list of IP addresses"""
         open_file_dialog = wx.FileDialog(
-                                       self, message="Open IP List",
-                                       defaultDir=self.path,
-                                       defaultFile="",
-                                       wildcard="CSV files (*.csv)|*.csv",
-                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-                                       )
+            self, message="Open IP List",
+            defaultDir=self.path,
+            defaultFile="",
+            wildcard="CSV files (*.csv)|*.csv",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
         if open_file_dialog.ShowModal() == wx.ID_OK:
             self.main_list.DeleteAllItems()
@@ -840,20 +900,20 @@ class MainPanel(wx.Panel):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 item[0],
-                                 datetime.datetime.now(),
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' ',
-                                 ' '
-                                )
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        item[0],
+                        datetime.datetime.now(),
+                        '',
+                        '',
+                        '',
+                        '',
+                        '')
+
                     self.main_list.AddObject(data)
             self.dump_pickle()
             open_file_dialog.Destroy()
@@ -866,7 +926,7 @@ class MainPanel(wx.Panel):
         dia.ShowModal()
         dia.Destroy()
 
-    def generate_DGX_list(self, _):
+    def generate_dgx_list(self, _):
         """Generates a list of ip addresses"""
         dia = config_menus.DGXListGen(self)
         dia.ShowModal()
@@ -915,8 +975,8 @@ class MainPanel(wx.Panel):
         else:
             return
 
-    def make_unit(self, sender):
-        """ Takes a (hostname,mac,ip) and creates a new main list object"""
+    def incoming_packet(self, sender):
+        """Receives dhcp requests and adds them to objects to display"""
         data = Unit('',
                     sender[0],
                     '',
@@ -930,22 +990,20 @@ class MainPanel(wx.Panel):
                     '',
                     '',
                     '')
-        return data
 
-    def incoming_packet(self, sender):
-        """Receives dhcp requests with and adds them to objects to display"""
-        data = self.make_unit(sender)
-        self.parent.status_bar.SetStatusText(
-                                    data.arrival_time.strftime('%I:%M:%S%p') +
-                                    ' -- ' + data.hostname +
-                                    ' ' + data.ip_address +
-                                    ' ' + data.mac_address)
-        if self.amx_only_filter:
+        self.status_bar.SetStatusText(
+            data.arrival_time.strftime('%I:%M:%S%p') +
+            ' -- ' + data.hostname +
+            ' ' + data.ip_address +
+            ' ' + data.mac_address)
+
+        if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
+                self.main_list.SetFocus()
                 return
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
-            self.main_list.SetObjects([data])
+            self.main_list.AddObject(data)
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
@@ -958,9 +1016,11 @@ class MainPanel(wx.Panel):
                     data.subnet = obj.subnet
                     data.master = obj.master
                     data.system = obj.system
+                    if obj in selected_items:
+                        selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
-        #self.main_list.RepopulateList()
+
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()
@@ -970,35 +1030,62 @@ class MainPanel(wx.Panel):
         config = ConfigParser.RawConfigParser()
         try:  # read the settings file
             config.read((self.path + "settings.txt"))
-            self.master_address = (config.get('Settings', 
-                                  'default master address'))
-            self.device_number = (config.get('Settings', 
-                                 'default device number'))
-            self.default_dhcp = (config.getboolean('Settings', 
-                                'default enable DHCP'))
-            self.thread_number = (config.get('Settings', 
-                                 'number of threads'))
-            self.telnet_client = (config.get('Settings', 
-                                 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.get('Settings', 
-                                          'telnet timeout in seconds'))
-            self.displaysuccess = (config.getboolean('Settings', 
-                              'display notification of successful connections'))
-            self.dhcp_sniffing = (config.getboolean('Settings', 
-                                 'DHCP sniffing enabled'))
-            self.amx_only_filter = (config.getboolean('Settings', 
-                                   'filter incoming DHCP for AMX only'))
-            self.play_sounds = (config.getboolean('Settings', 
-                               'play sounds'))
+            self.master_address = (config.get(
+                'Settings', 'default master address'))
+            self.device_number = (config.get(
+                'Settings', 'default device number'))
+            self.default_dhcp = (config.getboolean(
+                'Settings', 'default enable DHCP'))
+            self.thread_number = (config.get(
+                'Settings', 'number of threads'))
+            self.telnet_client = (config.get(
+                'Settings', 'telnet client executable'))
+            self.telnet_timeout_seconds = (config.get(
+                'Settings', 'telnet timeout in seconds'))
+            self.displaysuccess = (config.getboolean(
+                'Settings', 'display notification of successful connections'))
+            self.dhcp_sniffing = (config.getboolean(
+                'Settings', 'DHCP sniffing enabled'))
+            self.amx_only_filter = (config.getboolean(
+                'Settings', 'filter incoming DHCP for AMX only'))
+            self.play_sounds = (config.getboolean(
+                'Settings', 'play sounds'))
             self.columns_config = (config.get('Config', 'columns_config'))
+            for item in config.get(
+                    'Config', 'DXLink TX Models').split(','):
+                self.dxtx_models.append(item.strip())
+                for item in self.dxtx_models_default.split(','):
+                    if item.strip() not in self.dxtx_models:
+                        self.dxtx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink RX Models').split(','):
+                self.dxrx_models.append(item.strip())
+                for item in self.dxrx_models_default.split(','):
+                    if item.strip() not in self.dxrx_models:
+                        self.dxrx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink Fibre TX Models').split(','):
+                self.dxftx_models.append(item.strip())
+                for item in self.dxtx_models_default.split(','):
+                    if item.strip() not in self.dxftx_models:
+                        self.dxftx_models.append(item.strip())
+            for item in config.get(
+                    'Config', 'DXLink Fibre RX Models').split(','):
+                self.dxfrx_models.append(item.strip())
+                for item in self.dxrx_models_default.split(','):
+                    if item.strip() not in self.dxfrx_models:
+                        self.dxfrx_models.append(item.strip())
+            
         except (ConfigParser.Error, IOError):   
             # Make a new settings file, because we couldn't read the old one
             self.create_config_file()
             self.read_config_file()
         return
 
+
     def create_config_file(self):
-        """Creates a new config file"""
+        """Creates a new config file""" 
+        self.config_fail = True             
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         try:
@@ -1022,12 +1109,20 @@ class MainPanel(wx.Panel):
         config.set('Settings', 'filter incoming DHCP for AMX only', False)
         config.set('Settings', 'play sounds', True)
         config.add_section('Config')
-        config.set('Config', 'Columns are with a 1 are displayed. ', 
-                             'Unless you know what your doing, ' + 
-                             'please change these in the application')
+        config.set('Config', 
+                   'Columns with a 1 are displayed. ', 
+                   'Unless you know what your doing, ' + 
+                   'please change these in the application')
         config.set('Config', 'columns_config', '11111111110')
+        config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
+        config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
+        config.set(
+            'Config', 'DXLink Fibre TX Models', self.dxftx_models_default)
+        config.set(
+            'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
+
 
     def write_config_file(self):
         """Update values in config file"""
@@ -1039,12 +1134,12 @@ class MainPanel(wx.Panel):
         config.set('Settings', 'number of threads', self.thread_number)
         config.set('Settings', 'telnet client executable', self.telnet_client)
         config.set('Settings', 'telnet timeout in seconds', 
-                    self.telnet_timeout_seconds)
+                   self.telnet_timeout_seconds)
         config.set('Settings', 'display notification of successful connections',
-                    self.displaysuccess)
+                   self.displaysuccess)
         config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
         config.set('Settings', 'filter incoming DHCP for AMX only', 
-                    self.amx_only_filter)
+                   self.amx_only_filter)
         config.set('Settings', 'play sounds', self.play_sounds)
         config.set('Config', 'columns_config', self.columns_config)
         with open((self.path + "settings.txt"), 'w') as configfile:
@@ -1052,13 +1147,13 @@ class MainPanel(wx.Panel):
 
     def set_title_bar(self):
         """Sets title bar text"""
-        self.parent.SetTitle(self.name + " " + self.version)
+        self.SetTitle(self.name + " " + self.version)
 
     def configure_device(self, _):
         """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
             return
-
+        self.configure_list = []
         for obj in self.main_list.GetSelectedObjects():
             self.configure_list.append(obj)
             dia = config_menus.DeviceConfig(self, obj)
@@ -1084,8 +1179,8 @@ class MainPanel(wx.Panel):
         """Loads main list from data file"""
         if os.path.exists(self.path + 'data_' + self.version + '.pkl'):
             try:
-                with open((self.path + 'data_' + self.version + 
-                                                    '.pkl'), 'rb') as data_file:
+                with open((self.path + 'data_' + self.version + '.pkl'),
+                          'rb')  as data_file:
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
             except (IOError, KeyError):
@@ -1117,29 +1212,36 @@ class MainPanel(wx.Panel):
                 panel_width = panel_width + columns_width[i]
         if panel_width < 400:
             panel_width = 400
-        self.parent.SetSize((panel_width, 600))
+        self.SetSize((panel_width, 600))
 
     def update_status_bar(self):
         """Updates the status bar."""
-        self.parent.status_bar.SetFieldsCount(4)
-        master_width = wx.ClientDC(self.parent.status_bar).\
+        self.status_bar.SetFieldsCount(4)
+        master_width = wx.ClientDC(self.status_bar).\
                        GetTextExtent(self.master_address)[0] + 0
-        device_width = wx.ClientDC(self.parent.status_bar).\
+        device_width = wx.ClientDC(self.status_bar).\
                        GetTextExtent(self.device_number)[0] + 0
-        self.parent.status_bar.SetStatusWidths([-1, master_width, \
+        self.status_bar.SetStatusWidths([-1, master_width, \
                                                 device_width, 30])
-        self.parent.status_bar.SetStatusText(self.master_address, 1)
-        self.parent.status_bar.SetStatusText(self.device_number, 2)
+        self.status_bar.SetStatusText(self.master_address, 1)
+        self.status_bar.SetStatusText(self.device_number, 2)
 
     def on_close(self, _):
         """Close program if user closes window"""
-        self.parent.Hide()
+        self.dhcp_listener.shutdown = True
+        self.ping_active = False
+        self.dump_pickle()
+        self.Hide()
         if self.ping_window != None:
             self.ping_window.Hide()
-        self.ping_active = False
+       
         self.mse_active_list = []
         self.telnet_job_queue.join()
-        self.parent.Destroy()
+        self.Destroy()
+
+    def on_quit(self, _):
+        """Save list and close the program""" 
+        self.on_close(None)
 
     def on_about_box(self, _):
         """Show the About information"""
@@ -1193,242 +1295,10 @@ SOFTWARE."""
         dlg.Destroy()
 
 
-########################################################################
-class MainFrame(wx.Frame):
-    #----------------------------------------------------------------------
-    def __init__(self):
-
-        self.title_text = "Starting up"
-        wx.Frame.__init__(self, parent=None, id=wx.ID_ANY, 
-                          title=self.title_text, size=(1100, 600))
-
-        icon_bundle = wx.IconBundle()
-        icon_bundle.AddIconFromFile(r"icon\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
-        self.SetIcons(icon_bundle)
-        #self.SetIcon(icon.MDC_icon.GetIcon())
-
-        menubar = wx.MenuBar()
-        self.status_bar = self.CreateStatusBar()
-
-        self.panel = MainPanel(self)
-
-        file_menu = wx.Menu()
-
-        import_menu = wx.Menu()
-        iitem = import_menu.Append(wx.ID_ANY, 'Import from a CSV', \
-                                              'Import from a CSV')
-        self.Bind(wx.EVT_MENU, self.panel.import_csv_file, iitem)
-
-        iitem = import_menu.Append(wx.ID_ANY, 'Import IP list', \
-                                              'Import IP list')
-        self.Bind(wx.EVT_MENU, self.panel.import_ip_list, iitem)
-
-        iitem = import_menu.Append(wx.ID_ANY, 'Import Plot', 'Import Plot')
-        self.Bind(wx.EVT_MENU, self.panel.import_plot, iitem)
-
-        export_menu = wx.Menu()
-        eitem = export_menu.Append(wx.ID_ANY, 'Export to a CSV File', \
-                                 'Export to a CSV file')
-        self.Bind(wx.EVT_MENU, self.panel.export_to_csv, eitem)
-
-        menubar.Append(file_menu, '&File')
-        file_menu.AppendMenu(wx.ID_ANY, 'Import', import_menu)
-        file_menu.AppendMenu(wx.ID_ANY, 'Export', export_menu)
-
-        fitem = file_menu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
-        self.Bind(wx.EVT_MENU, self.on_quit, fitem)
-
-        edit_menu = wx.Menu()
-
-        select_menu = wx.Menu()
-        sitem = select_menu.Append(wx.ID_ANY, 'Select All', 'Select All')
-        self.Bind(wx.EVT_MENU, self.panel.on_select_all, sitem)
-
-        sitem = select_menu.Append(wx.ID_ANY, 'Select None', 'Select None')
-        self.Bind(wx.EVT_MENU, self.panel.on_select_none, sitem)
-
-        menubar.Append(edit_menu, '&Edit')
-        edit_menu.AppendMenu(wx.ID_ANY, 'Select', select_menu)
-
-        eitem = edit_menu.Append(wx.ID_ANY, 'Preferences', 'Preferences')
-        self.Bind(wx.EVT_MENU, self.panel.configure_prefs, eitem)
-
-        action_menu = wx.Menu()
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Update device information', \
-                                   'Update details from selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.get_config_info, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Configure Device', \
-                                   'Configure Devices Connection')
-        self.Bind(wx.EVT_MENU, self.panel.configure_device, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Telnet to Device', \
-                                   'Launch a telnet connetion to Device')
-        self.Bind(wx.EVT_MENU, self.panel.telnet_to, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'SSH to Device', \
-                                   'Launch a SSH connetion to Device')
-        self.Bind(wx.EVT_MENU, self.panel.ssh_to, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Send Commands', 'Send Commands')
-        self.Bind(wx.EVT_MENU, self.panel.send_commands, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Reset Factory', \
-                                   'Reset selected devices to factory settings')
-        self.Bind(wx.EVT_MENU, self.panel.reset_factory, aitem)
-
-        aitem = action_menu.Append(wx.ID_ANY, 'Reboot Device', \
-                                   'Reboot selected devices')
-        self.Bind(wx.EVT_MENU, self.panel.reboot, aitem)
-
-        menubar.Append(action_menu, '&Actions')
-
-        tools_menu = wx.Menu()
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Ping devices', 'Ping devices')
-        self.Bind(wx.EVT_MENU, self.panel.multi_ping, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'MSE Baseline', 'MSE Baseline')
-        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Plot MSE', 'Plot MSE')
-        self.Bind(wx.EVT_MENU, self.panel.plot_mse, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Add a line item', 'Add a line')
-        self.Bind(wx.EVT_MENU, self.panel.add_line, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Generate IP List', \
-                                             'Generate IP List')
-        self.Bind(wx.EVT_MENU, self.panel.generate_list, titem)
-
-        titem = tools_menu.Append(wx.ID_ANY, 'Generate DGX List', \
-                                             'Generate DGX List')
-        self.Bind(wx.EVT_MENU, self.panel.generate_DGX_list, titem)
-
-        menubar.Append(tools_menu, 'Tools')
-
-        identify_menu = wx.Menu()
-
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn on LED\'s', \
-                                                'Turn on LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_on_leds, iitem)
-
-        iitem = identify_menu.Append(wx.ID_ANY, 'Turn off LED\'s', \
-                                                'Turn off LED')
-        self.Bind(wx.EVT_MENU, self.panel.turn_off_leds, iitem)
-
-        menubar.Append(identify_menu, 'Identify')
-
-        listen_menu = wx.Menu()
-
-
-        self.listen_dhcp = listen_menu.AppendCheckItem(wx.ID_ANY, \
-                                                   "Listen for DHCP requests", \
-                                                   "Listen for DHCP requests")
-
-        self.Bind(wx.EVT_MENU, self.panel.toggle_dhcp_sniffing, 
-                  self.listen_dhcp)
-        self.listen_dhcp.Check(self.panel.dhcp_sniffing)
-
-        self.listen_filter = listen_menu.AppendCheckItem(wx.ID_ANY, \
-                                           "Filter AMX devices DHCP requests", \
-                                           "Filter AMX devices DHCP requests")
-
-        self.Bind(wx.EVT_MENU, self.panel.toggle_filter_amx, self.listen_filter)
-        self.listen_filter.Check(self.panel.amx_only_filter)
-
-        menubar.Append(listen_menu, 'Listen')
-
-        delete_menu = wx.Menu()
-        ditem = delete_menu.Append(wx.ID_ANY, '&Delete Item', 'Delete Item')
-        self.Bind(wx.EVT_MENU, self.panel.delete_item, ditem)
-
-        ditem = delete_menu.Append(wx.ID_ANY, '&Delete All Items', \
-                                   'Delete All Items')
-        self.Bind(wx.EVT_MENU, self.panel.delete_all_items, ditem)
-
-        menubar.Append(delete_menu, '&Delete')
-
-        help_menu = wx.Menu()
-        hitem = help_menu.Append(wx.ID_ANY, 'About', 'About')
-        self.Bind(wx.EVT_MENU, self.panel.on_about_box, hitem)
-
-        #hitem = help_menu.Append(wx.ID_ANY, 'Beer', 'Beer')
-        #self.Bind(wx.EVT_MENU, self.panel.on_beer_box, hitem)
-
-        menubar.Append(help_menu, '&Help')
-
-        self.SetMenuBar(menubar)
-        self.Bind(wx.EVT_CLOSE, self.panel.on_close)
-        self.Center()
-
-        if self.panel.port_error:
-            self.panel.port_errors()
-
-    def on_right_click(self, _):
-        """Build a right click menu"""
-
-        rc_menu = wx.Menu()
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Update device information')
-        self.Bind(wx.EVT_MENU, self.panel.get_config_info, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Configure Device')
-        self.Bind(wx.EVT_MENU, self.panel.configure_device, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Send Commands')
-        self.Bind(wx.EVT_MENU, self.panel.send_commands, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Reset Factory')
-        self.Bind(wx.EVT_MENU, self.panel.reset_factory, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Delete')
-        self.Bind(wx.EVT_MENU, self.panel.delete_item, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Telnet to Device')
-        self.Bind(wx.EVT_MENU, self.panel.telnet_to, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'FactoryAV')
-        self.Bind(wx.EVT_MENU, self.panel.factory_av, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Reboot Device')
-        self.Bind(wx.EVT_MENU, self.panel.reboot, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'MSE Baseline')
-        self.Bind(wx.EVT_MENU, self.panel.mse_baseline, rcitem)
-
-        rcitem = rc_menu.Append(wx.ID_ANY, 'Open device in webbrowser')
-        self.Bind(wx.EVT_MENU, self.panel.open_url, rcitem)
-
-        self.PopupMenu(rc_menu)
-        rc_menu.Destroy()
-
-    def on_quit(self, _):
-        """Save list and close the program"""
-        self.panel.dump_pickle()
-        self.Close()
-
-
-########################################################################
-'''class GenApp(wx.App):
-
-    #----------------------------------------------------------------------
-    def __init__(self, redirect=False, filename=None):
-        wx.App.__init__(self, redirect, filename)
-
-    #----------------------------------------------------------------------
-    def OnInit(self):
-        # create frame here
-        frame = MainFrame()
-        frame.Show()
-        return True'''
-
 def show_splash():
     """create, show and return the splash screen"""
     bitmap = wx.Bitmap('media/splash.jpg')
-    splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN|
-                                wx.SPLASH_TIMEOUT, 1700, None, -1)
+    splash = wx.SplashScreen(bitmap, wx.SPLASH_CENTRE_ON_SCREEN, 1700, None, -1)
     splash.Show()
     return splash
 
@@ -1439,25 +1309,13 @@ def main():
 
 
     # do processing/initialization here and create main window
-    dxlink_frame = MainFrame()
-    time.sleep(1)
+    dxlink_frame = MainFrame(None)
     dxlink_frame.Show()
-
-    #splash.Destroy()
+    splash.Destroy()
+    
+    if dxlink_frame.config_fail == True:
+        dxlink_frame.config_fail_dia()
     dxlink_configurator.MainLoop()
 
 if __name__ == '__main__':
     main()
-
-
-
-#----------------------------------------------------------------------
-'''def main():
-
-    app = GenApp()
-    app.MainLoop()
-
-# Run the program
-if __name__ == "__main__":
-    main()
-'''

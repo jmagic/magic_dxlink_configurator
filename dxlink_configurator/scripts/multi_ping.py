@@ -6,6 +6,8 @@ from ObjectListView import ObjectListView, ColumnDefn
 import datetime
 import csv
 import os
+import time
+from scripts import mdc_gui
 
 class PingUnit(object):
     """
@@ -37,7 +39,49 @@ class Ping_Data_Unit(object):
         self.ping_time = ping_time
         self.ms_delay = ms_delay
         self.success = success
-        
+
+class PingDetail(mdc_gui.PingDetail):
+    def __init__(self, parent, device_object):
+        mdc_gui.PingDetail.__init__(self, parent)
+
+        self.detail_list = ObjectListView(self.olv_panel, wx.ID_ANY,  
+                                        style=wx.LC_REPORT |
+                                        wx.SUNKEN_BORDER)
+
+        self.detail_list.SetColumns(
+            [ColumnDefn("Time", "center", 180, "ping_time", 
+                        stringConverter="%d-%m-%Y %H:%M:%S.%f"),
+             ColumnDefn("ms Delay", "center", 80, "ms_delay"),
+             ColumnDefn("Success", "center", 80, "success")])  
+        self.olv_sizer.Add(self.detail_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()  
+        self.SetTitle("Details View for " + device_object.ip_address) 
+        self.device_object = device_object
+        self.detail_list.SetObjects(device_object.ping_data) 
+
+        self.auto_update = self.auto_update_chk.GetValue()
+        self.redraw_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_update_list, self.redraw_timer)
+        if self.auto_update:
+            self.redraw_timer.Start(1000)
+
+    def on_update_list(self, _):
+        self.detail_list.SetObjects(self.device_object.ping_data)
+
+    def on_refresh(self, _):
+        self.detail_list.SetObjects(self.device_object.ping_data)
+
+    def on_auto_update(self, _):
+        self.auto_update = not self.auto_update
+        self.auto_update_chk.SetValue(self.auto_update)
+        if self.auto_update:
+            self.redraw_timer.Start(1000)
+        else:
+            self.redraw_timer.Stop()
+
+
+
+
 class DetailsView(wx.Dialog):
     
     def __init__(self, parent, device_object):
@@ -55,16 +99,14 @@ class DetailsView(wx.Dialog):
                                         style=wx.LC_REPORT|
                                         wx.SUNKEN_BORDER|
                                         wx.RESIZE_BORDER)
-        self.ping_list.SetColumns([ColumnDefn("Time", "center", 180, 
-                           "ping_time", stringConverter="%d-%m-%Y %H:%M:%S.%f"),
-                                   ColumnDefn("ms Delay", "center", 80,
-                                                                    "ms_delay"),
-                                   ColumnDefn("Success", "center", 80, 
-                                                                     "success"),
-                                   ])
+        self.ping_list.SetColumns(
+            [ColumnDefn("Time", "center", 180, "ping_time", 
+                        stringConverter="%d-%m-%Y %H:%M:%S.%f"),
+             ColumnDefn("ms Delay", "center", 80, "ms_delay"),
+             ColumnDefn("Success", "center", 80, "success")])
+
         bsizer121.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 5)
         bsizer1.Add(bsizer121, 0, wx.EXPAND, 5)
-        
                
         self.SetSizer(bsizer1)
         self.Layout()
@@ -79,48 +121,27 @@ class DetailsView(wx.Dialog):
         self.ping_list.SetObjects(device_object.ping_data)        
         
         
-class MultiPing(wx.Dialog):
-    
+class MultiPing(mdc_gui.MultiPing):
     def __init__(self, parent, device_list):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 
-                           pos=wx.DefaultPosition, size=wx.Size(710, 550), 
-                           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+        mdc_gui.MultiPing.__init__(self, parent)
+
         
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
-        
-        bsizer1 = wx.BoxSizer(wx.VERTICAL)        
-        bsizer121 = wx.BoxSizer(wx.VERTICAL)
-        
-        self.ping_list = ObjectListView(self, wx.ID_ANY, size=wx.Size(-1, 500), 
+        self.ping_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                         style=wx.LC_REPORT|
-                                        wx.SUNKEN_BORDER|
-                                        wx.RESIZE_BORDER)
-        self.ping_list.SetColumns([ColumnDefn("IP", "center", 100,
-                                                                  "ip_address"),
-                                   ColumnDefn("MAC", "center", 130, 
-                                                                 "mac_address"),
-                                   ColumnDefn("Hostname", "center", 130, 
-                                                                    "hostname"),
-                                   ColumnDefn("Serial", "center", 150, 
-                                                                     "serial"),
-                                   ColumnDefn("Successful Pings", "center", 80,
-                                                                     "success"),
-                                   ColumnDefn("Failed Pings", "center", 80, 
-                                                                      "failed"),
-                                   ])
-        self.ping_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click)  
-        bsizer121.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 5)
-        bsizer1.Add(bsizer121, 0, wx.EXPAND, 5)
+                                        wx.SUNKEN_BORDER)
+        self.ping_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
+                            self.MultiPingOnContextMenu)
+        self.ping_list.SetColumns(
+            [ColumnDefn("IP", "center", 100, "ip_address"),
+             ColumnDefn("MAC", "center", 130, "mac_address"),
+             ColumnDefn("Hostname", "center", 130, "hostname"),
+             ColumnDefn("Serial", "center", 150, "serial"),
+             ColumnDefn("Successful Pings", "center", 90, "success"),
+             ColumnDefn("Failed Pings", "center", 80, "failed"),])
         
-               
-        self.SetSizer(bsizer1)
-        self.Layout()
-        
-        self.Centre(wx.BOTH)
+        self.olv_sizer.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()
 
-
-        #------------------------------ Done with wxFormBuilder  
-           
         self.parent = parent
         self.SetTitle("Multiple Ping Monitor")
         self.ping_objects = []
@@ -129,24 +150,23 @@ class MultiPing(wx.Dialog):
         self.log_files = {}
 
         for obj in device_list:
-            self.parent.telnet_job_queue.put(['ping', obj, 
-                                            self.parent.telnet_timeout_seconds])
+            self.parent.telnet_job_queue.put(
+                ['ping', obj, self.parent.telnet_timeout_seconds])
             
         for obj in self.ping_objects:
-            self.log_files[obj]=('device_' + obj.ip_address + '_time_' + 
-                                   datetime.datetime.now().strftime('%H_%M_%S') +
-                                   '.csv')
-        #print self.log_files  
+            self.log_files[obj] = (
+                'device_' + 
+                obj.ip_address + 
+                '_time_' + 
+                datetime.datetime.now().strftime('%H_%M_%S') + 
+                '.csv')
             
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        dispatcher.connect(self.on_incoming_ping, 
-                                signal="Incoming Ping", sender=dispatcher.Any)
-        
-        #print self.timer.IsRunning()
-        
-    #----------------------------------------------------------------------
+        dispatcher.connect(
+            self.on_incoming_ping, 
+            signal="Incoming Ping", 
+            sender=dispatcher.Any)
 
- 
     def on_redraw_timer(self, _):
         """Refresh objects when timer expires"""
         self.ping_list.RefreshObject(self.ping_objects)
@@ -156,23 +176,20 @@ class MultiPing(wx.Dialog):
         for obj in device_list:
             
             data = [PingUnit(
-                             [],
-                             obj.hostname,
-                             obj.serial,
-                             obj.ip_address,
-                             obj.mac_address
-                            )]
+                [],
+                obj.hostname,
+                obj.serial,
+                obj.ip_address,
+                obj.mac_address)]
             self.ping_objects.append(data[0])
             
     
     def set_ping_data(self, ping_info):
         """Makes a ping data unit"""
-        data = [Ping_Data_Unit(
-                               ping_info[0],  #.strftime('%H:%M:%S.%f')
-                               ping_info[1],
-                               ping_info[2],
-                              )]
-        return data[0]
+        return Ping_Data_Unit(
+            ping_info[0],  #.strftime('%H:%M:%S.%f')
+            ping_info[1],
+            ping_info[2])
         
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
@@ -211,10 +228,10 @@ class MultiPing(wx.Dialog):
         self.Destroy()
         
         
-    def show_details(self, _):
+    def on_show_details(self, _):
         """Show the details of the pings to this device"""        
         for obj in self.ping_list.GetSelectedObjects():
-            dia = DetailsView(self, obj)
+            dia = PingDetail(self, obj)
             dia.Show()
         
         
