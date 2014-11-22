@@ -1234,7 +1234,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.Hide()
         if self.ping_window != None:
             self.ping_window.Hide()
-        
+       
         self.mse_active_list = []
         self.telnet_job_queue.join()
         self.Destroy()
