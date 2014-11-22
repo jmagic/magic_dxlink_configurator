@@ -2,6 +2,7 @@
 
 import wx
 import csv
+import unit_class
 from scripts import mdc_gui
 
 class PreferencesConfig(mdc_gui.Preferences):
@@ -163,99 +164,14 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.Destroy()
 
 
-class IpListGen(wx.Dialog):
+class IpListGen(mdc_gui.GenerateIP):
     def __init__(self, parent):
-
-        wx.Dialog.__init__(self, parent=parent, id=wx.ID_ANY)
+        mdc_gui.GenerateIP.__init__(self, parent)
 
         self.parent = parent
 
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
-
-        bsizer1 = wx.BoxSizer(wx.VERTICAL)
-
-        bsizer2 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer5 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_statictext1 = wx.StaticText(self, wx.ID_ANY, u"Starting IP", 
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext1.Wrap(-1)
-        bsizer5.Add(self.m_statictext1, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-
-        bsizer2.Add(bsizer5, 0, wx.EXPAND, 5)
-
-        bsizer6 = wx.BoxSizer(wx.VERTICAL)
-
-        self.start_ip = wx.TextCtrl(self, wx.ID_ANY, self.parent.master_address,
-                                    wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer6.Add(self.start_ip, 0, wx.ALL|wx.EXPAND, 5)
-
-
-        bsizer2.Add(bsizer6, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer2, 0, wx.EXPAND, 5)
-
-        bsizer3 = wx.BoxSizer(wx.HORIZONTAL)
-
-        bsizer7 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.m_statictext2 = wx.StaticText(self, wx.ID_ANY, u"Finishing IP",
-                                           wx.DefaultPosition, 
-                                           wx.DefaultSize, 0)
-        self.m_statictext2.Wrap(-1)
-        bsizer7.Add(self.m_statictext2, 0, wx.ALL, 5)
-
-
-        bsizer3.Add(bsizer7, 0, wx.ALIGN_CENTER_VERTICAL, 5)
-
-        bsizer8 = wx.BoxSizer(wx.VERTICAL)
-
-        self.finish_ip = wx.TextCtrl(self, wx.ID_ANY, 
-                                     self.parent.master_address, 
-                                     wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer8.Add(self.finish_ip, 1, wx.ALL|wx.EXPAND, 5)
-
-
-        bsizer3.Add(bsizer8, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer3, 0, wx.EXPAND, 5)
-
-        bsizer4 = wx.BoxSizer(wx.VERTICAL)
-
-        bsizer9 = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.replace = wx.Button(self, wx.ID_ANY, u"Replace List", 
-                                 wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer9.Add(self.replace, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_replace, self.replace)
-
-        self.add = wx.Button(self, wx.ID_ANY, u"Add to List", 
-                             wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer9.Add(self.add, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_add, self.add)
-
-        self.save = wx.Button(self, wx.ID_ANY, u"Save as File", 
-                              wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer9.Add(self.save, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_save, self.save)
-
-
-        bsizer4.Add(bsizer9, 1, wx.EXPAND, 5)
-
-
-        bsizer1.Add(bsizer4, 1, wx.EXPAND, 5)
-
-
-        self.SetSizer(bsizer1)
-        self.Layout()
-        bsizer1.Fit(self)
-
-        self.Centre(wx.BOTH)
+        self.start_txt.SetLabel(self.parent.master_address)
+        self.finish_txt.SetLabel(self.parent.master_address)
 
         self.data = []
 
@@ -271,8 +187,7 @@ class IpListGen(wx.Dialog):
         """Adds to the bottom of the list"""
         self.gen_list()
         for item in self.data:
-            self.parent.main_list.AddObject(self.parent.make_unit(
-                                            ('', '', str(item))))
+            self.parent.create_add_unit(ip_ad=str(item))
         self.parent.dump_pickle()
         self.Destroy()
 
@@ -300,14 +215,14 @@ class IpListGen(wx.Dialog):
         self.data = []
         count = 0
         #try: Later
-        start = str(self.start_ip.GetValue())
+        start = str(self.start_txt.GetValue())
         start = start.split('.')[3]
-        finish = str(self.finish_ip.GetValue())
+        finish = str(self.finish_txt.GetValue())
         finish = finish.split('.')[3]
         for _ in range(int(start), (int(finish)+1)):
-            ip_gen = (self.start_ip.GetValue().split('.')[0] + "." +
-                      self.start_ip.GetValue().split('.')[1] + "." +
-                      self.start_ip.GetValue().split('.')[2] + "." +
+            ip_gen = (self.start_txt.GetValue().split('.')[0] + "." +
+                      self.start_txt.GetValue().split('.')[1] + "." +
+                      self.start_txt.GetValue().split('.')[2] + "." +
                       str(int(start)  + count))
             self.data.append(ip_gen)
             count += 1

@@ -48,7 +48,6 @@ except ImportError:
 
 
 
-########################################################################
 class Unit(object):
     """
     Model of the Unit
@@ -58,8 +57,9 @@ class Unit(object):
     subnet, master, system
     """
     #----------------------------------------------------------------------
-    def __init__(self,  model, hostname, serial ,firmware, device, mac, ip_ad, \
-                 arrival_time, ip_type, gateway, subnet, master, system):
+    def __init__(self,  model='', hostname='', serial='' ,firmware='', 
+                 device='', mac='', ip_ad='', arrival_time='', ip_type='', 
+                 gateway='', subnet='', master='', system=''):
 
         self.model = model
         self.hostname = hostname
@@ -75,8 +75,6 @@ class Unit(object):
         self.master = master
         self.system = system
 
-
-#class MainPanel(wx.Panel):
 
 class MainFrame(mdc_gui.MainFrame):
     def __init__(self, parent):
@@ -206,6 +204,7 @@ class MainFrame(mdc_gui.MainFrame):
                            signal="Collect Errors", 
                            sender=dispatcher.Any)
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
+
     #----------------------------------------------------------------------
 
     def on_key_down(self, event):
@@ -790,20 +789,20 @@ class MainFrame(mdc_gui.MainFrame):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                        item[0],
-                        item[1],
-                        item[2],
-                        item[3],
-                        item[4],
-                        item[5],
-                        item[6],
-                        datetime.datetime.strptime(
+                        model=item[0],
+                        hostname=item[1],
+                        serial=item[2],
+                        firmware=item[3],
+                        device=item[4],
+                        mac=item[5],
+                        ip_ad=item[6],
+                        arrival_time=datetime.datetime.strptime(
                             (item[7]), "%Y-%m-%d %H:%M:%S.%f"), 
-                        item[8],
-                        item[9],
-                        item[10],
-                        item[11],
-                        item[12])
+                        ip_type=item[8],
+                        gateway=item[9],
+                        subnet=item[10],
+                        master=item[11],
+                        system=item[12])
 
                     self.main_list.AddObject(data)
             self.dump_pickle()
@@ -826,20 +825,7 @@ class MainFrame(mdc_gui.MainFrame):
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plot_object = []
-                data = Unit(
-                    '',
-                    '',
-                    '',
-                    '',
-                    header[7],
-                    header[6],
-                    header[5],
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '')
+                data = Unit(device=header[7], mac=header[6], ip_ad=header[5])
                 plot_object.append(data)
                 obj = plot_object[0]
                 row_count = (sum(1 for row in csv_data)-1)*-1
@@ -850,21 +836,7 @@ class MainFrame(mdc_gui.MainFrame):
                 csv_data = csv.reader(csvfile)
                 header = csv_data.next()
                 plot_object = []
-                data = Unit(
-                    '',
-                    '',
-                    '',
-                    '',
-                    header[7],
-                    header[6],
-                    header[5],
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '')
-
+                data = Unit(device=header[7], mac=header[6], ip_ad=header[5])
                 plot_object.append(data)
                 obj = plot_object[0]
                 self.mse_active_list.append(obj.mac_address)
@@ -900,19 +872,8 @@ class MainFrame(mdc_gui.MainFrame):
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        '',
-                        item[0],
-                        datetime.datetime.now(),
-                        '',
-                        '',
-                        '',
-                        '',
-                        '')
+                        ip_ad=item[0],
+                        arrival_time=datetime.datetime.now())
 
                     self.main_list.AddObject(data)
             self.dump_pickle()
@@ -934,20 +895,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def add_line(self, _):
         """Adds a line to the main list"""
-        data = Unit(' ',
-                    ' ',
-                    ' ',
-                    ' ',
-                    ' ',
-                    ' ',
-                    ' ',
-                    datetime.datetime.now(),
-                    ' ',
-                    ' ',
-                    ' ',
-                    ' ',
-                    ' '
-                   )
+        data = Unit(arrival_time=datetime.datetime.now())
         self.main_list.AddObject(data)
         self.dump_pickle()
 
@@ -975,24 +923,41 @@ class MainFrame(mdc_gui.MainFrame):
         else:
             return
 
+    def create_add_unit(self, model='', hostname='', serial='' ,firmware='', 
+                        device='', mac='', ip_ad='', arrival_time='',
+                        ip_type='', gateway='', subnet='', master='',
+                        system=''):
+        """Creates and adds a unit"""
+        data = Unit(
+            model=model,
+            hostname=hostname,
+            serial=serial,
+            firmware=firmware,
+            device=device,
+            mac=mac,
+            ip_ad=ip_ad,
+            arrival_time=datetime.datetime.now(), 
+            ip_type=ip_type,
+            gateway=gateway,
+            subnet=subnet,
+            master=master,
+            system=system)
+        self.main_list.AddObject(data)
+        self.dump_pickle()
+        return data
+   
+
     def incoming_packet(self, sender):
         """Receives dhcp requests and adds them to objects to display"""
-        data = Unit('',
-                    sender[0],
-                    '',
-                    '',
-                    '',
-                    sender[1],
-                    sender[2],
-                    datetime.datetime.now(),
-                    '',
-                    '',
-                    '',
-                    '',
-                    '')
+        incoming_time = datetime.datetime.now()
+        data = self.create_add_unit(
+            hostname=sender[0],
+            mac=sender[1],
+            ip_ad=sender[2],
+            arrival_time=incoming_time)
 
         self.status_bar.SetStatusText(
-            data.arrival_time.strftime('%I:%M:%S%p') +
+            incoming_time.strftime('%I:%M:%S%p') +
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)

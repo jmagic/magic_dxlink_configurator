@@ -756,3 +756,94 @@ class DeviceConfiguration ( wx.Dialog ):
 		event.Skip()
 	
 
+###########################################################################
+## Class GenerateIP
+###########################################################################
+
+class GenerateIP ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Generate IP list", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer27 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_panel4 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer28 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer29 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText9 = wx.StaticText( self.m_panel4, wx.ID_ANY, u"Starting IP", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.m_staticText9.Wrap( -1 )
+		bSizer29.Add( self.m_staticText9, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.start_txt = wx.TextCtrl( self.m_panel4, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.start_txt.SetMinSize( wx.Size( 200,-1 ) )
+		
+		bSizer29.Add( self.start_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer28.Add( bSizer29, 1, wx.EXPAND, 5 )
+		
+		bSizer30 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText10 = wx.StaticText( self.m_panel4, wx.ID_ANY, u"Finishing IP", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTRE )
+		self.m_staticText10.Wrap( -1 )
+		bSizer30.Add( self.m_staticText10, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.finish_txt = wx.TextCtrl( self.m_panel4, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.finish_txt.SetMinSize( wx.Size( 200,-1 ) )
+		
+		bSizer30.Add( self.finish_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer28.Add( bSizer30, 1, wx.EXPAND, 5 )
+		
+		bSizer31 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_button5 = wx.Button( self.m_panel4, wx.ID_ANY, u"Replace List", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_button5, 0, wx.ALL, 5 )
+		
+		self.m_button6 = wx.Button( self.m_panel4, wx.ID_ANY, u"Add to List", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_button6, 0, wx.ALL, 5 )
+		
+		self.m_button7 = wx.Button( self.m_panel4, wx.ID_ANY, u"Save as File", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer31.Add( self.m_button7, 0, wx.ALL, 5 )
+		
+		
+		bSizer28.Add( bSizer31, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		self.m_panel4.SetSizer( bSizer28 )
+		self.m_panel4.Layout()
+		bSizer28.Fit( self.m_panel4 )
+		bSizer27.Add( self.m_panel4, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer27 )
+		self.Layout()
+		bSizer27.Fit( self )
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.m_button5.Bind( wx.EVT_BUTTON, self.on_replace )
+		self.m_button6.Bind( wx.EVT_BUTTON, self.on_add )
+		self.m_button7.Bind( wx.EVT_BUTTON, self.on_save )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_replace( self, event ):
+		event.Skip()
+	
+	def on_add( self, event ):
+		event.Skip()
+	
+	def on_save( self, event ):
+		event.Skip()
+	
+
