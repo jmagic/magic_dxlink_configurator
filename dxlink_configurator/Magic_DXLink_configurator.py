@@ -33,7 +33,7 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-
+import time
 
 from pydispatch import dispatcher
 
@@ -257,7 +257,6 @@ class MainFrame(mdc_gui.MainFrame):
     def display_progress(self):
         """Shows progress of connections"""
         if len(self.main_list.GetSelectedObjects()) == 1:
-
             dlg = wx.ProgressDialog(
                 'Attempting connect to selected device',
                 'Attempting connection to selected device',
@@ -270,8 +269,8 @@ class MainFrame(mdc_gui.MainFrame):
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                #time.sleep(.01)
-                dlg.Pulse()
+                time.sleep(.01)
+                dlg.UpdatePulse()
         else:
             dlg = wx.ProgressDialog(
                 'Attempting connect to selected devices',
@@ -692,21 +691,24 @@ class MainFrame(mdc_gui.MainFrame):
             else:
                 pass
         if len(dxtx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxtx_devices, 'dxtx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_tx = send_command.SendCommandConfig(
+                self, dxtx_devices, 'dxtx')
+            dia_tx.Show()
+            
         if len(dxrx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxrx_devices, 'dxrx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_rx = send_command.SendCommandConfig(
+                self, dxrx_devices, 'dxrx')
+            dia_rx.Show()
         if len(dxftx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxftx_devices, 'dxftx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_ftx = send_command.SendCommandConfig(
+                self, dxftx_devices, 'dxftx')
+            dia_ftx.ShowModal()
+
         if len(dxfrx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxfrx_devices, 'dxfrx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_frx = send_command.SendCommandConfig(
+                self, dxfrx_devices, 'dxfrx')
+            dia_frx.ShowModal()
+
         if (len(dxtx_devices) + len(dxrx_devices) + 
                 len(dxftx_devices) + len(dxfrx_devices)) == 0:
             dlg = wx.MessageDialog(parent=self, message='No DXLink Devices' +
@@ -715,6 +717,7 @@ class MainFrame(mdc_gui.MainFrame):
                                    style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
+
         self.errorlist = []
         self.completionlist = []
 
