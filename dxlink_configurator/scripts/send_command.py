@@ -6,32 +6,20 @@ from pydispatch import dispatcher
 import json
 from ObjectListView import ObjectListView, ColumnDefn
 import time
+from scripts import mdc_gui
 
-
-class SendCommandConfig (wx.Dialog):
-    
+class SendCommandConfig(mdc_gui.MultiSend):
     def __init__(self, parent, device_list, dxlink_model):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 
-                            pos=wx.DefaultPosition, size=wx.Size(740, 550), 
-                            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-        
+        mdc_gui.MultiSend.__init__(self, parent)
+
+        '''
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
         
         bsizer1 = wx.BoxSizer(wx.VERTICAL)
         
         bsizer121 = wx.BoxSizer(wx.VERTICAL)
         
-        self.device_list = ObjectListView(self, wx.ID_ANY, 
-                                          size=wx.Size(-1, 200), 
-                                          style=wx.LC_REPORT|
-                                          wx.SUNKEN_BORDER|
-                                          wx.RESIZE_BORDER)
-        self.device_list.SetColumns([ColumnDefn("Model", "center", 130,
-                                                                      "model"),
-                                     ColumnDefn("IP", "center", 100, 
-                                                                 "ip_address"),
-                                     ColumnDefn("Device", "center", 80,
-                                                                     "device")])
+        
         bsizer121.Add(self.device_list, 1, wx.ALL|wx.EXPAND, 5)
         bsizer1.Add(bsizer121, 0, wx.EXPAND, 5)
         
@@ -58,7 +46,7 @@ class SendCommandConfig (wx.Dialog):
         bsizer11.Add(self.command_combo, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
         self.command_combo.Bind(wx.EVT_COMBOBOX, self.on_command_combo)
         
-        action_combo_choices = []
+        action_cmb_choices = []
         self.action_combo = wx.ComboBox(self, wx.ID_ANY, u"Action", 
                                         wx.DefaultPosition, wx.DefaultSize, 
                                         action_combo_choices, 0)
@@ -152,7 +140,7 @@ class SendCommandConfig (wx.Dialog):
         self.Centre(wx.BOTH)
 
 
-        #------------------------------ Done with wxFormBuilder  
+        #------------------------------ Done with wxFormBuilder  '''
            
         self.parent = parent
         self.SetTitle("Multiple Send Command") # to %s" %obj.ip)
@@ -177,18 +165,30 @@ class SendCommandConfig (wx.Dialog):
             dlg.Destroy()
             self.rx_tx_commands = {'rx':{}, 'tx':{}}
             
-        
+        self.device_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
+                                          size=wx.Size(-1, 200), 
+                                          style=wx.LC_REPORT|
+                                          wx.SUNKEN_BORDER|
+                                          wx.RESIZE_BORDER)
+        self.device_list.SetColumns(
+            [ColumnDefn("Model", "center", 130, "model"),
+             ColumnDefn("IP", "center", 100, "ip_address"),
+             ColumnDefn("Device", "center", 80, "device")])
+
+        self.olv_sizer.Add(self.device_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()
+
         self.obj = []
         self.port = None
         self.result_string = ''
-        self.send.Disable()       
+        self.send_btn.Disable()       
         self.dxlink_model = dxlink_model
         self.on_query(None)
         self.completionlist = []
         self.errorlist = []
         self.waiting_result = True
         self.waiting_delay = True
-        self.action_combo.Enable(False)
+        self.action_cmb.Enable(False)
 
         self.device_list.CreateCheckStateColumn()
         self.device_list.SetObjects(device_list)
@@ -224,30 +224,34 @@ class SendCommandConfig (wx.Dialog):
         """Shows progress of connections"""
         if len(self.device_list.GetCheckedObjects()) == 1:
 
-            dlg = wx.ProgressDialog("Attempting connect to selected device",
-                                    'Attempting connection to selected device',
-                            maximum=len(self.device_list.GetCheckedObjects()),
-                            parent=self.parent,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH)
+            dlg = wx.ProgressDialog(
+                "Attempting connect to selected device",
+                'Attempting connection to selected device',
+                maximum=len(self.device_list.GetCheckedObjects()),
+                parent=self.parent,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH)
 
-            while ((len(self.completionlist) + len(self.errorlist)) <
-                                    len(self.device_list.GetCheckedObjects())):
+            while ((len(self.completionlist) + 
+                    len(self.errorlist)) < 
+                    len(self.device_list.GetCheckedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
                 dlg.Pulse()
         else:
-            dlg = wx.ProgressDialog("Attempting connect to selected devices",
-                              'Attempting connection to all selected devices',
-                            maximum=len(self.device_list.GetCheckedObjects()),
-                            parent=self.parent,
-                            style=wx.PD_APP_MODAL
-                             | wx.PD_AUTO_HIDE
-                             | wx.PD_SMOOTH
-                             | wx.PD_ELAPSED_TIME)
+            dlg = wx.ProgressDialog(
+                "Attempting connect to selected devices",
+                'Attempting connection to all selected devices',
+                maximum=len(self.device_list.GetCheckedObjects()),
+                parent=self.parent,
+                style=wx.PD_APP_MODAL
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH
+                | wx.PD_ELAPSED_TIME)
 
-            while ((len(self.completionlist) + len(self.errorlist)) <
+            while ((len(self.completionlist) + 
+                    len(self.errorlist)) <
                     len(self.device_list.GetCheckedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 dlg.Update(count, "Attempting connection to %s of %s devices" %
@@ -269,32 +273,35 @@ class SendCommandConfig (wx.Dialog):
             completiontext = completiontext + self.completionlist[i][0] + "\n"
         
         if len(self.completionlist) == 0:
-            dlg = wx.MessageDialog(parent=self,
-                                   message='Failed to connect to' + 
-                                              '\n=======================' + 
-                                              ' \n%s ' % errortext,
-                                   caption='Failed connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='Failed to connect to' + 
+                '\n=======================' + 
+                ' \n%s ' % errortext,
+                caption='Failed connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         elif len(self.errorlist) == 0:
-            dlg = wx.MessageDialog(parent=self,
-                                       message='Successfully connected to: \n' +
-                                               '=======================' + 
-                                               '\n%s' % completiontext,
-                                       caption='Connection list',
-                                       style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='Successfully connected to: \n' +
+                '=======================' + 
+                '\n%s' % completiontext,
+                caption='Connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
         else:
-            dlg = wx.MessageDialog(parent=self, 
-                                   message='Failed to connect to: \n========' +
-                                   '=============== \n%s \n \n' % (errortext) +
-                                   'Successfully connected to: \n============' +
-                                   '===========' +
-                                   ' \n%s' % (completiontext),
-                                   caption='Connection list',
-                                   style=wx.OK)
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='Failed to connect to: \n========' +
+                '=============== \n%s \n \n' % (errortext) +
+                'Successfully connected to: \n============' +
+                '===========' +
+                ' \n%s' % (completiontext),
+                caption='Connection list',
+                style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -304,11 +311,11 @@ class SendCommandConfig (wx.Dialog):
 
     def on_command_combo(self, _):
         """Updates the command combo box"""
-        if not self.send_query.GetValue():
-            self.action_combo.Enable(True)
-        self.action_combo.SetValue('Actions')
-        self.update_action_combo(self.command_combo.GetValue())
-        self.send.Enable()
+        if not self.send_query_chk.GetValue():
+            self.action_cmb.Enable(True)
+        self.action_cmb.SetValue('Actions')
+        self.update_action_combo(self.commands_cmb.GetValue())
+        self.send_btn.Enable()
 
         
     def on_action_combo(self, _):
@@ -317,90 +324,90 @@ class SendCommandConfig (wx.Dialog):
         
     def on_query(self, _):
         """Switches to query or commands"""        
-        old = self.command_combo.GetValue()
-        self.command_combo.Clear()
-        self.description.Clear()
-        self.syntax.Clear()
-        if self.send_query.GetValue():
-            self.command_combo.SetValue('Query')
+        old = self.commands_cmb.GetValue()
+        self.commands_cmb.Clear()
+        self.description_txt.Clear()
+        self.syntax_txt.Clear()
+        if self.send_query_chk.GetValue():
+            self.commands_cmb.SetValue('Query')
         else:
-            self.command_combo.SetValue('Commands')
+            self.commands_cmb.SetValue('Commands')
         
         for item in sorted(self.rx_tx_commands[self.dxlink_model]):  
-            if self.send_query.GetValue():
+            if self.send_query_chk.GetValue():
                 if item[:1] == '?': # only add query
                 
-                    self.command_combo.Append(item)
+                    self.commands_cmb.Append(item)
             else:
                 if item[:1] != '?': # only add commands
                     
-                    self.command_combo.Append(item)
+                    self.commands_cmb.Append(item)
         
-        if self.send_query.GetValue():
-            self.action_combo.Enable(False)
-            for item in self.command_combo.GetItems():
+        if self.send_query_chk.GetValue():
+            self.action_cmb.Enable(False)
+            for item in self.commands_cmb.GetItems():
                 if item[1:] == old:
-                    self.command_combo.SetValue(item)
+                    self.commands_cmb.SetValue(item)
                     self.on_command_combo(None)
                     break
                 else:
-                    self.string_port.Clear()
-                    self.stringcommand.Clear()
+                    self.string_port_txt.Clear()
+                    self.string_command_txt.Clear()
         else:
-            self.action_combo.Enable(False)
-            for item in self.command_combo.GetItems():
+            self.action_cmb.Enable(False)
+            for item in self.commands_cmb.GetItems():
                 if item == old[1:]:
-                    self.command_combo.SetValue(item)
+                    self.commands_cmb.SetValue(item)
                     self.on_command_combo(None)
                     break
                 else:
-                    self.string_port.Clear()
-                    self.stringcommand.Clear()
+                    self.string_port_txt.Clear()
+                    self.string_command_txt.Clear()
     
     def update_action_combo(self, selection):
         """Updates action combo box"""
         #phasesList = {"rx": self.rxList , "tx": self.txList ,
         # "mftx": self.mftxList }
-        self.action_combo.Clear()
+        self.action_cmb.Clear()
         for item in self.rx_tx_commands[self.dxlink_model][selection][1]:
-            self.action_combo.Append(item)
+            self.action_cmb.Append(item)
             self.port = self.rx_tx_commands[self.dxlink_model][selection][0]
-            self.description.SetValue(self.rx_tx_commands[self.dxlink_model]
-                                                                 [selection][2])
-            self.syntax.SetValue(self.rx_tx_commands[self.dxlink_model]
-                                                                 [selection][3])
-        self.action_combo.SetValue("Actions")
+            self.description_txt.SetValue(
+                self.rx_tx_commands[self.dxlink_model][selection][2])
+            self.syntax_txt.SetValue(
+                self.rx_tx_commands[self.dxlink_model][selection][3])
+        self.action_cmb.SetValue("Actions")
         self.update_string()
 
 
     def update_string(self):
         """Updates the command string"""
         
-        if self.action_combo.GetValue() == "Actions":
+        if self.action_cmb.GetValue() == "Actions":
             action = ""
-        elif self.action_combo.GetValue() == "":
+        elif self.action_cmb.GetValue() == "":
             action = ''
         else:
-            action = "-" + self.action_combo.GetValue()
-        output = self.command_combo.GetValue() + action 
-        self.string_port.SetValue(str(self.port))
-        self.stringcommand.SetValue(output)
+            action = "-" + self.action_cmb.GetValue()
+        output = self.commands_cmb.GetValue() + action 
+        self.string_port_txt.SetValue(str(self.port))
+        self.string_command_txt.SetValue(output)
 
     def on_get_all(self, _):
         """Send all querys"""
-        if self.get_all.GetValue():
+        if self.get_all_chk.GetValue():
             
-            self.send.Enable(True)
-            self.action_combo.Enable(False)
-            self.command_combo.Enable(False)
-            self.send_command.Enable(False)
-            self.send_query.SetValue(True)
+            self.send_btn.Enable(True)
+            self.action_cmb.Enable(False)
+            self.commands_cmb.Enable(False)
+            self.command_chk.Enable(False)
+            self.send_query_chk.SetValue(True)
             self.on_query(None)
         else:
-            self.action_combo.Enable(False)
-            self.command_combo.Enable(True)
-            self.send_command.Enable(True)
-            self.send.Enable(False)
+            self.action_cmb.Enable(False)
+            self.commands_cmb.Enable(True)
+            self.command_chk.Enable(True)
+            self.send_btn.Enable(False)
         
     def on_send(self, _):
         """Send the command string"""
@@ -409,7 +416,7 @@ class SendCommandConfig (wx.Dialog):
         self.result_string = ''
         self.errorlist = []
         self.completionlist = []
-        if self.get_all.GetValue():
+        if self.get_all_chk.GetValue():
             self.on_send_all()
             return  
         for obj in self.device_list.GetCheckedObjects():
@@ -425,17 +432,18 @@ class SendCommandConfig (wx.Dialog):
             output = ("send_command " + 
                       str(device) + 
                       ":" + 
-                      str(self.string_port.GetValue()) + 
+                      str(self.string_port_txt.GetValue()) + 
                       ":" + 
                       str(system) + 
                       ", " + 
                       "\"\'" + 
-                      str(self.stringcommand.GetValue()) + 
+                      str(self.string_command_txt.GetValue()) + 
                       "\'\"")
-            self.parent.telnet_job_queue.put(['send_command', obj, 
-                                     self.parent.telnet_timeout_seconds, 
-                                     output, 
-                                     str(self.port)])
+            self.parent.telnet_job_queue.put(
+                ['send_command', obj, 
+                 self.parent.telnet_timeout_seconds, 
+                 output, 
+                 str(self.port)])
 
         self.display_progress()
 
@@ -451,50 +459,53 @@ class SendCommandConfig (wx.Dialog):
             else:
                 system = obj.system
 
-            total = len(self.command_combo.GetItems()) + 1
-            dlg = wx.ProgressDialog('Sending command to selected ' +
-                                    'device with results listed ' +
-                                    'below ', 
-                                    'Sending command to selected ' +
-                                    'device with results listed ' +
-                                    'below',
-                                    maximum=total,
-                                    parent=self.parent,
-                                    style=wx.PD_APP_MODAL
-                                     | wx.PD_CAN_ABORT
-                                     | wx.PD_AUTO_HIDE
-                                     | wx.PD_SMOOTH)            
+            total = len(self.commands_cmb.GetItems()) + 1
+            dlg = wx.ProgressDialog(
+                'Sending command to selected ' +
+                'device with results listed ' +
+                'below ', 
+                'Sending command to selected ' +
+                'device with results listed ' +
+                'below',
+                maximum=total,
+                parent=self.parent,
+                style=wx.PD_APP_MODAL
+                | wx.PD_CAN_ABORT
+                | wx.PD_AUTO_HIDE
+                | wx.PD_SMOOTH)            
                     
             count = 0
              
-            for item in self.command_combo.GetItems():
+            for item in self.commands_cmb.GetItems():
                 count += 1                        
                 output = ("send_command " + 
-                           str(device) + 
-                           ":" + 
-                           str(self.rx_tx_commands
-                                         [self.dxlink_model][item][0]) + 
-                           ":" + 
-                           str(system) + 
-                           ", " + 
-                           "\"\'" + 
-                           str(item) + 
-                           "\'\"") 
+                          str(device) + 
+                          ":" + 
+                          str(self.rx_tx_commands
+                              [self.dxlink_model][item][0]) + 
+                          ":" + 
+                          str(system) + 
+                          ", " + 
+                          "\"\'" + 
+                          str(item) + 
+                          "\'\"") 
                 
                 #while self.delay_timer.IsRunning():
                 #    pass
-                self.parent.telnet_job_queue.put(['send_command', obj, 
-                        self.parent.telnet_timeout_seconds, output, 
-                        str(self.rx_tx_commands[self.dxlink_model][item][0])])
+                self.parent.telnet_job_queue.put(
+                    ['send_command', obj, 
+                     self.parent.telnet_timeout_seconds, output, 
+                     str(self.rx_tx_commands[self.dxlink_model][item][0])])
                 
                 self.time_out.Start(5000)
                 self.waiting_result = True
                 while self.waiting_result: 
-                    (continue_sending, _) = dlg.Update(count,
-                                        ('Sending command ' + str(count) + 
-                                        ' of ' + str(total - 1) + ' to device ' 
-                                        + str(device) +
-                                        '\n' + self.result_string))
+                    (continue_sending, _) = dlg.Update(
+                        count,
+                        ('Sending command ' + str(count) + 
+                         ' of ' + str(total - 1) + ' to device ' 
+                         + str(device) +
+                         '\n' + self.result_string))
                     if not continue_sending:
                         self.time_out.Stop()
                         self.waiting_result = False
