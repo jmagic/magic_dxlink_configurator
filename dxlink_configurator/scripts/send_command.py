@@ -163,7 +163,10 @@ class SendCommandConfig(mdc_gui.MultiSend):
                                    style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
-            self.rx_tx_commands = {'rx':{}, 'tx':{}}
+            self.rx_tx_commands = {'dxrx':{}, 
+                                   'dxtx':{}, 
+                                   'dxftx':{}, 
+                                   'dxfrx':{} }
             
         self.device_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                           size=wx.Size(-1, 200), 
@@ -311,7 +314,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
     def on_command_combo(self, _):
         """Updates the command combo box"""
-        if not self.send_query_chk.GetValue():
+        if not self.query_chk.GetValue():
             self.action_cmb.Enable(True)
         self.action_cmb.SetValue('Actions')
         self.update_action_combo(self.commands_cmb.GetValue())
@@ -328,13 +331,13 @@ class SendCommandConfig(mdc_gui.MultiSend):
         self.commands_cmb.Clear()
         self.description_txt.Clear()
         self.syntax_txt.Clear()
-        if self.send_query_chk.GetValue():
+        if self.query_chk.GetValue():
             self.commands_cmb.SetValue('Query')
         else:
             self.commands_cmb.SetValue('Commands')
         
         for item in sorted(self.rx_tx_commands[self.dxlink_model]):  
-            if self.send_query_chk.GetValue():
+            if self.query_chk.GetValue():
                 if item[:1] == '?': # only add query
                 
                     self.commands_cmb.Append(item)
@@ -343,7 +346,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
                     
                     self.commands_cmb.Append(item)
         
-        if self.send_query_chk.GetValue():
+        if self.query_chk.GetValue():
             self.action_cmb.Enable(False)
             for item in self.commands_cmb.GetItems():
                 if item[1:] == old:
@@ -401,7 +404,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             self.action_cmb.Enable(False)
             self.commands_cmb.Enable(False)
             self.command_chk.Enable(False)
-            self.send_query_chk.SetValue(True)
+            self.query_chk.SetValue(True)
             self.on_query(None)
         else:
             self.action_cmb.Enable(False)

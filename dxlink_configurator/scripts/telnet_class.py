@@ -35,7 +35,7 @@ class Telnetjobs(Thread):
         try:
             telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
             
-            is_dxlink = telnet_session.read_until('Welcome to', int(job[2]))
+            telnet_session.read_until('Welcome to', int(job[2]))
             intro = telnet_session.read_very_eager().split()
             obj.model = intro[0]
             obj.firmware = intro[1]
@@ -71,8 +71,6 @@ class Telnetjobs(Thread):
 
             telnet_session.write('exit')
             telnet_session.close()
-            if is_dxlink !=("\r\nWelcome to"):
-                raise IOError('Warning, not a recognized dxlink device')
             self.communication_success(obj) 
         except (IOError, Exception) as error:
             self.error_processing(obj, error)

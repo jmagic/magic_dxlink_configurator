@@ -854,7 +854,7 @@ class GenerateIP ( wx.Dialog ):
 class MultiSend ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Multiple Send Command", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Multiple Send Command", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -884,8 +884,9 @@ class MultiSend ( wx.Dialog ):
 		
 		bSizer38 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.get_all_chk = wx.RadioButton( self.m_panel5, wx.ID_ANY, u"Query", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
-		bSizer38.Add( self.get_all_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		self.query_chk = wx.RadioButton( self.m_panel5, wx.ID_ANY, u"Query", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		self.query_chk.SetValue( True ) 
+		bSizer38.Add( self.query_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.command_chk = wx.RadioButton( self.m_panel5, wx.ID_ANY, u"Command", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer38.Add( self.command_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
@@ -900,8 +901,8 @@ class MultiSend ( wx.Dialog ):
 		self.action_cmb = wx.ComboBox( self.m_panel5, wx.ID_ANY, u"Actions", wx.DefaultPosition, wx.DefaultSize, action_cmbChoices, 0 )
 		bSizer38.Add( self.action_cmb, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
-		self.send_query_chk = wx.CheckBox( self.m_panel5, wx.ID_ANY, u"Send All Query's", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer38.Add( self.send_query_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		self.get_all_chk = wx.CheckBox( self.m_panel5, wx.ID_ANY, u"Send All Query's", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer38.Add( self.get_all_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
 		sbSizer7.Add( bSizer38, 1, wx.EXPAND, 5 )
@@ -955,7 +956,9 @@ class MultiSend ( wx.Dialog ):
 		
 		bSizer37 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.description_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.HSCROLL|wx.TE_MULTILINE )
+		self.description_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.TE_MULTILINE )
+		self.description_txt.SetMinSize( wx.Size( 206,-1 ) )
+		
 		bSizer37.Add( self.description_txt, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.syntax_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,200 ), wx.HSCROLL|wx.TE_MULTILINE )
@@ -978,9 +981,10 @@ class MultiSend ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.get_all_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
+		self.query_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
 		self.command_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
-		self.send_query_chk.Bind( wx.EVT_CHECKBOX, self.on_get_all )
+		self.commands_cmb.Bind( wx.EVT_COMBOBOX, self.on_command_combo )
+		self.get_all_chk.Bind( wx.EVT_CHECKBOX, self.on_get_all )
 		self.send_btn.Bind( wx.EVT_BUTTON, self.on_send )
 		self.exit_btn.Bind( wx.EVT_BUTTON, self.on_exit )
 	
@@ -992,6 +996,9 @@ class MultiSend ( wx.Dialog ):
 	def on_query( self, event ):
 		event.Skip()
 	
+	
+	def on_command_combo( self, event ):
+		event.Skip()
 	
 	def on_get_all( self, event ):
 		event.Skip()
