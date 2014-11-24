@@ -166,7 +166,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             self.rx_tx_commands = {'dxrx':{}, 
                                    'dxtx':{}, 
                                    'dxftx':{}, 
-                                   'dxfrx':{} }
+                                   'dxfrx':{}}
             
         self.device_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                           size=wx.Size(-1, 200), 
@@ -238,7 +238,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
             while ((len(self.completionlist) + 
                     len(self.errorlist)) < 
-                    len(self.device_list.GetCheckedObjects())):
+                   len(self.device_list.GetCheckedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
                 dlg.Pulse()
@@ -255,10 +255,11 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
             while ((len(self.completionlist) + 
                     len(self.errorlist)) <
-                    len(self.device_list.GetCheckedObjects())):
+                   len(self.device_list.GetCheckedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                dlg.Update(count, "Attempting connection to %s of %s devices" %
-                       ((count + 1), len(self.device_list.GetCheckedObjects())))
+                dlg.Update(
+                    count, "Attempting connection to %s of %s devices" %
+                    ((count + 1), len(self.device_list.GetCheckedObjects())))
 
         dlg.Destroy()
         errortext = ""
@@ -504,7 +505,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
                 self.waiting_result = True
                 while self.waiting_result: 
                     (continue_sending, _) = dlg.Update(
-                        count,
+                        count + 1,
                         ('Sending command ' + str(count) + 
                          ' of ' + str(total - 1) + ' to device ' 
                          + str(device) +
