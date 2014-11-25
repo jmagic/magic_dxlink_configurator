@@ -272,6 +272,7 @@ class MainFrame(mdc_gui.MainFrame):
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
+                #print 'sleep'
                 dlg.UpdatePulse()
         else:
             dlg = wx.ProgressDialog(
