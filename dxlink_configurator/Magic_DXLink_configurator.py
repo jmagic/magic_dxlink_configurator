@@ -33,7 +33,7 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-
+import time
 
 from pydispatch import dispatcher
 
@@ -89,15 +89,17 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxtx_models_default = (
             'DXLINK-HDMI-MFTX, ' +
             'DXLINK-HDMI-WP, ' +
-            'DXLINK-HDMI-WDP')
+            'DXLINK-HDMI-DWP')
 
         self.dxrx_models_default = (
             'DXLINK-HDMI-RX.c, ' +
             'DXLINK-HDMI-RX.e')
         self.dxftx_models_default = (
-            'DXFTX, Test')
+            'DXF-TX-xxD, ' +
+            'DXLF-MFTX')
         self.dxfrx_models_default = (
-            'DXFRX, Test')
+            'DXF-RX-xxD, ' +
+            'DXLF-HDMIRX')
 
         self.master_address = None
         self.device_number = None
@@ -257,7 +259,6 @@ class MainFrame(mdc_gui.MainFrame):
     def display_progress(self):
         """Shows progress of connections"""
         if len(self.main_list.GetSelectedObjects()) == 1:
-
             dlg = wx.ProgressDialog(
                 'Attempting connect to selected device',
                 'Attempting connection to selected device',
@@ -270,8 +271,9 @@ class MainFrame(mdc_gui.MainFrame):
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                #time.sleep(.01)
-                dlg.Pulse()
+                time.sleep(.01)
+                #print 'sleep'
+                dlg.UpdatePulse()
         else:
             dlg = wx.ProgressDialog(
                 'Attempting connect to selected devices',
@@ -692,29 +694,33 @@ class MainFrame(mdc_gui.MainFrame):
             else:
                 pass
         if len(dxtx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxtx_devices, 'dxtx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_tx = send_command.SendCommandConfig(
+                self, dxtx_devices, 'dxtx')
+            dia_tx.Show()
+            
         if len(dxrx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxrx_devices, 'dxrx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_rx = send_command.SendCommandConfig(
+                self, dxrx_devices, 'dxrx')
+            dia_rx.Show()
         if len(dxftx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxftx_devices, 'dxftx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_ftx = send_command.SendCommandConfig(
+                self, dxftx_devices, 'dxftx')
+            dia_ftx.Show()
+
         if len(dxfrx_devices) != 0:
-            dia = send_command.SendCommandConfig(self, dxfrx_devices, 'dxfrx')
-            dia.ShowModal()
-            dia.Destroy()
+            dia_frx = send_command.SendCommandConfig(
+                self, dxfrx_devices, 'dxfrx')
+            dia_frx.Show()
+
         if (len(dxtx_devices) + len(dxrx_devices) + 
                 len(dxftx_devices) + len(dxfrx_devices)) == 0:
-            dlg = wx.MessageDialog(parent=self, message='No DXLink Devices' +
+            dlg = wx.MessageDialog(parent=self, message='No DXLink Devices ' +
                                    'Selected',
                                    caption='Cannot send commands',
                                    style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
+
         self.errorlist = []
         self.completionlist = []
 
@@ -950,7 +956,7 @@ class MainFrame(mdc_gui.MainFrame):
     def incoming_packet(self, sender):
         """Receives dhcp requests and adds them to objects to display"""
         incoming_time = datetime.datetime.now()
-        data = self.create_add_unit(
+        data = Unit(
             hostname=sender[0],
             mac=sender[1],
             ip_ad=sender[2],
@@ -961,7 +967,7 @@ class MainFrame(mdc_gui.MainFrame):
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)
-
+        
         if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
                 self.main_list.SetFocus()
@@ -1031,13 +1037,13 @@ class MainFrame(mdc_gui.MainFrame):
             for item in config.get(
                     'Config', 'DXLink Fibre TX Models').split(','):
                 self.dxftx_models.append(item.strip())
-                for item in self.dxtx_models_default.split(','):
+                for item in self.dxftx_models_default.split(','):
                     if item.strip() not in self.dxftx_models:
                         self.dxftx_models.append(item.strip())
             for item in config.get(
                     'Config', 'DXLink Fibre RX Models').split(','):
                 self.dxfrx_models.append(item.strip())
-                for item in self.dxrx_models_default.split(','):
+                for item in self.dxfrx_models_default.split(','):
                     if item.strip() not in self.dxfrx_models:
                         self.dxfrx_models.append(item.strip())
             

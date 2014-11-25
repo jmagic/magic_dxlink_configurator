@@ -17,6 +17,7 @@ class Telnetjobs(Thread):
         self.queue = queue
         self.parent = parent
 
+
     def run(self):
         while True:
             # gets the job from the queue
@@ -27,26 +28,37 @@ class Telnetjobs(Thread):
             self.queue.task_done()
 
 ########################################################################
+    def establish_telnet(self, ip_address):
+        """Creates the telnet instance"""
+        telnet_session = telnetlib.Telnet(ip_address, 23, 5)
+        telnet_session.set_option_negotiation_callback(self.call_back)
+        return telnet_session
+
+    def call_back(self, sock, cmd, opt):
+        """ Turns on server side echoing"""
+        if opt == telnetlib.ECHO and cmd in (telnetlib.WILL, telnetlib.WONT):
+            sock.sendall(telnetlib.IAC + telnetlib.DO + telnetlib.ECHO)
+
     def get_config_info(self, job):
         """Gets serial number, firmware from device"""
 
         obj = job[1]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             
-            is_dxlink = telnet_session.read_until('Welcome to', int(job[2]))
-            intro = telnet_session.read_very_eager().split()
+            telnet_session.read_until('Welcome to', int(job[2]))
+            intro = telnet_session.read_until('>', int(job[2])).split()
             obj.model = intro[0]
             obj.firmware = intro[1]
             telnet_session.write('get sn \r')
             telnet_session.read_until('Number:', int(job[2]))
-            obj.serial = telnet_session.read_very_eager().split()[0]
+            obj.serial = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get device \r')
             telnet_session.read_until('Value:', int(job[2]))
 
-            obj.device = telnet_session.read_very_eager().split()[0]
+            obj.device = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get ip \r')
             telnet_session.read_until('HostName:', int(job[2]))
@@ -65,14 +77,12 @@ class Telnetjobs(Thread):
             obj.subnet = ip_subnet[-2]
             ip_gateway = telnet_session.read_until('MAC').split()
             obj.gateway = ip_gateway[-2]
-            ip_mac = telnet_session.read_very_eager().split()
+            ip_mac = telnet_session.read_until('>', int(job[2])).split()
             obj.mac_address = ip_mac[1]
             self.get_connection(obj, telnet_session, int(job[2]))
 
             telnet_session.write('exit')
             telnet_session.close()
-            if is_dxlink !=("\r\nWelcome to"):
-                raise IOError('Warning, not a recognized dxlink device')
             self.communication_success(obj) 
         except (IOError, Exception) as error:
             self.error_processing(obj, error)
@@ -84,7 +94,7 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('reset factory\r')
             telnet_session.read_until('>', int(job[2]))
@@ -100,7 +110,7 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('reboot \r')
             telnet_session.read_until('Rebooting....', int(job[2]))
@@ -118,7 +128,7 @@ class Telnetjobs(Thread):
         obj = job[1]
         setdhcp = job[3]
         hostname = job[4]
-        ip_org = job[5]
+        #ip_org = job[5]
         ip_new = job[6]
         subnet = job[7]
         gateway = job[8]
@@ -127,7 +137,7 @@ class Telnetjobs(Thread):
 
         if setdhcp == True:
             try:
-                telnet_session = telnetlib.Telnet(ip_org, 23, int(job[2]))
+                telnet_session = self.establish_telnet(obj.ip_address)
                 telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set ip \r')
                 telnet_session.read_until('Name:', int(job[2]))
@@ -170,7 +180,7 @@ class Telnetjobs(Thread):
 
         else:
             try:
-                telnet_session = telnetlib.Telnet(ip_org, 23, int(job[2]))
+                telnet_session = self.establish_telnet(obj.ip_address)
 
                 telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set ip \r')
@@ -223,7 +233,7 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
 
             telnet_session.read_until('>', int(job[2]))
             self.get_connection(obj, telnet_session, int(job[2]))
@@ -238,7 +248,7 @@ class Telnetjobs(Thread):
                        "\"\'FACTORYAV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
-            result_raw = telnet_session.read_very_eager()
+            result_raw = telnet_session.read_until('>', int(job[2]))
             if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
             telnet_session.write('reboot \r')
@@ -257,7 +267,7 @@ class Telnetjobs(Thread):
         command_sent = job[3]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
 
             telnet_session.read_until('>', int(job[2]))
             self.get_connection(obj, telnet_session, int(job[2]))
@@ -266,7 +276,7 @@ class Telnetjobs(Thread):
             #print command
             telnet_session.write(str(command))
             telnet_session.read_until('Sending', int(job[2]))
-            result_raw = telnet_session.read_very_eager()
+            result_raw = telnet_session.read_until('>', int(job[2]))
             if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
             else:
@@ -285,7 +295,7 @@ class Telnetjobs(Thread):
 
         obj = job[1]
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led on \r')
             telnet_session.read_until('ON', int(job[2]))
@@ -302,7 +312,7 @@ class Telnetjobs(Thread):
         obj = job[1]
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led off \r')
             telnet_session.read_until('OFF', int(job[2]))
@@ -318,16 +328,17 @@ class Telnetjobs(Thread):
         obj = job[1]
         try:
 
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-            telnet_session.read_until('Welcome to')
-            telnet_session.read_very_eager()
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', 2)
+            #telnet_session.read_very_eager()
 
             mse = []
             data = []
             while obj.mac_address in self.parent.mse_active_list: 
 
                 telnet_session.write('show vs100 stats \r')
-                stats = telnet_session.read_until('MSE(db)').split()
+                telnet_session.read_until('MSE(db)')
+                stats = telnet_session.read_until('VS100').split()
                 for i in range(len(stats)):
                     if stats[i] == "ChA:":
                         data.append(stats[i+1][:-1])
@@ -342,6 +353,8 @@ class Telnetjobs(Thread):
                     dispatcher.send(signal="Incoming MSE", sender=mse)
                     mse = []
                     data = []
+
+                telnet_session.read_until('>', 2)
 
         except:
             time.sleep(2) # wait for gui to start
@@ -467,7 +480,7 @@ class Telnetjobs(Thread):
         """ Function to get connection information """
         session.write('get connection \r')
         session.read_until('Mode:', timeout)
-        connection_info = session.read_very_eager().split()
+        connection_info = session.read_until('>', timeout).split()
         if connection_info[0] == 'NDP':
             if connection_info[7] == '(n/a)':
                 obj.master = 'not connected'

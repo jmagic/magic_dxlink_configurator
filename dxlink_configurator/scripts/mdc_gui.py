@@ -637,7 +637,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		self.dhcp_chk = wx.RadioButton( self, wx.ID_ANY, u"DHCP", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
 		sbSizer7.Add( self.dhcp_chk, 0, wx.ALL, 5 )
 		
-		self.static_chk = wx.RadioButton( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		self.static_chk = wx.RadioButton( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer7.Add( self.static_chk, 0, wx.ALL, 5 )
 		
 		
@@ -736,6 +736,8 @@ class DeviceConfiguration ( wx.Dialog ):
 		
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.on_cancel )
+		self.dhcp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
+		self.static_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.on_set )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_button3.Bind( wx.EVT_BUTTON, self.on_abort )
@@ -747,6 +749,10 @@ class DeviceConfiguration ( wx.Dialog ):
 	# Virtual event handlers, overide them in your derived class
 	def on_cancel( self, event ):
 		event.Skip()
+	
+	def on_dhcp( self, event ):
+		event.Skip()
+	
 	
 	def on_set( self, event ):
 		event.Skip()
@@ -844,6 +850,169 @@ class GenerateIP ( wx.Dialog ):
 		event.Skip()
 	
 	def on_save( self, event ):
+		event.Skip()
+	
+
+###########################################################################
+## Class MultiSend
+###########################################################################
+
+class MultiSend ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Multiple Send Command", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer32 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer32.SetMinSize( wx.Size( 740,550 ) ) 
+		self.m_panel5 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer33 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer34 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.olv_panel = wx.Panel( self.m_panel5, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.olv_sizer = wx.BoxSizer( wx.VERTICAL )
+		
+		
+		self.olv_panel.SetSizer( self.olv_sizer )
+		self.olv_panel.Layout()
+		self.olv_sizer.Fit( self.olv_panel )
+		bSizer34.Add( self.olv_panel, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer33.Add( bSizer34, 1, wx.EXPAND, 5 )
+		
+		bSizer36 = wx.BoxSizer( wx.VERTICAL )
+		
+		sbSizer7 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel5, wx.ID_ANY, wx.EmptyString ), wx.VERTICAL )
+		
+		bSizer38 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.query_chk = wx.RadioButton( self.m_panel5, wx.ID_ANY, u"Query", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		self.query_chk.SetValue( True ) 
+		bSizer38.Add( self.query_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.command_chk = wx.RadioButton( self.m_panel5, wx.ID_ANY, u"Command", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer38.Add( self.command_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		commands_cmbChoices = []
+		self.commands_cmb = wx.ComboBox( self.m_panel5, wx.ID_ANY, u"Commands", wx.DefaultPosition, wx.DefaultSize, commands_cmbChoices, 0 )
+		self.commands_cmb.SetMinSize( wx.Size( 180,-1 ) )
+		
+		bSizer38.Add( self.commands_cmb, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		action_cmbChoices = []
+		self.action_cmb = wx.ComboBox( self.m_panel5, wx.ID_ANY, u"Actions", wx.DefaultPosition, wx.DefaultSize, action_cmbChoices, 0 )
+		bSizer38.Add( self.action_cmb, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.get_all_chk = wx.CheckBox( self.m_panel5, wx.ID_ANY, u"Send All Query's", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer38.Add( self.get_all_chk, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		sbSizer7.Add( bSizer38, 1, wx.EXPAND, 5 )
+		
+		bSizer40 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer41 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText11 = wx.StaticText( self.m_panel5, wx.ID_ANY, u"send_command <DEVICE>:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText11.Wrap( -1 )
+		bSizer41.Add( self.m_staticText11, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+		
+		self.string_port_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 20,-1 ), 0 )
+		bSizer41.Add( self.string_port_txt, 0, wx.TOP|wx.BOTTOM, 5 )
+		
+		self.m_staticText12 = wx.StaticText( self.m_panel5, wx.ID_ANY, u":<SYSTEM>, \"'", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText12.Wrap( -1 )
+		bSizer41.Add( self.m_staticText12, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+		
+		self.string_command_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.string_command_txt.SetMinSize( wx.Size( 240,-1 ) )
+		
+		bSizer41.Add( self.string_command_txt, 0, wx.ALL, 5 )
+		
+		self.m_staticText13 = wx.StaticText( self.m_panel5, wx.ID_ANY, u"'\"", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText13.Wrap( -1 )
+		bSizer41.Add( self.m_staticText13, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+		
+		
+		bSizer40.Add( bSizer41, 1, wx.EXPAND, 5 )
+		
+		bSizer42 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.send_btn = wx.Button( self.m_panel5, wx.ID_ANY, u"Send", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer42.Add( self.send_btn, 0, wx.ALL, 5 )
+		
+		self.exit_btn = wx.Button( self.m_panel5, wx.ID_ANY, u"Exit", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer42.Add( self.exit_btn, 0, wx.ALL, 5 )
+		
+		
+		bSizer40.Add( bSizer42, 0, wx.EXPAND, 5 )
+		
+		
+		sbSizer7.Add( bSizer40, 0, wx.EXPAND, 5 )
+		
+		
+		bSizer36.Add( sbSizer7, 1, wx.EXPAND|wx.ALL, 5 )
+		
+		
+		bSizer33.Add( bSizer36, 0, wx.EXPAND, 5 )
+		
+		bSizer37 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.description_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( -1,-1 ), wx.HSCROLL|wx.TE_MULTILINE )
+		self.description_txt.SetMinSize( wx.Size( 206,-1 ) )
+		
+		bSizer37.Add( self.description_txt, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.syntax_txt = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,200 ), wx.HSCROLL|wx.TE_MULTILINE )
+		bSizer37.Add( self.syntax_txt, 1, wx.ALL|wx.EXPAND, 5 )
+		
+		
+		bSizer33.Add( bSizer37, 0, wx.EXPAND, 5 )
+		
+		
+		self.m_panel5.SetSizer( bSizer33 )
+		self.m_panel5.Layout()
+		bSizer33.Fit( self.m_panel5 )
+		bSizer32.Add( self.m_panel5, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer32 )
+		self.Layout()
+		bSizer32.Fit( self )
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.query_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
+		self.command_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
+		self.commands_cmb.Bind( wx.EVT_COMBOBOX, self.on_command_combo )
+		self.get_all_chk.Bind( wx.EVT_CHECKBOX, self.on_get_all )
+		self.send_btn.Bind( wx.EVT_BUTTON, self.on_send )
+		self.exit_btn.Bind( wx.EVT_BUTTON, self.on_exit )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_query( self, event ):
+		event.Skip()
+	
+	
+	def on_command_combo( self, event ):
+		event.Skip()
+	
+	def on_get_all( self, event ):
+		event.Skip()
+	
+	def on_send( self, event ):
+		event.Skip()
+	
+	def on_exit( self, event ):
 		event.Skip()
 	
 

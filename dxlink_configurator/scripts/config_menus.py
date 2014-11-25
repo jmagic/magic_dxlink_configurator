@@ -2,7 +2,6 @@
 
 import wx
 import csv
-import unit_class
 from scripts import mdc_gui
 
 class PreferencesConfig(mdc_gui.Preferences):
@@ -129,7 +128,6 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         """Canel and close"""
         selected_items = self.parent.main_list.GetSelectedObjects()
         selected_items.remove(self.obj)
-        print self.parent.configure_list
         self.parent.configure_list.remove(self.obj)
         self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.Destroy()
