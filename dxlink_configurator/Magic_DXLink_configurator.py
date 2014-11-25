@@ -34,7 +34,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
 import time
-
+from threading import Thread
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
@@ -231,10 +231,13 @@ class MainFrame(mdc_gui.MainFrame):
     def play_sound(self):
         """Plays a barking sound"""
         if self.play_sounds:
-            try:
-                winsound.PlaySound("sounds\\woof.wav", winsound.SND_FILENAME)
-            except IOError:
-                pass
+            filename = "sounds\\woof.wav"
+            sound = wx.Sound(filename)
+            if sound.IsOk():
+                sound.Play(wx.SOUND_ASYNC)
+            else:
+                wx.MessageBox("Invalid sound file", "Error")
+
 
     def collect_completions(self, sender):
         """Creates a list of completed connections"""
