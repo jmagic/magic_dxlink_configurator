@@ -956,7 +956,7 @@ class MainFrame(mdc_gui.MainFrame):
     def incoming_packet(self, sender):
         """Receives dhcp requests and adds them to objects to display"""
         incoming_time = datetime.datetime.now()
-        data = self.create_add_unit(
+        data = Unit(
             hostname=sender[0],
             mac=sender[1],
             ip_ad=sender[2],
@@ -967,7 +967,7 @@ class MainFrame(mdc_gui.MainFrame):
             ' -- ' + data.hostname +
             ' ' + data.ip_address +
             ' ' + data.mac_address)
-
+        
         if bool(self.amx_only_filter):
             if data.mac_address[0:8] != '00:60:9f':
                 self.main_list.SetFocus()
