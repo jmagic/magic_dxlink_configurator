@@ -48,17 +48,17 @@ class Telnetjobs(Thread):
             telnet_session = self.establish_telnet(obj.ip_address)
             
             telnet_session.read_until('Welcome to', int(job[2]))
-            intro = telnet_session.read_until('>').split()
+            intro = telnet_session.read_until('>', int(job[2])).split()
             obj.model = intro[0]
             obj.firmware = intro[1]
             telnet_session.write('get sn \r')
             telnet_session.read_until('Number:', int(job[2]))
-            obj.serial = telnet_session.read_until('>').split()[0]
+            obj.serial = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get device \r')
             telnet_session.read_until('Value:', int(job[2]))
 
-            obj.device = telnet_session.read_until('>').split()[0]
+            obj.device = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get ip \r')
             telnet_session.read_until('HostName:', int(job[2]))
@@ -77,7 +77,7 @@ class Telnetjobs(Thread):
             obj.subnet = ip_subnet[-2]
             ip_gateway = telnet_session.read_until('MAC').split()
             obj.gateway = ip_gateway[-2]
-            ip_mac = telnet_session.read_until('>').split()
+            ip_mac = telnet_session.read_until('>', int(job[2])).split()
             obj.mac_address = ip_mac[1]
             self.get_connection(obj, telnet_session, int(job[2]))
 

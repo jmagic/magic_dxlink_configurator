@@ -637,7 +637,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		self.dhcp_chk = wx.RadioButton( self, wx.ID_ANY, u"DHCP", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
 		sbSizer7.Add( self.dhcp_chk, 0, wx.ALL, 5 )
 		
-		self.static_chk = wx.RadioButton( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		self.static_chk = wx.RadioButton( self, wx.ID_ANY, u"Static", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer7.Add( self.static_chk, 0, wx.ALL, 5 )
 		
 		
@@ -736,6 +736,8 @@ class DeviceConfiguration ( wx.Dialog ):
 		
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.on_cancel )
+		self.dhcp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
+		self.static_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.on_set )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_button3.Bind( wx.EVT_BUTTON, self.on_abort )
@@ -747,6 +749,10 @@ class DeviceConfiguration ( wx.Dialog ):
 	# Virtual event handlers, overide them in your derived class
 	def on_cancel( self, event ):
 		event.Skip()
+	
+	def on_dhcp( self, event ):
+		event.Skip()
+	
 	
 	def on_set( self, event ):
 		event.Skip()
