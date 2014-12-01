@@ -92,6 +92,7 @@ class MainFrame(mdc_gui.MainFrame):
             'DXLINK-HDMI-DWP')
 
         self.dxrx_models_default = (
+            'DXLINK-HDMI-RX, ' +
             'DXLINK-HDMI-RX.c, ' +
             'DXLINK-HDMI-RX.e')
         self.dxftx_models_default = (
@@ -258,11 +259,11 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_sniffing_chk.Enable(False)
         self.amx_only_filter_chk.Enable(False)
     
-    def do_stuff(self, dialog): # put your logic here
+    '''def do_stuff(self, dialog): # put your logic here
         for i in range(101):
             wx.CallAfter(dialog.Update, i)
             time.sleep(0.1)
-        wx.CallAfter(dialog.Destroy)
+        wx.CallAfter(dialog.Destroy)'''
 
 
     def start(self, func, *args): # helper method to run a function in another thread
@@ -281,16 +282,20 @@ class MainFrame(mdc_gui.MainFrame):
             dialog = wx.ProgressDialog(
                 'Attempting connect to selected devices',
                 'Attempting connection to all selected devices',
-                 maximum=len(self.main_list.GetSelectedObjects()))
+                maximum=len(self.main_list.GetSelectedObjects()))
 
         self.start(self.progress_processing, dialog)
         dialog.ShowModal()
 
     def progress_processing(self, dialog):
+        """Set up progress dialog"""
         if len(self.main_list.GetSelectedObjects()) == 1:
+            wx.CallAfter(dialog.Pulse)
+
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
+                time.sleep(.01)
                 wx.CallAfter(dialog.Pulse)
         else:
             while ((len(self.completionlist) + len(self.errorlist)) <
@@ -309,15 +314,15 @@ class MainFrame(mdc_gui.MainFrame):
         for i in range(len(self.errorlist)):
             errortext = (
                 errortext + 
-                self.errorlist[i][0] + "    " + 
+                self.errorlist[i][0].ip_address + "    " + 
                 self.errorlist[i][1] + "\n")
 
         completiontext = ""
         for i in range(len(self.completionlist)):
             completiontext = (
                 completiontext + 
-                self.completionlist[i][0].ip_address + "     " +
-                self.completionlist[i][0].model + "\n")
+                self.completionlist[i].ip_address + "     " +
+                self.completionlist[i].model + "\n")
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
             dlg = wx.MessageDialog(
