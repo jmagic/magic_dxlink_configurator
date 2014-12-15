@@ -215,7 +215,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
     #----------------------------------------------------------------------
     
-    '''def collect_completions(self, sender):
+    def collect_completions(self, sender):
         """Creates a list of completed connections"""
         self.completionlist.append(sender)
 
@@ -310,7 +310,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             dlg.Destroy()
 
         self.errorlist = []
-        self.completionlist = []'''
+        self.completionlist = []
 
 
     def on_command_combo(self, _):
