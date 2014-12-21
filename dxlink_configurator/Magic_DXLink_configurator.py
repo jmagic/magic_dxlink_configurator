@@ -202,8 +202,8 @@ class MainFrame(mdc_gui.MainFrame):
         dispatcher.connect(self.incoming_packet, 
                            signal="Incoming Packet", 
                            sender=dispatcher.Any)
-        dispatcher.connect(self.communication_started,
-                           signal="Communication Started",
+        dispatcher.connect(self.set_status,
+                           signal="Status Update",
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
                            signal="Collect Completions", 
@@ -243,6 +243,11 @@ class MainFrame(mdc_gui.MainFrame):
                 sound.Play(wx.SOUND_ASYNC)
             else:
                 wx.MessageBox("Invalid sound file", "Error")
+    def set_status(self, sender):
+        """sets the status of an object from a tuple of (obj, status)"""
+
+        sender[0].status = sender[1]
+        self.main_list.RefreshObject(sender[0])
 
     def communication_started(self, sender):
         """Updates status when communication is started"""
@@ -562,9 +567,12 @@ class MainFrame(mdc_gui.MainFrame):
             self.serial_active.append(obj.mac_address)
             self.telnet_job_queue.put(['get_dgx_mse', obj, 
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         else:
             self.telnet_job_queue.put(['get_dxlink_mse', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
+
 
     def mse_in_active(self, obj):
         """Checks if device is in active list"""
@@ -631,7 +639,8 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['factory_av', obj, 
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            self.set_status((obj, "Queued"))
+        #self.display_progress()
 
 
     def reset_factory(self, _):
@@ -647,9 +656,11 @@ class MainFrame(mdc_gui.MainFrame):
                 dlg.Destroy()
                 self.telnet_job_queue.put(['reset_factory', obj, 
                                            self.telnet_timeout_seconds])
+                self.set_status((obj, "Queued"))
+                
             else:
                 return
-        self.display_progress()
+        #self.display_progress()
 
 
     def reboot(self, _):
@@ -659,7 +670,8 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['reboot', obj,
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            self.set_status((obj, "Queued"))
+        #self.display_progress()
 
 
     def open_url(self, _):
@@ -678,8 +690,7 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
                                        self.telnet_timeout_seconds])
-            obj.status = "Queued"
-            self.main_list.RefreshObject(obj)
+            self.set_status((obj, "Queued"))
         #self.display_progress()
 
 
@@ -690,6 +701,7 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_on_leds', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         self.display_progress()
 
     def turn_off_leds(self, _):
@@ -699,6 +711,7 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         self.display_progress()
 
     def send_commands(self, _):
@@ -1002,6 +1015,7 @@ class MainFrame(mdc_gui.MainFrame):
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
             self.main_list.AddObject(data)
+            self.set_status(data, "DHCP")
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
@@ -1018,6 +1032,7 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
+            self.set_status(data, "DHCP")
 
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()

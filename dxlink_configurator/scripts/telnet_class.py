@@ -43,7 +43,7 @@ class Telnetjobs(Thread):
         """Gets serial number, firmware from device"""
 
         obj = job[1]
-        self.communication_started(obj) 
+        self.set_status(obj, "Connecting") 
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             
@@ -83,7 +83,7 @@ class Telnetjobs(Thread):
 
             telnet_session.write('exit')
             telnet_session.close()
-            self.communication_success(obj) 
+            self.set_status(obj, "Success") 
         except (IOError, Exception) as error:
             self.error_processing(obj, error)
 
@@ -92,7 +92,7 @@ class Telnetjobs(Thread):
         """Sets unit to factory defaults"""
 
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
@@ -108,7 +108,7 @@ class Telnetjobs(Thread):
     def reboot(self, job):
 
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
@@ -134,6 +134,7 @@ class Telnetjobs(Thread):
         gateway = job[8]
         master = job[9]
         device = job[10]
+        self.set_status(obj, "Connecting")
 
         if setdhcp == True:
             try:
@@ -231,6 +232,7 @@ class Telnetjobs(Thread):
     def factory_av(self, job):
         """Sets unit audio visual to factory defaults"""
         obj = job[1]
+        self.set_status(obj, "Connecting")
 
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
@@ -265,6 +267,7 @@ class Telnetjobs(Thread):
 
         obj = job[1]
         command_sent = job[3]
+        self.set_status(obj, "Connecting")
 
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
@@ -294,6 +297,7 @@ class Telnetjobs(Thread):
         """Turns on LEDs"""
 
         obj = job[1]
+        self.set_status(obj, "Connecting")
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
@@ -310,7 +314,7 @@ class Telnetjobs(Thread):
     def turn_off_leds(self, job):
         """Turns off leds"""
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
@@ -326,6 +330,7 @@ class Telnetjobs(Thread):
     def get_dxlink_mse(self, job):
         """Gathers MSE values"""
         obj = job[1]
+
         try:
 
             telnet_session = self.establish_telnet(obj.ip_address)
@@ -497,9 +502,10 @@ class Telnetjobs(Thread):
                 obj.master = connection_info[7]
                 obj.system = connection_info[4]
 
-    def communication_started(self, obj):
+    def set_status(self, obj, status):
         """Updates progress in main"""
-        dispatcher.send(signal="Communication Started", sender=obj)
+        data = (obj, status)
+        dispatcher.send(signal="Status Update", sender=data)
 
     def communication_success(self, obj):
         """Send notification of success to main"""
