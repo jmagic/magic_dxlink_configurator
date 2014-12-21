@@ -202,7 +202,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_select_all, id = self.m_menuItem10.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_select_none, id = self.m_menuItem11.GetId() )
 		self.Bind( wx.EVT_MENU, self.configure_prefs, id = self.m_menuItem12.GetId() )
-		self.Bind( wx.EVT_MENU, self.get_config_info, id = self.m_menuItem13.GetId() )
+		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.m_menuItem13.GetId() )
 		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem14.GetId() )
 		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem15.GetId() )
 		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem16.GetId() )
@@ -220,7 +220,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
 		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.m_menuItem36.GetId() )
-		self.Bind( wx.EVT_MENU, self.get_config_info, id = self.m_menuItem2.GetId() )
+		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.m_menuItem2.GetId() )
 		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem251.GetId() )
 		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem261.GetId() )
 		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem271.GetId() )
@@ -263,7 +263,7 @@ class MainFrame ( wx.Frame ):
 	def configure_prefs( self, event ):
 		event.Skip()
 	
-	def get_config_info( self, event ):
+	def update_device_information( self, event ):
 		event.Skip()
 	
 	def configure_device( self, event ):
@@ -990,6 +990,7 @@ class MultiSend ( wx.Dialog ):
 		self.query_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
 		self.command_chk.Bind( wx.EVT_RADIOBUTTON, self.on_query )
 		self.commands_cmb.Bind( wx.EVT_COMBOBOX, self.on_command_combo )
+		self.action_cmb.Bind( wx.EVT_COMBOBOX, self.on_action_combo )
 		self.get_all_chk.Bind( wx.EVT_CHECKBOX, self.on_get_all )
 		self.send_btn.Bind( wx.EVT_BUTTON, self.on_send )
 		self.exit_btn.Bind( wx.EVT_BUTTON, self.on_exit )
@@ -1006,6 +1007,9 @@ class MultiSend ( wx.Dialog ):
 	def on_command_combo( self, event ):
 		event.Skip()
 	
+	def on_action_combo( self, event ):
+		event.Skip()
+	
 	def on_get_all( self, event ):
 		event.Skip()
 	
@@ -1014,5 +1018,42 @@ class MultiSend ( wx.Dialog ):
 	
 	def on_exit( self, event ):
 		event.Skip()
+	
+
+###########################################################################
+## Class ProgressDialog
+###########################################################################
+
+class ProgressDialog ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Progress", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer42 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_panel7 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer43 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_gauge1 = wx.Gauge( self.m_panel7, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL )
+		self.m_gauge1.SetValue( 0 ) 
+		bSizer43.Add( self.m_gauge1, 0, wx.ALL, 5 )
+		
+		
+		self.m_panel7.SetSizer( bSizer43 )
+		self.m_panel7.Layout()
+		bSizer43.Fit( self.m_panel7 )
+		bSizer42.Add( self.m_panel7, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer42 )
+		self.Layout()
+		bSizer42.Fit( self )
+		
+		self.Centre( wx.BOTH )
+	
+	def __del__( self ):
+		pass
 	
 

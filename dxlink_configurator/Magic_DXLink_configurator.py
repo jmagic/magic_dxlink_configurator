@@ -678,14 +678,17 @@ class MainFrame(mdc_gui.MainFrame):
             webbrowser.open_new_tab(url)
 
 
-    def get_config_info(self, _):
+    def update_device_information(self, _):
         """Connects to device via telnet and gets serial model and firmware """
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            obj.status = "Queued"
+            self.main_list.RefreshObject(obj)
+        #self.display_progress()
+
 
     def turn_on_leds(self, _):
         """Turns on front panel LEDs"""
