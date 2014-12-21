@@ -419,6 +419,8 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return True
+        for obj in self.main_list.GetSelectedObjects():
+            self.set_status((obj, ''))
 
     def on_select_all(self, _):
         """Select all items in the list"""

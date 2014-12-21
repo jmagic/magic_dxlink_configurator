@@ -100,8 +100,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('>', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
-
+            self.set_status(obj, "Success")
         except IOError, error:
             self.error_processing(obj, error)
 
@@ -116,7 +115,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -174,7 +173,7 @@ class Telnetjobs(Thread):
                 telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communication_success(obj)
+                self.set_status(obj, "Success")
 
             except Exception as error:
                 self.error_processing(obj, error)
@@ -224,7 +223,7 @@ class Telnetjobs(Thread):
                 telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communication_success(obj)
+                self.set_status(obj, "Success")
 
             except Exception as error:
                 self.error_processing(obj, error)
@@ -257,7 +256,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -288,7 +287,8 @@ class Telnetjobs(Thread):
 
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
+            self.notify_send_command_window(obj)
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -305,7 +305,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('ON', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -322,7 +322,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('OFF', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -507,9 +507,13 @@ class Telnetjobs(Thread):
         data = (obj, status)
         dispatcher.send(signal="Status Update", sender=data)
 
-    def communication_success(self, obj):
+    '''def communication_success(self, obj):
         """Send notification of success to main"""
-        dispatcher.send(signal="Collect Completions", sender=obj)
+        dispatcher.send(signal="Collect Completions", sender=obj)'''\
+        
+    def notify_send_command_window(self, obj):
+        """updates send_command window"""
+        dispatcher.send(signal="Update Window", sender=obj)
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
