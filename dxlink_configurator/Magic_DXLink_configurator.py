@@ -59,7 +59,7 @@ class Unit(object):
     #----------------------------------------------------------------------
     def __init__(self,  model='', hostname='', serial='' ,firmware='', 
                  device='', mac='', ip_ad='', arrival_time='', ip_type='', 
-                 gateway='', subnet='', master='', system=''):
+                 gateway='', subnet='', master='', system='', status=''):
 
         self.model = model
         self.hostname = hostname
@@ -74,6 +74,7 @@ class Unit(object):
         self.subnet = subnet
         self.master = master
         self.system = system
+        self.status = status
 
 
 class MainFrame(mdc_gui.MainFrame):
@@ -162,7 +163,8 @@ class MainFrame(mdc_gui.MainFrame):
                               ColumnDefn("Device", "center", 80, "device"),
                               ColumnDefn("Static", "center", 60, "ip_type"),
                               ColumnDefn("Master", "center", 100, "master"),
-                              ColumnDefn("System", "center", 80, "system")
+                              ColumnDefn("System", "center", 80, "system"),
+                              ColumnDefn("Status", "left", 120, "status")
                              ]
 
         self.select_columns()
@@ -1101,7 +1103,7 @@ class MainFrame(mdc_gui.MainFrame):
                    'Columns with a 1 are displayed. ', 
                    'Unless you know what your doing, ' + 
                    'please change these in the application')
-        config.set('Config', 'columns_config', '11111111110')
+        config.set('Config', 'columns_config', '111111111101')
         config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
         config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
         config.set(
@@ -1195,7 +1197,7 @@ class MainFrame(mdc_gui.MainFrame):
         """Resizes the Frame"""
         panel_width = 30
         for i in range(len(self.columns_config)):
-            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80]
+            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80, 100]
             if self.columns_config[i] == '1':
                 panel_width = panel_width + columns_width[i]
         if panel_width < 400:
