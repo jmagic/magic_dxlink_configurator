@@ -43,7 +43,7 @@ class Telnetjobs(Thread):
         """Gets serial number, firmware from device"""
 
         obj = job[1]
-
+        self.communication_started(obj) 
         try:
             telnet_session = self.establish_telnet(obj.ip_address)
             
@@ -497,6 +497,9 @@ class Telnetjobs(Thread):
                 obj.master = connection_info[7]
                 obj.system = connection_info[4]
 
+    def communication_started(self, obj):
+        """Updates progress in main"""
+        dispatcher.send(signal="Communication Started", sender=obj)
 
     def communication_success(self, obj):
         """Send notification of success to main"""

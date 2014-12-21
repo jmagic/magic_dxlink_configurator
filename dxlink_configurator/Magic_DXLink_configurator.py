@@ -202,6 +202,9 @@ class MainFrame(mdc_gui.MainFrame):
         dispatcher.connect(self.incoming_packet, 
                            signal="Incoming Packet", 
                            sender=dispatcher.Any)
+        dispatcher.connect(self.communication_started,
+                           signal="Communication Started",
+                           sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
                            signal="Collect Completions", 
                            sender=dispatcher.Any)
@@ -241,14 +244,23 @@ class MainFrame(mdc_gui.MainFrame):
             else:
                 wx.MessageBox("Invalid sound file", "Error")
 
+    def communication_started(self, sender):
+        """Updates status when communication is started"""
+        sender.status = "Connecting"
+        self.main_list.RefreshObject(sender)
 
     def collect_completions(self, sender):
         """Creates a list of completed connections"""
         self.completionlist.append(sender)
+        sender.status = "Success"
+        self.main_list.RefreshObject(sender)
+
 
     def collect_errors(self, sender):
         """Creates a list of incomplete connections"""
         self.errorlist.append(sender)
+        sender[0].status = "Failed: " + sender[1]
+        self.main_list.RefreshObject(sender[0])
 
     def port_errors(self):
         """Shows when the listening port is in use"""
