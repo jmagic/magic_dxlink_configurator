@@ -34,7 +34,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
 import time
-
+import threading
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
@@ -92,6 +92,7 @@ class MainFrame(mdc_gui.MainFrame):
             'DXLINK-HDMI-DWP')
 
         self.dxrx_models_default = (
+            'DXLINK-HDMI-RX, ' +
             'DXLINK-HDMI-RX.c, ' +
             'DXLINK-HDMI-RX.e')
         self.dxftx_models_default = (
@@ -231,10 +232,13 @@ class MainFrame(mdc_gui.MainFrame):
     def play_sound(self):
         """Plays a barking sound"""
         if self.play_sounds:
-            try:
-                winsound.PlaySound("sounds\\woof.wav", winsound.SND_FILENAME)
-            except IOError:
-                pass
+            filename = "sounds\\woof.wav"
+            sound = wx.Sound(filename)
+            if sound.IsOk():
+                sound.Play(wx.SOUND_ASYNC)
+            else:
+                wx.MessageBox("Invalid sound file", "Error")
+
 
     def collect_completions(self, sender):
         """Creates a list of completed connections"""
@@ -254,58 +258,71 @@ class MainFrame(mdc_gui.MainFrame):
         dlg.ShowModal()
         self.dhcp_sniffing_chk.Enable(False)
         self.amx_only_filter_chk.Enable(False)
+    
+    '''def do_stuff(self, dialog): # put your logic here
+        for i in range(101):
+            wx.CallAfter(dialog.Update, i)
+            time.sleep(0.1)
+        wx.CallAfter(dialog.Destroy)'''
+
+
+    def start(self, func, *args): # helper method to run a function in another thread
+        thread = threading.Thread(target=func, args=args)
+        thread.setDaemon(True)
+        thread.start()
 
 
     def display_progress(self):
         """Shows progress of connections"""
         if len(self.main_list.GetSelectedObjects()) == 1:
-            dlg = wx.ProgressDialog(
+            dialog = wx.ProgressDialog(
                 'Attempting connect to selected device',
-                'Attempting connection to selected device',
-                maximum=len(self.main_list.GetSelectedObjects()),
-                parent=self,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH)
+                'Attempting connection to selected device')
+        else:
+            dialog = wx.ProgressDialog(
+                'Attempting connect to selected devices',
+                'Attempting connection to all selected devices',
+                maximum=len(self.main_list.GetSelectedObjects()))
+
+        self.start(self.progress_processing, dialog)
+        dialog.ShowModal()
+
+    def progress_processing(self, dialog):
+        """Set up progress dialog"""
+        if len(self.main_list.GetSelectedObjects()) == 1:
+            wx.CallAfter(dialog.Pulse)
 
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
                 time.sleep(.01)
-                #print 'sleep'
-                dlg.UpdatePulse()
+                wx.CallAfter(dialog.Pulse)
         else:
-            dlg = wx.ProgressDialog(
-                'Attempting connect to selected devices',
-                'Attempting connection to all selected devices',
-                maximum=len(self.main_list.GetSelectedObjects()),
-                parent=self,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH
-                | wx.PD_ELAPSED_TIME)
-
             while ((len(self.completionlist) + len(self.errorlist)) <
                    len(self.main_list.GetSelectedObjects())):
                 count = (len(self.completionlist) + len(self.errorlist))
-                dlg.Update(count, "Attempting connection to %s of %s devices" %
-                           ((count + 1), 
-                            len(self.main_list.GetSelectedObjects())))
+                wx.CallAfter(
+                    dialog.Update, 
+                    count, 
+                    "Attempting connection to %s of %s devices" % (
+                        (count + 1), 
+                        len(self.main_list.GetSelectedObjects())))
 
-        dlg.Destroy()
+        dialog.Destroy()
+
         errortext = ""
-        phil = " "
-        
-        for i in xrange(len(self.errorlist)):
-            while (len(self.errorlist[i][0]) + (len(phil) - 1)) < 15:
-                phil = phil + " "
-            errortext = errortext + self.errorlist[i][0] + " " + phil + " " +  \
-                        self.errorlist[i][1] + "\n"
-            phil = " "
+        for i in range(len(self.errorlist)):
+            errortext = (
+                errortext + 
+                self.errorlist[i][0].ip_address + "    " + 
+                self.errorlist[i][1] + "\n")
 
         completiontext = ""
         for i in range(len(self.completionlist)):
-            completiontext = completiontext + self.completionlist[i][0] + "\n"
+            completiontext = (
+                completiontext + 
+                self.completionlist[i].ip_address + "     " +
+                self.completionlist[i].model + "\n")
         
         if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
             dlg = wx.MessageDialog(

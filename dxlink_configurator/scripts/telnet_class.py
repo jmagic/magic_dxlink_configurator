@@ -500,15 +500,14 @@ class Telnetjobs(Thread):
 
     def communication_success(self, obj):
         """Send notification of success to main"""
-        data = [obj.ip_address, 'Success']
-        dispatcher.send(signal="Collect Completions", sender=data)
+        dispatcher.send(signal="Collect Completions", sender=obj)
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
 
         if str(error) == 'Not an AMX device':
-            data = (obj.ip_address, 'Warning, not a recognized dxlink device')
+            data = (obj, 'Warning, not a recognized dxlink device')
         else:
-            data = (obj.ip_address, str(error))
+            data = (obj, str(error))
         dispatcher.send(signal="Collect Errors", sender=data)
 
