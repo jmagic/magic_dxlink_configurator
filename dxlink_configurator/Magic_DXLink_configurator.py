@@ -450,25 +450,22 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.name == 'nt':
-            if os.path.exists((self.path + self.telnet_client)):
 
-                for obj in self.main_list.GetSelectedObjects():
-                    self.telnet_to_queue.put([obj, 'telnet'])
-            else:
-                dlg = wx.MessageDialog(
-                    parent=self, message='Could not find ' +
-                    'telnet client \nPlease put ' + 
-                    '%s in \n%s' % (self.telnet_client, self.path),
-                    caption='No %s' % self.telnet_client,
-                    style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-            return
+        if os.path.exists((self.path + self.telnet_client)):
 
-        if os.name == 'posix':
             for obj in self.main_list.GetSelectedObjects():
-                self.telnet_to_queue.put(obj)
+                self.telnet_to_queue.put([obj, 'telnet'])
+                self.set_status((obj, "Queued"))
+        else:
+            dlg = wx.MessageDialog(
+                parent=self, message='Could not find ' +
+                'telnet client \nPlease put ' + 
+                '%s in \n%s' % (self.telnet_client, self.path),
+                caption='No %s' % self.telnet_client,
+                style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+
     def ssh_to(self, _):
         """Telnet to the selected device(s)"""
         if self.check_for_none_selected(): 
@@ -483,25 +480,21 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.name == 'nt':
-            if os.path.exists((self.path + self.telnet_client)):
+        if os.path.exists((self.path + self.telnet_client)):
 
-                for obj in self.main_list.GetSelectedObjects():
-                    self.telnet_to_queue.put([obj, 'ssh'])
-            else:
-                dlg = wx.MessageDialog(
-                    parent=self, 
-                    message='Could not find telnet client \nPlease put ' + 
-                    '%s in \n%s' % (self.telnet_client, self.path),
-                    caption='No %s' % self.telnet_client,
-                    style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-            return
-
-        if os.name == 'posix':
             for obj in self.main_list.GetSelectedObjects():
-                self.telnet_to_queue.put(obj)
+                self.telnet_to_queue.put([obj, 'ssh'])
+                self.set_status((obj, "Queued"))
+        else:
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='Could not find telnet client \nPlease put ' + 
+                '%s in \n%s' % (self.telnet_client, self.path),
+                caption='No %s' % self.telnet_client,
+                style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+        return
 
     def plot_mse(self, _):
         """Plots mse over time"""
