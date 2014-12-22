@@ -26,7 +26,7 @@
         <property name="ui_table">UI</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
-        <object class="Frame" expanded="0">
+        <object class="Frame" expanded="1">
             <property name="aui_managed">0</property>
             <property name="aui_manager_style">wxAUI_MGR_DEFAULT</property>
             <property name="bg"></property>
@@ -191,7 +191,7 @@
                     </object>
                 </object>
             </object>
-            <object class="wxMenuBar" expanded="0">
+            <object class="wxMenuBar" expanded="1">
                 <property name="bg"></property>
                 <property name="context_help"></property>
                 <property name="context_menu">1</property>
@@ -384,7 +384,7 @@
                         <event name="OnUpdateUI"></event>
                     </object>
                 </object>
-                <object class="wxMenu" expanded="0">
+                <object class="wxMenu" expanded="1">
                     <property name="label">Actions</property>
                     <property name="name">m_menu6</property>
                     <property name="permission">protected</property>
@@ -400,7 +400,7 @@
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
-                        <event name="OnMenuSelection">get_config_info</event>
+                        <event name="OnMenuSelection">update_device_information</event>
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="wxMenuItem" expanded="0">
@@ -731,7 +731,7 @@
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
             </object>
-            <object class="wxMenu" expanded="0">
+            <object class="wxMenu" expanded="1">
                 <property name="label">MyMenu</property>
                 <property name="name">rc_menu</property>
                 <property name="permission">protected</property>
@@ -747,7 +747,7 @@
                     <property name="permission">none</property>
                     <property name="shortcut"></property>
                     <property name="unchecked_bitmap"></property>
-                    <event name="OnMenuSelection">get_config_info</event>
+                    <event name="OnMenuSelection">update_device_information</event>
                     <event name="OnUpdateUI"></event>
                 </object>
                 <object class="wxMenuItem" expanded="0">

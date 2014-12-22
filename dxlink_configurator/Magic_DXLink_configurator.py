@@ -59,7 +59,7 @@ class Unit(object):
     #----------------------------------------------------------------------
     def __init__(self,  model='', hostname='', serial='' ,firmware='', 
                  device='', mac='', ip_ad='', arrival_time='', ip_type='', 
-                 gateway='', subnet='', master='', system=''):
+                 gateway='', subnet='', master='', system='', status=''):
 
         self.model = model
         self.hostname = hostname
@@ -74,6 +74,7 @@ class Unit(object):
         self.subnet = subnet
         self.master = master
         self.system = system
+        self.status = status
 
 
 class MainFrame(mdc_gui.MainFrame):
@@ -162,7 +163,8 @@ class MainFrame(mdc_gui.MainFrame):
                               ColumnDefn("Device", "center", 80, "device"),
                               ColumnDefn("Static", "center", 60, "ip_type"),
                               ColumnDefn("Master", "center", 100, "master"),
-                              ColumnDefn("System", "center", 80, "system")
+                              ColumnDefn("System", "center", 80, "system"),
+                              ColumnDefn("Status", "left", 120, "status")
                              ]
 
         self.select_columns()
@@ -199,6 +201,9 @@ class MainFrame(mdc_gui.MainFrame):
 
         dispatcher.connect(self.incoming_packet, 
                            signal="Incoming Packet", 
+                           sender=dispatcher.Any)
+        dispatcher.connect(self.set_status,
+                           signal="Status Update",
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
                            signal="Collect Completions", 
@@ -238,15 +243,29 @@ class MainFrame(mdc_gui.MainFrame):
                 sound.Play(wx.SOUND_ASYNC)
             else:
                 wx.MessageBox("Invalid sound file", "Error")
+    def set_status(self, sender):
+        """sets the status of an object from a tuple of (obj, status)"""
 
+        sender[0].status = sender[1]
+        self.main_list.RefreshObject(sender[0])
+
+    def communication_started(self, sender):
+        """Updates status when communication is started"""
+        sender.status = "Connecting"
+        self.main_list.RefreshObject(sender)
 
     def collect_completions(self, sender):
         """Creates a list of completed connections"""
         self.completionlist.append(sender)
+        sender.status = "Success"
+        self.main_list.RefreshObject(sender)
+
 
     def collect_errors(self, sender):
         """Creates a list of incomplete connections"""
         self.errorlist.append(sender)
+        sender[0].status = "Failed: " + sender[1]
+        self.main_list.RefreshObject(sender[0])
 
     def port_errors(self):
         """Shows when the listening port is in use"""
@@ -400,6 +419,8 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return True
+        for obj in self.main_list.GetSelectedObjects():
+            self.set_status((obj, ''))
 
     def on_select_all(self, _):
         """Select all items in the list"""
@@ -436,25 +457,22 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.name == 'nt':
-            if os.path.exists((self.path + self.telnet_client)):
 
-                for obj in self.main_list.GetSelectedObjects():
-                    self.telnet_to_queue.put([obj, 'telnet'])
-            else:
-                dlg = wx.MessageDialog(
-                    parent=self, message='Could not find ' +
-                    'telnet client \nPlease put ' + 
-                    '%s in \n%s' % (self.telnet_client, self.path),
-                    caption='No %s' % self.telnet_client,
-                    style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-            return
+        if os.path.exists((self.path + self.telnet_client)):
 
-        if os.name == 'posix':
             for obj in self.main_list.GetSelectedObjects():
-                self.telnet_to_queue.put(obj)
+                self.telnet_to_queue.put([obj, 'telnet'])
+                self.set_status((obj, "Queued"))
+        else:
+            dlg = wx.MessageDialog(
+                parent=self, message='Could not find ' +
+                'telnet client \nPlease put ' + 
+                '%s in \n%s' % (self.telnet_client, self.path),
+                caption='No %s' % self.telnet_client,
+                style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+
     def ssh_to(self, _):
         """Telnet to the selected device(s)"""
         if self.check_for_none_selected(): 
@@ -469,25 +487,21 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.name == 'nt':
-            if os.path.exists((self.path + self.telnet_client)):
+        if os.path.exists((self.path + self.telnet_client)):
 
-                for obj in self.main_list.GetSelectedObjects():
-                    self.telnet_to_queue.put([obj, 'ssh'])
-            else:
-                dlg = wx.MessageDialog(
-                    parent=self, 
-                    message='Could not find telnet client \nPlease put ' + 
-                    '%s in \n%s' % (self.telnet_client, self.path),
-                    caption='No %s' % self.telnet_client,
-                    style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-            return
-
-        if os.name == 'posix':
             for obj in self.main_list.GetSelectedObjects():
-                self.telnet_to_queue.put(obj)
+                self.telnet_to_queue.put([obj, 'ssh'])
+                self.set_status((obj, "Queued"))
+        else:
+            dlg = wx.MessageDialog(
+                parent=self, 
+                message='Could not find telnet client \nPlease put ' + 
+                '%s in \n%s' % (self.telnet_client, self.path),
+                caption='No %s' % self.telnet_client,
+                style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+        return
 
     def plot_mse(self, _):
         """Plots mse over time"""
@@ -555,9 +569,12 @@ class MainFrame(mdc_gui.MainFrame):
             self.serial_active.append(obj.mac_address)
             self.telnet_job_queue.put(['get_dgx_mse', obj, 
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         else:
             self.telnet_job_queue.put(['get_dxlink_mse', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
+
 
     def mse_in_active(self, obj):
         """Checks if device is in active list"""
@@ -624,7 +641,8 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['factory_av', obj, 
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            self.set_status((obj, "Queued"))
+        #self.display_progress()
 
 
     def reset_factory(self, _):
@@ -640,9 +658,11 @@ class MainFrame(mdc_gui.MainFrame):
                 dlg.Destroy()
                 self.telnet_job_queue.put(['reset_factory', obj, 
                                            self.telnet_timeout_seconds])
+                self.set_status((obj, "Queued"))
+                
             else:
                 return
-        self.display_progress()
+        #self.display_progress()
 
 
     def reboot(self, _):
@@ -652,7 +672,8 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['reboot', obj,
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            self.set_status((obj, "Queued"))
+        #self.display_progress()
 
 
     def open_url(self, _):
@@ -664,14 +685,16 @@ class MainFrame(mdc_gui.MainFrame):
             webbrowser.open_new_tab(url)
 
 
-    def get_config_info(self, _):
+    def update_device_information(self, _):
         """Connects to device via telnet and gets serial model and firmware """
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
                                        self.telnet_timeout_seconds])
-        self.display_progress()
+            self.set_status((obj, "Queued"))
+        #self.display_progress()
+
 
     def turn_on_leds(self, _):
         """Turns on front panel LEDs"""
@@ -680,6 +703,7 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_on_leds', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         self.display_progress()
 
     def turn_off_leds(self, _):
@@ -689,6 +713,7 @@ class MainFrame(mdc_gui.MainFrame):
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
         self.display_progress()
 
     def send_commands(self, _):
@@ -992,6 +1017,7 @@ class MainFrame(mdc_gui.MainFrame):
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
             self.main_list.AddObject(data)
+            self.set_status((data, "DHCP"))
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
@@ -1008,6 +1034,7 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
+            self.set_status((data, "DHCP"))
 
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
@@ -1101,7 +1128,7 @@ class MainFrame(mdc_gui.MainFrame):
                    'Columns with a 1 are displayed. ', 
                    'Unless you know what your doing, ' + 
                    'please change these in the application')
-        config.set('Config', 'columns_config', '11111111110')
+        config.set('Config', 'columns_config', '111111111101')
         config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
         config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
         config.set(
@@ -1195,7 +1222,7 @@ class MainFrame(mdc_gui.MainFrame):
         """Resizes the Frame"""
         panel_width = 30
         for i in range(len(self.columns_config)):
-            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80]
+            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80, 100]
             if self.columns_config[i] == '1':
                 panel_width = panel_width + columns_width[i]
         if panel_width < 400:

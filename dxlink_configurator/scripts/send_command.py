@@ -11,136 +11,6 @@ from scripts import mdc_gui
 class SendCommandConfig(mdc_gui.MultiSend):
     def __init__(self, parent, device_list, dxlink_model):
         mdc_gui.MultiSend.__init__(self, parent)
-
-        '''
-        self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
-        
-        bsizer1 = wx.BoxSizer(wx.VERTICAL)
-        
-        bsizer121 = wx.BoxSizer(wx.VERTICAL)
-        
-        
-        bsizer121.Add(self.device_list, 1, wx.ALL|wx.EXPAND, 5)
-        bsizer1.Add(bsizer121, 0, wx.EXPAND, 5)
-        
-        bsizer11 = wx.BoxSizer(wx.HORIZONTAL)
-        
-        
-        self.send_query = wx.RadioButton(self, wx.ID_ANY, u"Query",
-                                         wx.DefaultPosition, 
-                                         wx.DefaultSize, 0) 
-        #wx.RB_GROUP sets the radio buttons as a group. Makes windows work 
-        self.Bind(wx.EVT_RADIOBUTTON, self.on_query, self.send_query)
-        bsizer11.Add(self.send_query, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        
-        self.send_command = wx.RadioButton(self, wx.ID_ANY, u"Command", 
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.send_command.SetValue(True)
-        self.Bind(wx.EVT_RADIOBUTTON, self.on_query, self.send_command)
-        bsizer11.Add(self.send_command, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        
-        command_combo_choices = []
-        self.command_combo = wx.ComboBox(self, wx.ID_ANY, u"Command", 
-                                        wx.DefaultPosition, wx.DefaultSize, 
-                                        command_combo_choices, 0)
-        bsizer11.Add(self.command_combo, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        self.command_combo.Bind(wx.EVT_COMBOBOX, self.on_command_combo)
-        
-        action_cmb_choices = []
-        self.action_combo = wx.ComboBox(self, wx.ID_ANY, u"Action", 
-                                        wx.DefaultPosition, wx.DefaultSize, 
-                                        action_combo_choices, 0)
-        bsizer11.Add(self.action_combo, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-        self.action_combo.Bind(wx.EVT_COMBOBOX, self.on_action_combo)
-        
-        self.get_all = wx.CheckBox(self, wx.ID_ANY, u"Send All Query's", 
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.get_all.SetValue(False)
-        self.get_all.Bind(wx.EVT_CHECKBOX, self.on_get_all)
-        bsizer11.Add(self.get_all, 0, wx.ALL, 5)
-        
-        
-        bsizer1.Add(bsizer11, 0, wx.EXPAND, 5)
-        
-        
-        bsizer13 = wx.BoxSizer(wx.HORIZONTAL)
-        bsizer20 = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.static_text = wx.StaticText(self, wx.ID_ANY, 
-                                        u"send_command <DEVICE>:", 
-                                        wx.DefaultPosition, wx.DefaultSize, 0)
-        self.static_text.Wrap(-1)
-        bsizer20.Add(self.static_text, 0, wx.ALIGN_CENTER_VERTICAL|
-                                            wx.TOP|wx.BOTTOM|wx.LEFT, 5)
-        
-        self.string_port = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
-                                        wx.DefaultPosition, wx.Size(20, -1), 0)
-        
-        bsizer20.Add(self.string_port, 0, wx.TOP|wx.BOTTOM, 5)
-        
-        self.static_text2 = wx.StaticText(self, wx.ID_ANY, u":<SYSTEM>, \" \' ",
-                                          wx.DefaultPosition, wx.DefaultSize, 0)
-        self.static_text2.Wrap(-1)
-        bsizer20.Add(self.static_text2, 0, wx.ALIGN_CENTER_VERTICAL|
-                                                wx.TOP|wx.BOTTOM, 5)
-        
-        self.stringcommand = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
-                                        wx.DefaultPosition, wx.Size(280, -1), 0)
-        bsizer20.Add(self.stringcommand, 0, wx.TOP|wx.BOTTOM|wx.RIGHT, 5)
-        
-        self.static_text3 = wx.StaticText(self, label="\' \" ")
-        bsizer20.Add(self.static_text3, 1, wx.ALL, 5)
-        
-        self.send = wx.Button(self, wx.ID_ANY, u"Send", wx.DefaultPosition, 
-                                wx.DefaultSize, 0)
-        bsizer20.Add(self.send, 0, wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_send, self.send)
-        
-        self.exit = wx.Button(self, wx.ID_ANY, u"Exit", 
-                                    wx.DefaultPosition, wx.DefaultSize, 0)
-        bsizer20.Add(self.exit, 0, wx.ALIGN_BOTTOM|wx.ALL, 5)
-        self.Bind(wx.EVT_BUTTON, self.on_exit, self.exit)
-        
-        bsizer13.Add(bsizer20, 0, wx.EXPAND, 5)
-        bsizer1.Add(bsizer13, 0, wx.EXPAND, 5)
- 
-        bsizer15 = wx.BoxSizer(wx.HORIZONTAL)
-        
-        bsizer16 = wx.BoxSizer(wx.VERTICAL)
-        
-        bsizer16.SetMinSize(wx.Size(260, -1)) 
-        self.description = wx.TextCtrl(self, wx.ID_ANY, u"Command", 
-                                        wx.DefaultPosition, wx.Size(-1, -1), 
-                                        style=wx.TE_MULTILINE|wx.TE_READONLY|
-                                            wx.HSCROLL)
-        self.description.SetMaxLength(0) 
-        bsizer16.Add(self.description, 1, wx.ALL|wx.EXPAND, 5)
-        
-        bsizer15.Add(bsizer16, 0, wx.EXPAND, 5)
-        
-        bsizer17 = wx.BoxSizer(wx.VERTICAL)
-        
-        self.syntax = wx.TextCtrl(self, wx.ID_ANY, u"Description", 
-                                    wx.DefaultPosition, wx.DefaultSize, 
-                                    style=wx.TE_MULTILINE|wx.TE_READONLY|
-                                        wx.HSCROLL)
-        self.syntax.SetMaxLength(0) 
-        bsizer17.Add(self.syntax, 1, wx.ALL|wx.EXPAND, 5)
-        
-        
-        bsizer15.Add(bsizer17, 1, wx.EXPAND, 5)
-        
-        
-        bsizer1.Add(bsizer15, 1, wx.EXPAND, 5)
-        
-        
-        self.SetSizer(bsizer1)
-        self.Layout()
-        
-        self.Centre(wx.BOTH)
-
-
-        #------------------------------ Done with wxFormBuilder  '''
            
         self.parent = parent
         self.SetTitle("Multiple Send Command") # to %s" %obj.ip)
@@ -176,7 +46,8 @@ class SendCommandConfig(mdc_gui.MultiSend):
         self.device_list.SetColumns(
             [ColumnDefn("Model", "center", 130, "model"),
              ColumnDefn("IP", "center", 100, "ip_address"),
-             ColumnDefn("Device", "center", 80, "device")])
+             ColumnDefn("Device", "center", 80, "device"),
+             ColumnDefn("Status", "left", 120, "status")])
 
         self.olv_sizer.Add(self.device_list, 1, wx.ALL|wx.EXPAND, 0)
         self.olv_sizer.Layout()
@@ -200,14 +71,18 @@ class SendCommandConfig(mdc_gui.MultiSend):
         self.device_list.RefreshObjects(self.device_list.GetObjects())
 
 
-        dispatcher.connect(self.collect_completions,
+        '''dispatcher.connect(self.collect_completions,
                            signal="Collect Completions", 
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_errors, 
-                           signal="Collect Errors", 
-                           sender=dispatcher.Any)
+                           signal="send_com", 
+                           sender=dispatcher.Any)'''
         dispatcher.connect(self.on_result, 
                            signal="send_command result", 
+                           sender=dispatcher.Any)
+
+        dispatcher.connect(self.update_window,
+                           signal="Update Window",
                            sender=dispatcher.Any)
         self.time_out = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_time_out, self.time_out)
@@ -215,7 +90,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
     #----------------------------------------------------------------------
     
-    def collect_completions(self, sender):
+    '''def collect_completions(self, sender):
         """Creates a list of completed connections"""
         self.completionlist.append(sender)
 
@@ -310,7 +185,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             dlg.Destroy()
 
         self.errorlist = []
-        self.completionlist = []
+        self.completionlist = []'''
 
 
     def on_command_combo(self, _):
@@ -446,85 +321,29 @@ class SendCommandConfig(mdc_gui.MultiSend):
             self.parent.telnet_job_queue.put(
                 ['send_command', obj, 
                  self.parent.telnet_timeout_seconds, 
-                 output, 
-                 str(self.port)])
+                 output])
+            self.parent.set_status((obj, "Queued"))
+            self.device_list.RefreshObject(obj)
 
-        self.display_progress()
+        #self.display_progress()
 
     def on_send_all(self):
         """Send all is checked"""
         for obj in self.device_list.GetCheckedObjects():
-            if obj.device == " ":
-                device = 0
-            else:
-                device = obj.device
-            if obj.system == " ":
-                system = 0
-            else:
-                system = obj.system
-
-            total = len(self.commands_cmb.GetItems()) + 1
-            dlg = wx.ProgressDialog(
-                'Sending command to selected ' +
-                'device with results listed ' +
-                'below ', 
-                'Sending command to selected ' +
-                'device with results listed ' +
-                'below',
-                maximum=total,
-                parent=self.parent,
-                style=wx.PD_APP_MODAL
-                | wx.PD_CAN_ABORT
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH)            
-                    
-            count = 0
-             
+            command_list = []
             for item in self.commands_cmb.GetItems():
-                count += 1                        
-                output = ("send_command " + 
-                          str(device) + 
-                          ":" + 
-                          str(self.rx_tx_commands
-                              [self.dxlink_model][item][0]) + 
-                          ":" + 
-                          str(system) + 
-                          ", " + 
-                          "\"\'" + 
-                          str(item) + 
-                          "\'\"") 
-                
-                #while self.delay_timer.IsRunning():
-                #    pass
-                self.parent.telnet_job_queue.put(
-                    ['send_command', obj, 
-                     self.parent.telnet_timeout_seconds, output, 
-                     str(self.rx_tx_commands[self.dxlink_model][item][0])])
-                
-                self.time_out.Start(5000)
-                self.waiting_result = True
-                while self.waiting_result: 
-                    (continue_sending, _) = dlg.Update(
-                        count + 1,
-                        ('Sending command ' + str(count) + 
-                         ' of ' + str(total - 1) + ' to device ' 
-                         + str(device) +
-                         '\n' + self.result_string))
-                    if not continue_sending:
-                        self.time_out.Stop()
-                        self.waiting_result = False
-                        self.result_string = ''
-                if not continue_sending:
-                    break # this skips the rest of the commands 
-
-                start = time.time()
-                while time.time() - start <= .5:
-                    pass
-
-            self.time_out.Stop()
-            self.result_string = ''
-            dlg.Destroy()
-        self.display_progress()
+                command_list.append(
+                    (str(item), 
+                     str(self.rx_tx_commands[self.dxlink_model][item][0]))) 
+            self.parent.telnet_job_queue.put(
+                ['multiple_send_command', obj, 
+                 self.parent.telnet_timeout_seconds, 
+                 command_list])
+            
+        
+    def update_window(self, sender):
+        """Updates objs as they progress"""
+        self.device_list.RefreshObject(sender)
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -546,10 +365,11 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
     def on_result(self, sender):
         """Sets the result label""" 
-        self.waiting_result = False 
-        self.result_string = sender      
-        #self.result.SetLabel('Result:   ' + sender)
-
+        #self.waiting_result = False
+        if  sender[0]:
+            self.result_string = sender[1] 
+        else:
+            print "error ", sender[1] 
         
     def on_exit(self, _):
         """When user exits"""       
