@@ -102,6 +102,16 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxfrx_models_default = (
             'DXF-RX-xxD, ' +
             'DXLF-HDMIRX')
+        self.columns_default = (
+            'Model, ' +
+            'Hostname, ' +
+            'Firmware, ' +
+            'Static, ' +
+            'System, ' +
+            'MAC, ' +
+            'Serial, ' +
+            'Device, ' +
+            'Master')
 
         self.master_address = None
         self.device_number = None
@@ -113,7 +123,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_sniffing = None
         self.amx_only_filter = None
         self.play_sounds = None
-        self.columns_config = None
+        self.columns_config = []
         self.dxtx_models = []
         self.dxrx_models = []
         self.dxftx_models = []
@@ -126,7 +136,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.path = os.path.expanduser(
                 '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
-        self.resize_frame()
+        
         self.name = "Magic DXLink Configurator"
         self.version = "v3.x.x"
 
@@ -175,6 +185,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.olv_sizer.Add(self.main_list, 1, wx.ALL|wx.EXPAND, 0)
         self.olv_sizer.Layout()
+        #self.resize_frame()
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
@@ -397,8 +408,17 @@ class MainFrame(mdc_gui.MainFrame):
 
     def select_columns(self):
         """Sets the columns to be displayed"""
+        columns = self.columns_config + ['Time', 'IP', 'Status']
+        print columns
+        todisplay = []
+        for item in self.columns_setup:
+            if item.title in columns:
+                todisplay.append(item)
+        print 'todisplay: ', todisplay
+        self.main_list.SetColumns(todisplay)
 
-        self.columns = []
+
+        '''self.columns = []
         for i in range(len(self.columns_setup)):
             self.columns.append((int(self.columns_config[i]),
                                  self.columns_setup[i]))
@@ -406,7 +426,7 @@ class MainFrame(mdc_gui.MainFrame):
         for item in self.columns:
             if item[0] == 1:
                 todisplay.append(item[1])
-        self.main_list.SetColumns(todisplay)
+        self.main_list.SetColumns(todisplay)'''
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -1043,58 +1063,60 @@ class MainFrame(mdc_gui.MainFrame):
     def read_config_file(self):
         """Reads the config file"""
         config = ConfigParser.RawConfigParser()
-        try:  # read the settings file
-            config.read((self.path + "settings.txt"))
-            self.master_address = (config.get(
-                'Settings', 'default master address'))
-            self.device_number = (config.get(
-                'Settings', 'default device number'))
-            self.default_dhcp = (config.getboolean(
-                'Settings', 'default enable DHCP'))
-            self.thread_number = (config.get(
-                'Settings', 'number of threads'))
-            self.telnet_client = (config.get(
-                'Settings', 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.get(
-                'Settings', 'telnet timeout in seconds'))
-            self.displaysuccess = (config.getboolean(
-                'Settings', 'display notification of successful connections'))
-            self.dhcp_sniffing = (config.getboolean(
-                'Settings', 'DHCP sniffing enabled'))
-            self.amx_only_filter = (config.getboolean(
-                'Settings', 'filter incoming DHCP for AMX only'))
-            self.play_sounds = (config.getboolean(
-                'Settings', 'play sounds'))
-            self.columns_config = (config.get('Config', 'columns_config'))
-            for item in config.get(
-                    'Config', 'DXLink TX Models').split(','):
-                self.dxtx_models.append(item.strip())
-                for item in self.dxtx_models_default.split(','):
-                    if item.strip() not in self.dxtx_models:
-                        self.dxtx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink RX Models').split(','):
-                self.dxrx_models.append(item.strip())
-                for item in self.dxrx_models_default.split(','):
-                    if item.strip() not in self.dxrx_models:
-                        self.dxrx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink Fibre TX Models').split(','):
-                self.dxftx_models.append(item.strip())
-                for item in self.dxftx_models_default.split(','):
-                    if item.strip() not in self.dxftx_models:
-                        self.dxftx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink Fibre RX Models').split(','):
-                self.dxfrx_models.append(item.strip())
-                for item in self.dxfrx_models_default.split(','):
-                    if item.strip() not in self.dxfrx_models:
-                        self.dxfrx_models.append(item.strip())
+        #try:  # read the settings file
+        config.read((self.path + "settings.txt"))
+        self.master_address = (config.get(
+            'Settings', 'default master address'))
+        self.device_number = (config.get(
+            'Settings', 'default device number'))
+        self.default_dhcp = (config.getboolean(
+            'Settings', 'default enable DHCP'))
+        self.thread_number = (config.get(
+            'Settings', 'number of threads'))
+        self.telnet_client = (config.get(
+            'Settings', 'telnet client executable'))
+        self.telnet_timeout_seconds = (config.get(
+            'Settings', 'telnet timeout in seconds'))
+        self.displaysuccess = (config.getboolean(
+            'Settings', 'display notification of successful connections'))
+        self.dhcp_sniffing = (config.getboolean(
+            'Settings', 'DHCP sniffing enabled'))
+        self.amx_only_filter = (config.getboolean(
+            'Settings', 'filter incoming DHCP for AMX only'))
+        self.play_sounds = (config.getboolean(
+            'Settings', 'play sounds'))
+        #self.columns_config = (config.get('Config', 'columns_config'))
+        for item in config.get(
+                'Config', 'columns_config').split(','):
+            self.columns_config.append(item.strip())
+        for item in config.get(
+                'Config', 'DXLink TX Models').split(','):
+            self.dxtx_models.append(item.strip())
+            for item in self.dxtx_models_default.split(','):
+                if item.strip() not in self.dxtx_models:
+                    self.dxtx_models.append(item.strip())
+        for item in config.get(
+                'Config', 'DXLink RX Models').split(','):
+            self.dxrx_models.append(item.strip())
+            for item in self.dxrx_models_default.split(','):
+                if item.strip() not in self.dxrx_models:
+                    self.dxrx_models.append(item.strip())
+        for item in config.get(
+                'Config', 'DXLink Fibre TX Models').split(','):
+            self.dxftx_models.append(item.strip())
+            for item in self.dxftx_models_default.split(','):
+                if item.strip() not in self.dxftx_models:
+                    self.dxftx_models.append(item.strip())
+        for item in config.get(
+                'Config', 'DXLink Fibre RX Models').split(','):
+            self.dxfrx_models.append(item.strip())
+            for item in self.dxfrx_models_default.split(','):
+                if item.strip() not in self.dxfrx_models:
+                    self.dxfrx_models.append(item.strip())
             
-        except (ConfigParser.Error, IOError):   
+        #except: # (ConfigParser.Error, IOError):   
             # Make a new settings file, because we couldn't read the old one
-            self.create_config_file()
-            self.read_config_file()
+            #self.create_config_file()    
         return
 
 
@@ -1104,8 +1126,8 @@ class MainFrame(mdc_gui.MainFrame):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         try:
-            #os.path.exists(self.path + 'settings.txt'):
-            os.remove(self.path + 'settings.txt')
+            if os.path.exists(self.path + 'settings.txt'):
+                os.remove(self.path + 'settings.txt')
         except OSError:
             pass
         with open((self.path + "settings.txt"), 'w') as config_file:
@@ -1124,11 +1146,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'filter incoming DHCP for AMX only', False)
         config.set('Settings', 'play sounds', True)
         config.add_section('Config')
-        config.set('Config', 
-                   'Columns with a 1 are displayed. ', 
-                   'Unless you know what your doing, ' + 
-                   'please change these in the application')
-        config.set('Config', 'columns_config', '111111111101')
+        config.set('Config', 'columns_config', self.columns_default)
         config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
         config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
         config.set(
@@ -1221,12 +1239,29 @@ class MainFrame(mdc_gui.MainFrame):
     def resize_frame(self):
         """Resizes the Frame"""
         panel_width = 30
-        for i in range(len(self.columns_config)):
+        columns_width = {
+            'Time'          : 90,
+            'Model'         : 130,
+            'MAC'           : 130,
+            'IP'            : 80,
+            'Hostname'      : 100,
+            'Serial'        : 130,
+            'Firmware'      : 150,
+            'Device'        : 80,
+            'Static'        : 80,
+            'Master'        : 60,
+            'System'        : 100,
+            'Status'        : 80
+        }
+        for item in self.columns_config:
+            panel_width += columns_width[item]
+
+        '''for i in range(len(self.columns_config)):
             columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80, 100]
             if self.columns_config[i] == '1':
                 panel_width = panel_width + columns_width[i]
         if panel_width < 400:
-            panel_width = 400
+            panel_width = 400'''
         self.SetSize((panel_width, 600))
 
     def update_status_bar(self):
@@ -1319,7 +1354,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App()
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     splash = show_splash()
 
 
