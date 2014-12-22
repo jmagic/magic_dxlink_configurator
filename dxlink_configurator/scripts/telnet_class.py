@@ -389,13 +389,13 @@ class Telnetjobs(Thread):
     def get_dxlink_mse(self, job):
         """Gathers MSE values"""
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
 
             telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', 2)
             #telnet_session.read_very_eager()
-
+            self.set_status(obj, "MSE")
             mse = []
             data = []
             while obj.mac_address in self.parent.mse_active_list: 
@@ -419,10 +419,12 @@ class Telnetjobs(Thread):
                     data = []
 
                 telnet_session.read_until('>', 2)
+            self.set_status(obj, "Success")
 
         except:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
+            self.set_status(obj, "Failed")
 
     def get_dgx_mse(self, job):
         "Gathers DGX MSE values"
