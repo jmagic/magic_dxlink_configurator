@@ -75,11 +75,11 @@ class SendCommandConfig(mdc_gui.MultiSend):
                            signal="Collect Completions", 
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_errors, 
-                           signal="Collect Errors", 
-                           sender=dispatcher.Any)
+                           signal="send_com", 
+                           sender=dispatcher.Any)'''
         dispatcher.connect(self.on_result, 
                            signal="send_command result", 
-                           sender=dispatcher.Any)'''
+                           sender=dispatcher.Any)
 
         dispatcher.connect(self.update_window,
                            signal="Update Window",
@@ -321,8 +321,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             self.parent.telnet_job_queue.put(
                 ['send_command', obj, 
                  self.parent.telnet_timeout_seconds, 
-                 output, 
-                 str(self.port)])
+                 output])
             self.parent.set_status((obj, "Queued"))
             self.device_list.RefreshObject(obj)
 
@@ -331,79 +330,16 @@ class SendCommandConfig(mdc_gui.MultiSend):
     def on_send_all(self):
         """Send all is checked"""
         for obj in self.device_list.GetCheckedObjects():
-            if obj.device == " ":
-                device = 0
-            else:
-                device = obj.device
-            if obj.system == " ":
-                system = 0
-            else:
-                system = obj.system
-
-            total = len(self.commands_cmb.GetItems()) + 1
-            dlg = wx.ProgressDialog(
-                'Sending command to selected ' +
-                'device with results listed ' +
-                'below ', 
-                'Sending command to selected ' +
-                'device with results listed ' +
-                'below',
-                maximum=total,
-                parent=self.parent,
-                style=wx.PD_APP_MODAL
-                | wx.PD_CAN_ABORT
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH)            
-                    
-            count = 0
-             
+            command_list = []
             for item in self.commands_cmb.GetItems():
-                count += 1                        
-                output = ("send_command " + 
-                          str(device) + 
-                          ":" + 
-                          str(self.rx_tx_commands
-                              [self.dxlink_model][item][0]) + 
-                          ":" + 
-                          str(system) + 
-                          ", " + 
-                          "\"\'" + 
-                          str(item) + 
-                          "\'\"") 
-                
-                #while self.delay_timer.IsRunning():
-                #    pass
-                self.parent.telnet_job_queue.put(
-                    ['send_command', obj, 
-                     self.parent.telnet_timeout_seconds, output, 
-                     str(self.rx_tx_commands[self.dxlink_model][item][0])])
-                self.parent.set_status((obj, "Queued"))
-                self.device_list.RefreshObject(obj)
-                
-                self.time_out.Start(5000)
-                self.waiting_result = True
-                while self.waiting_result: 
-                    (continue_sending, _) = dlg.Update(
-                        count + 1,
-                        ('Sending command ' + str(count) + 
-                         ' of ' + str(total - 1) + ' to device ' 
-                         + str(device) +
-                         '\n' + self.result_string))
-                    if not continue_sending:
-                        self.time_out.Stop()
-                        self.waiting_result = False
-                        self.result_string = ''
-                if not continue_sending:
-                    break # this skips the rest of the commands 
-
-                start = time.time()
-                while time.time() - start <= .5:
-                    pass
-
-            self.time_out.Stop()
-            self.result_string = ''
-            dlg.Destroy()
-        #self.display_progress()
+                command_list.append(
+                    (str(item), 
+                     str(self.rx_tx_commands[self.dxlink_model][item][0]))) 
+            self.parent.telnet_job_queue.put(
+                ['multiple_send_command', obj, 
+                 self.parent.telnet_timeout_seconds, 
+                 command_list])
+            
         
     def update_window(self, sender):
         """Updates objs as they progress"""
@@ -429,10 +365,11 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
     def on_result(self, sender):
         """Sets the result label""" 
-        self.waiting_result = False 
-        self.result_string = sender      
-        #self.result.SetLabel('Result:   ' + sender)
-
+        #self.waiting_result = False
+        if  sender[0]:
+            self.result_string = sender[1] 
+        else:
+            print "error ", sender[1] 
         
     def on_exit(self, _):
         """When user exits"""       

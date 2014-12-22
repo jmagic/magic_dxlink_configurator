@@ -261,6 +261,63 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
+    def multiple_send_command(self, job):
+        """Sends multiple commands in a single session"""
+        obj = job[1]
+        command_list = job[3]
+        if obj.device == " ":
+            device = 0
+        else:
+            device = obj.device
+        if obj.system == " ":
+            system = 0
+        else:
+            system = obj.system
+        
+        self.set_status(obj, "Connecting")
+        self.notify_send_command_window(obj)
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', int(job[2]))
+            total = len(command_list)
+            count = 0
+            error = 0
+            for command in command_list:
+                count += 1
+                output = ("send_command " + 
+                          str(device) + 
+                          ":" + 
+                          str(command[1]) + 
+                          ":" + 
+                          str(system) + 
+                          ", " + 
+                          "\"\'" + 
+                          str(command[0]) + 
+                          "\'\"") 
+                telnet_session.write(str(output + " \r"))
+                result_raw = telnet_session.read_until('>', int(job[2]))
+                if result_raw.split()[0] != 'command:':
+                    dispatcher.send(
+                        signal="send_command result", 
+                        sender=((True, 'Sending ' + str(result_raw)[:-1])))
+                    self.set_status(
+                        obj, ('Sent ' + str(count) + ' of ' + str(total)))
+                    self.notify_send_command_window(obj) 
+                else:
+                    error += 1
+                    dispatcher.send(signal="send_command result",
+                                    sender=((False, 'Failed to send command')))
+
+            telnet_session.close()
+            if not error: 
+                self.set_status(obj, 'Success')
+                self.notify_send_command_window(obj)
+            else:
+                self.set_status(obj, 'Failed')
+                self.notify_send_command_window(obj) 
+        except Exception as error:
+            self.error_processing(obj, error)
+            self.notify_send_command_window(obj)
 
     def send_command(self, job):
 
@@ -272,18 +329,19 @@ class Telnetjobs(Thread):
             telnet_session = self.establish_telnet(obj.ip_address)
 
             telnet_session.read_until('>', int(job[2]))
-            self.get_connection(obj, telnet_session, int(job[2]))
+            #self.get_connection(obj, telnet_session, int(job[2]))
 
             command = command_sent  + " \r"
             #print command
             telnet_session.write(str(command))
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_until('>', int(job[2]))
+            #print result_raw.split()
             if result_raw.split()[0] != 'command:':
-                raise Exception, ('Command not sent')
+                raise Exception('Command not sent')
             else:
                 dispatcher.send(signal="send_command result", 
-                                sender=('Sending' + str(result_raw[:-1])))
+                                sender=(('Sending ' + str(result_raw)[:-1])))
 
             telnet_session.close()
 
@@ -292,6 +350,7 @@ class Telnetjobs(Thread):
 
         except Exception as error:
             self.error_processing(obj, error)
+
 
     def turn_on_leds(self, job):
         """Turns on LEDs"""
