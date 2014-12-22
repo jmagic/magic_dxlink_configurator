@@ -19,33 +19,45 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.success_chk.SetValue(int(self.parent.displaysuccess))
         self.sounds_chk.SetValue(int(self.parent.play_sounds))  
         
-        self.time_chk.SetValue(int(self.parent.columns_config[0]))
+        for item in self.parent.columns_config:
+            #print 'item: ', item.lower()
+            #print self.model_chk.GetValue()
+            #getattr(self, 'model_chk').GetValue()
+            getattr(self, item.lower() + '_chk').SetValue(True)
+           
+
+        '''#self.time_chk.SetValue(int(self.parent.columns_config[0]))
         self.model_chk.SetValue(int(self.parent.columns_config[1]))
         self.mac_chk.SetValue(int(self.parent.columns_config[2]))
-        self.ip_chk.SetValue(int(self.parent.columns_config[3]))
+        #self.ip_chk.SetValue(int(self.parent.columns_config[3]))
         self.hostname_chk.SetValue(int(self.parent.columns_config[4]))
         self.serial_chk.SetValue(int(self.parent.columns_config[5]))
         self.firmware_chk.SetValue(int(self.parent.columns_config[6]))
         self.device_chk.SetValue(int(self.parent.columns_config[7]))
         self.static_chk.SetValue(int(self.parent.columns_config[8]))
         self.master_chk.SetValue(int(self.parent.columns_config[9]))
-        self.system_chk.SetValue(int(self.parent.columns_config[10]))
+        self.system_chk.SetValue(int(self.parent.columns_config[10]))'''
 
 
     def on_ok(self, _):
         """When user clicks ok"""
-        self.parent.columns_config = (
-            str(int(self.time_chk.GetValue())) +
+        self.parent.columns_config = []
+        for item in self.parent.columns_default.split(', '):
+            if getattr(self, item.lower() + '_chk').GetValue():
+                self.parent.columns_config.append(item)
+        print 'columns_config: ', self.parent.columns_config
+        '''self.parent.columns_config = (
+            #str(int(self.time_chk.GetValue())) +
             str(int(self.model_chk.GetValue())) +
             str(int(self.mac_chk.GetValue())) +
-            str(int(self.ip_chk.GetValue())) +
+            #str(int(self.ip_chk.GetValue())) +
             str(int(self.hostname_chk.GetValue())) +
             str(int(self.serial_chk.GetValue())) +
             str(int(self.firmware_chk.GetValue())) +
             str(int(self.device_chk.GetValue())) +
             str(int(self.static_chk.GetValue())) +
             str(int(self.master_chk.GetValue())) +
-            str(int(self.system_chk.GetValue())))
+            str(int(self.system_chk.GetValue())))'''
 
         self.parent.master_address = self.master_address_txt.GetValue()
         self.parent.device_number = self.device_number_txt.GetValue()
