@@ -1017,7 +1017,7 @@ class MainFrame(mdc_gui.MainFrame):
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
             self.main_list.AddObject(data)
-            self.set_status(data, "DHCP")
+            self.set_status((data, "DHCP"))
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
@@ -1034,7 +1034,7 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
-            self.set_status(data, "DHCP")
+            self.set_status((data, "DHCP"))
 
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
