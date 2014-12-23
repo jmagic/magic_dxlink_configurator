@@ -2,6 +2,7 @@
 
 import threading 
 import subprocess
+from pydispatch import dispatcher
 
 class TelnetToThread(threading.Thread):
     """Telnet to thread"""
@@ -17,7 +18,7 @@ class TelnetToThread(threading.Thread):
             job = self.queue.get()
             obj = job[0]
             task = job[1]
-            self.set_status(obj, "Connecting")
+            self.set_status(obj, "Telnet")
             if self.parent.telnet_client == 'putty.exe':
                 subprocess.call(
                     [(self.parent.path + 
@@ -32,7 +33,8 @@ class TelnetToThread(threading.Thread):
                      " " + 
                      obj.ip_address))
 
-            self.set_status(obj, "")
+            self.set_status(obj, "Success")
+
     def set_status(self, obj, status):
         """Updates progress in main"""
         data = (obj, status)
