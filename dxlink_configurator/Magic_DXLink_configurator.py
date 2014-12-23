@@ -33,20 +33,12 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-import time
 import threading
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
                      multi_ping, mse_baseline, plot_class, telnet_class,
                      telnetto_class)
-
-try:
-    import winsound
-except ImportError:
-    pass
-
-
 
 class Unit(object):
     """
@@ -288,107 +280,7 @@ class MainFrame(mdc_gui.MainFrame):
         dlg.ShowModal()
         self.dhcp_sniffing_chk.Enable(False)
         self.amx_only_filter_chk.Enable(False)
-    
-    '''def do_stuff(self, dialog): # put your logic here
-        for i in range(101):
-            wx.CallAfter(dialog.Update, i)
-            time.sleep(0.1)
-        wx.CallAfter(dialog.Destroy)'''
 
-
-    def start(self, func, *args): # helper method to run a function in another thread
-        thread = threading.Thread(target=func, args=args)
-        thread.setDaemon(True)
-        thread.start()
-
-
-    def display_progress(self):
-        """Shows progress of connections"""
-        if len(self.main_list.GetSelectedObjects()) == 1:
-            dialog = wx.ProgressDialog(
-                'Attempting connect to selected device',
-                'Attempting connection to selected device')
-        else:
-            dialog = wx.ProgressDialog(
-                'Attempting connect to selected devices',
-                'Attempting connection to all selected devices',
-                maximum=len(self.main_list.GetSelectedObjects()))
-
-        self.start(self.progress_processing, dialog)
-        dialog.ShowModal()
-
-    def progress_processing(self, dialog):
-        """Set up progress dialog"""
-        if len(self.main_list.GetSelectedObjects()) == 1:
-            wx.CallAfter(dialog.Pulse)
-
-            while ((len(self.completionlist) + len(self.errorlist)) <
-                   len(self.main_list.GetSelectedObjects())):
-                count = (len(self.completionlist) + len(self.errorlist))
-                time.sleep(.01)
-                wx.CallAfter(dialog.Pulse)
-        else:
-            while ((len(self.completionlist) + len(self.errorlist)) <
-                   len(self.main_list.GetSelectedObjects())):
-                count = (len(self.completionlist) + len(self.errorlist))
-                wx.CallAfter(
-                    dialog.Update, 
-                    count, 
-                    "Attempting connection to %s of %s devices" % (
-                        (count + 1), 
-                        len(self.main_list.GetSelectedObjects())))
-
-        dialog.Destroy()
-
-        errortext = ""
-        for i in range(len(self.errorlist)):
-            errortext = (
-                errortext + 
-                self.errorlist[i][0].ip_address + "    " + 
-                self.errorlist[i][1] + "\n")
-
-        completiontext = ""
-        for i in range(len(self.completionlist)):
-            completiontext = (
-                completiontext + 
-                self.completionlist[i].ip_address + "     " +
-                self.completionlist[i].model + "\n")
-        
-        if len(self.errorlist) == len(self.main_list.GetSelectedObjects()):
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='Failed to connect to \n=======================' + 
-                ' \n%s ' % errortext,
-                caption='Failed connection list',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-        elif len(self.completionlist) == \
-             len(self.main_list.GetSelectedObjects()):
-            if self.displaysuccess:
-                dlg = wx.MessageDialog(
-                    parent=self,
-                    message='Successfully connected to: \n' +
-                    '=======================\n%s' % completiontext,
-                    caption='Connection list',
-                    style=wx.OK)
-                dlg.ShowModal()
-                dlg.Destroy()
-        else:
-            dlg = wx.MessageDialog(
-                parent=self, 
-                message='Failed to connect to: \n======================= ' +
-                '\n%s \n \n' % (errortext) +
-                'Successfully connected to: \n=======================' +
-                ' \n%s' % (completiontext),
-                caption='Connection list',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-        self.main_list.RefreshObjects(self.main_list.GetObjects())
-        self.dump_pickle()
-        self.errorlist = []
-        self.completionlist = []
 
     def on_dhcp_sniffing(self, _):
         """Turns sniffing on and off"""
@@ -417,16 +309,6 @@ class MainFrame(mdc_gui.MainFrame):
         print 'todisplay: ', todisplay
         self.main_list.SetColumns(todisplay)
 
-
-        '''self.columns = []
-        for i in range(len(self.columns_setup)):
-            self.columns.append((int(self.columns_config[i]),
-                                 self.columns_setup[i]))
-        todisplay = []
-        for item in self.columns:
-            if item[0] == 1:
-                todisplay.append(item[1])
-        self.main_list.SetColumns(todisplay)'''
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -724,7 +606,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_on_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        self.display_progress()
+        #self.display_progress()
 
     def turn_off_leds(self, _):
         """Turns off front panel LEDs"""
@@ -734,7 +616,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        self.display_progress()
+        #self.display_progress()
 
     def send_commands(self, _):
         """Send commands to selected devices"""
@@ -1192,6 +1074,7 @@ class MainFrame(mdc_gui.MainFrame):
             return
         self.configure_list = []
         for obj in self.main_list.GetSelectedObjects():
+            self.set_status((obj, "Configuring"))
             self.configure_list.append(obj)
             dia = config_menus.DeviceConfig(self, obj)
             dia.ShowModal()
@@ -1201,8 +1084,6 @@ class MainFrame(mdc_gui.MainFrame):
                 return
         if self.configure_list == []:
             return
-        else:
-            self.display_progress()
 
 
     def configure_prefs(self, _):
@@ -1262,12 +1143,6 @@ class MainFrame(mdc_gui.MainFrame):
         columns = self.columns_config + ['Time', 'IP', 'Status']
         for item in columns:
             panel_width += columns_width[item]
-
-
-        '''for i in range(len(self.columns_config)):
-            columns_width = [90, 130, 130, 100, 130, 150, 80, 80, 60, 100, 80, 100]
-            if self.columns_config[i] == '1':
-                panel_width = panel_width + columns_width[i]'''
         if panel_width < 400:
             panel_width = 400
         self.SetSize((panel_width, 600))
