@@ -131,7 +131,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.x.x"
+        self.version = "v3.0.1"
 
         self.set_title_bar()
 
@@ -1221,7 +1221,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App() #redirect=True, filename="log.txt")
     #splash = show_splash()
 
 
