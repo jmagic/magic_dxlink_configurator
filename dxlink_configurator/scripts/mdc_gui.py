@@ -245,9 +245,6 @@ class MainFrame ( wx.Frame ):
 	def import_ip_list( self, event ):
 		event.Skip()
 	
-	def import_plot( self, event ):
-		event.Skip()
-	
 	def export_to_csv( self, event ):
 		event.Skip()
 	
@@ -282,9 +279,6 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def mse_baseline( self, event ):
-		event.Skip()
-	
-	def plot_mse( self, event ):
 		event.Skip()
 	
 	def add_line( self, event ):

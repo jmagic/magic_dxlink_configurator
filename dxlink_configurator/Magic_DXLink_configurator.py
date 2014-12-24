@@ -37,8 +37,7 @@ import threading
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
-                     multi_ping, mse_baseline, plot_class, telnet_class,
-                     telnetto_class)
+                     multi_ping, mse_baseline, telnet_class, telnetto_class)
 
 class Unit(object):
     """
@@ -410,41 +409,6 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
         return
-
-    def plot_mse(self, _):
-        """Plots mse over time"""
-        if self.check_for_none_selected(): 
-            return
-        if len(self.main_list.GetSelectedObjects()) > 16:
-            dlg = wx.MessageDialog(
-                parent=self, message='I can only graph 16 devices at a time ' +
-                '\nPlease select less than sixteen devices at once',
-                caption='How many graphs?',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-
-        dlg = wx.MessageDialog(
-            parent=self, message='Warning: MSE values may intermittently ' +
-            'show values at -5 or -6.\n\nYou can safely ignore these values.' +
-            '\n\nIf you want to verify your MSE baseline please use the \"MSE' +
-            ' baseline\" under the tools menu.',
-            caption=('Warning MSE values may intermittently show low values '),
-            style=wx.OK|wx.ICON_EXCLAMATION)
-
-        dlg.ShowModal()
-        dlg.Destroy()
-        for obj in self.main_list.GetSelectedObjects():
-            if self.mse_rx_check(obj):
-                if not self.mse_in_active(obj):
-                    self.mse_enable_thread(obj)
-                else:
-                    if obj.ip_address[:3] == "COM":
-                        self.serial_active.append(obj.mac_address)
-                self.mse_active_list.append(obj.mac_address)
-                dia = plot_class.Multi_Plot(self, obj, '-1500')
-                dia.Show()
 
     def mse_baseline(self, _):
         """Shows the MSE baseline"""
