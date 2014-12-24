@@ -98,11 +98,11 @@ class MainFrame(mdc_gui.MainFrame):
             'Hostname, ' +
             'Firmware, ' +
             'Static, ' +
-            'System, ' +
             'MAC, ' +
             'Serial, ' +
             'Device, ' +
-            'Master')
+            'Master, ' +
+            'System')
 
         self.master_address = None
         self.device_number = None
