@@ -148,6 +148,8 @@ class MultiPing(mdc_gui.MultiPing):
         self.set_objects(device_list)
         self.ping_list.SetObjects(self.ping_objects)
         self.log_files = {}
+        self.logging = False
+        self.on_log_enable(None)
 
         for obj in device_list:
             self.parent.telnet_job_queue.put(
@@ -190,11 +192,25 @@ class MultiPing(mdc_gui.MultiPing):
             ping_info[0],  #.strftime('%H:%M:%S.%f')
             ping_info[1],
             ping_info[2])
-        
+
+    def on_log_enable(self, event):
+        """Toggles log enable"""
+        if self.log_enable_chk.GetValue():
+            self.log_file_txt.SetLabel(
+                'Logging to: ' + 
+                self.parent.path + 'ping_logs\\'
+                'device_XXX.XXX.XXX.XXX_' +
+                time.strftime('%d-%b-%Y-%H-%M-%S') + 
+                '.txt')
+            self.logging = True
+        else:
+            self.log_file_txt.SetLabel('')
+            self.logging = False
+
+
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
         #switch to true to log pings
-        logging = False
         #print sender
         #print '.'
         if self.parent.ping_active:
@@ -216,7 +232,7 @@ class MultiPing(mdc_gui.MultiPing):
                     #print 'success', str(obj.success)
                     #print 'finish incoming'
                     self.ping_list.RefreshObject(obj)
-                    if logging:
+                    if self.logging:
                         self.save_log(obj)
 
         
@@ -235,21 +251,23 @@ class MultiPing(mdc_gui.MultiPing):
             dia.Show()
         
         
-    def on_right_click(self, _):
+    '''def on_right_click(self, _):
         """Create a right click menu"""        
         right_click_menu = wx.Menu()                
-        rcitem = right_click_menu.Append(wx.ID_ANY, 'Show Details', 
-                                                                 'Show Details')
+        rcitem = right_click_menu.Append(
+            wx.ID_ANY, 'Show Details', 
+            'Show Details')
         self.Bind(wx.EVT_MENU, self.show_details, rcitem)  
         self.PopupMenu(right_click_menu)
-        right_click_menu.Destroy()
+        right_click_menu.Destroy()'''
 
     def save_log(self, obj):
         """Save log to a file"""
-        user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
-        path = user_path + self.log_files[obj]
+        if not os.path.exists(self.parent.path + 'ping_logs'):
+            os.makedirs(self.parent.path + 'ping_logs')
+        output_file = self.parent.path + 'ping_logs\\' + self.log_files[obj]
         
-        with open(path, 'ab') as log_file:
+        with open(output_file, 'ab') as log_file:
             writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
             row = []
             row.append(str(obj.ping_data[-1].ping_time))
