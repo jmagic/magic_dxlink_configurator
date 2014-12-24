@@ -41,151 +41,154 @@ class MainFrame ( wx.Frame ):
 		self.SetSizer( bSizer1 )
 		self.Layout()
 		self.m_menubar1 = wx.MenuBar( 0 )
-		self.m_menu1 = wx.Menu()
-		self.m_menu11 = wx.Menu()
-		self.m_menuItem1 = wx.MenuItem( self.m_menu11, wx.ID_ANY, u"Import from a CSV", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu11.AppendItem( self.m_menuItem1 )
+		self.file_menu = wx.Menu()
+		self.import_menu = wx.Menu()
+		self.import_csv_menu = wx.MenuItem( self.import_menu, wx.ID_ANY, u"Import from a CSV", wx.EmptyString, wx.ITEM_NORMAL )
+		self.import_menu.AppendItem( self.import_csv_menu )
 		
-		self.m_menuItem3 = wx.MenuItem( self.m_menu11, wx.ID_ANY, u"Import IP list", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu11.AppendItem( self.m_menuItem3 )
+		self.import_ip_menu = wx.MenuItem( self.import_menu, wx.ID_ANY, u"Import IP list", wx.EmptyString, wx.ITEM_NORMAL )
+		self.import_menu.AppendItem( self.import_ip_menu )
 		
-		self.m_menuItem4 = wx.MenuItem( self.m_menu11, wx.ID_ANY, u"Import Plot", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu11.AppendItem( self.m_menuItem4 )
+		self.file_menu.AppendSubMenu( self.import_menu, u"Import" )
 		
-		self.m_menu1.AppendSubMenu( self.m_menu11, u"Import" )
+		self.export_menu = wx.Menu()
+		self.export_csv_menu = wx.MenuItem( self.export_menu, wx.ID_ANY, u"Export to a CSV File", wx.EmptyString, wx.ITEM_NORMAL )
+		self.export_menu.AppendItem( self.export_csv_menu )
 		
-		self.m_menu2 = wx.Menu()
-		self.m_menuItem8 = wx.MenuItem( self.m_menu2, wx.ID_ANY, u"Export to a CSV File", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu2.AppendItem( self.m_menuItem8 )
+		self.file_menu.AppendSubMenu( self.export_menu, u"Export" )
 		
-		self.m_menu1.AppendSubMenu( self.m_menu2, u"Export" )
+		self.quit_menu = wx.MenuItem( self.file_menu, wx.ID_ANY, u"Quit", wx.EmptyString, wx.ITEM_NORMAL )
+		self.file_menu.AppendItem( self.quit_menu )
 		
-		self.m_menuItem9 = wx.MenuItem( self.m_menu1, wx.ID_ANY, u"Quit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu1.AppendItem( self.m_menuItem9 )
+		self.m_menubar1.Append( self.file_menu, u"File" ) 
 		
-		self.m_menubar1.Append( self.m_menu1, u"File" ) 
+		self.edit_menu = wx.Menu()
+		self.select_menu = wx.Menu()
+		self.all_menu = wx.MenuItem( self.select_menu, wx.ID_ANY, u"Select All", wx.EmptyString, wx.ITEM_NORMAL )
+		self.select_menu.AppendItem( self.all_menu )
 		
-		self.m_menu5 = wx.Menu()
-		self.m_menu3 = wx.Menu()
-		self.m_menuItem10 = wx.MenuItem( self.m_menu3, wx.ID_ANY, u"Select All", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu3.AppendItem( self.m_menuItem10 )
+		self.none_menu = wx.MenuItem( self.select_menu, wx.ID_ANY, u"Select None", wx.EmptyString, wx.ITEM_NORMAL )
+		self.select_menu.AppendItem( self.none_menu )
 		
-		self.m_menuItem11 = wx.MenuItem( self.m_menu3, wx.ID_ANY, u"Select None", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu3.AppendItem( self.m_menuItem11 )
+		self.edit_menu.AppendSubMenu( self.select_menu, u"Select" )
 		
-		self.m_menu5.AppendSubMenu( self.m_menu3, u"Select" )
+		self.preferences_menu = wx.MenuItem( self.edit_menu, wx.ID_ANY, u"Preferences", wx.EmptyString, wx.ITEM_NORMAL )
+		self.edit_menu.AppendItem( self.preferences_menu )
 		
-		self.m_menuItem12 = wx.MenuItem( self.m_menu5, wx.ID_ANY, u"Preferences", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu5.AppendItem( self.m_menuItem12 )
+		self.m_menubar1.Append( self.edit_menu, u"Edit" ) 
 		
-		self.m_menubar1.Append( self.m_menu5, u"Edit" ) 
+		self.actions_menu = wx.Menu()
+		self.update_device_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Update Device Information", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.update_device_menu )
 		
-		self.m_menu6 = wx.Menu()
-		self.m_menuItem13 = wx.MenuItem( self.m_menu6, wx.ID_ANY, u"Update Device Information", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu6.AppendItem( self.m_menuItem13 )
+		self.configure_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.configure_menu )
 		
-		self.m_menuItem14 = wx.MenuItem( self.m_menu6, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu6.AppendItem( self.m_menuItem14 )
+		self.telnet_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Telnet to Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.telnet_menu )
 		
-		self.m_menuItem15 = wx.MenuItem( self.m_menu6, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu6.AppendItem( self.m_menuItem15 )
+		self.ssh_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"SSH to Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.ssh_menu )
 		
-		self.m_menuItem16 = wx.MenuItem( self.m_menu6, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu6.AppendItem( self.m_menuItem16 )
+		self.send_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.send_menu )
 		
-		self.m_menuItem17 = wx.MenuItem( self.m_menu6, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu6.AppendItem( self.m_menuItem17 )
+		self.reset_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.reset_menu )
 		
-		self.m_menubar1.Append( self.m_menu6, u"Actions" ) 
+		self.reboot_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.actions_menu.AppendItem( self.reboot_menu )
 		
-		self.m_menu7 = wx.Menu()
-		self.m_menuItem18 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"Ping Devices", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem18 )
+		self.m_menubar1.Append( self.actions_menu, u"Actions" ) 
 		
-		self.m_menuItem19 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem19 )
+		self.tools_menu = wx.Menu()
+		self.ping_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Ping Devices", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.ping_menu )
 		
-		self.m_menuItem20 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"Plot MSE", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem20 )
+		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.mse_menu )
 		
-		self.m_menuItem21 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem21 )
+		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.add_menu )
 		
-		self.m_menuItem22 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"Generate IP List", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem22 )
+		self.generate_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate IP List", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.generate_menu )
 		
-		self.m_menuItem23 = wx.MenuItem( self.m_menu7, wx.ID_ANY, u"Generate DGX List", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu7.AppendItem( self.m_menuItem23 )
+		self.generate_dgx_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate DGX List", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.generate_dgx_menu )
 		
-		self.m_menubar1.Append( self.m_menu7, u"Tools" ) 
+		self.m_menubar1.Append( self.tools_menu, u"Tools" ) 
 		
-		self.m_menu8 = wx.Menu()
-		self.m_menuItem24 = wx.MenuItem( self.m_menu8, wx.ID_ANY, u"Turn on LED's", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu8.AppendItem( self.m_menuItem24 )
+		self.identify_menu = wx.Menu()
+		self.led_on_menu = wx.MenuItem( self.identify_menu, wx.ID_ANY, u"Turn on LED's", wx.EmptyString, wx.ITEM_NORMAL )
+		self.identify_menu.AppendItem( self.led_on_menu )
 		
-		self.m_menuItem25 = wx.MenuItem( self.m_menu8, wx.ID_ANY, u"Turn off LED's", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu8.AppendItem( self.m_menuItem25 )
+		self.led_off_menu = wx.MenuItem( self.identify_menu, wx.ID_ANY, u"Turn off LED's", wx.EmptyString, wx.ITEM_NORMAL )
+		self.identify_menu.AppendItem( self.led_off_menu )
 		
-		self.m_menubar1.Append( self.m_menu8, u"Identify" ) 
+		self.m_menubar1.Append( self.identify_menu, u"Identify" ) 
 		
-		self.m_menu9 = wx.Menu()
-		self.dhcp_sniffing_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
-		self.m_menu9.AppendItem( self.dhcp_sniffing_chk )
+		self.listen_menu = wx.Menu()
+		self.dhcp_sniffing_chk = wx.MenuItem( self.listen_menu, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
+		self.listen_menu.AppendItem( self.dhcp_sniffing_chk )
 		self.dhcp_sniffing_chk.Check( True )
 		
-		self.amx_only_filter_chk = wx.MenuItem( self.m_menu9, wx.ID_ANY, u"Only add AMX devices", wx.EmptyString, wx.ITEM_CHECK )
-		self.m_menu9.AppendItem( self.amx_only_filter_chk )
+		self.amx_only_filter_chk = wx.MenuItem( self.listen_menu, wx.ID_ANY, u"Only add AMX devices", wx.EmptyString, wx.ITEM_CHECK )
+		self.listen_menu.AppendItem( self.amx_only_filter_chk )
 		
-		self.m_menubar1.Append( self.m_menu9, u"Listen" ) 
+		self.m_menubar1.Append( self.listen_menu, u"Listen" ) 
 		
-		self.m_menu10 = wx.Menu()
-		self.m_menuItem34 = wx.MenuItem( self.m_menu10, wx.ID_ANY, u"Delete Item", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu10.AppendItem( self.m_menuItem34 )
+		self.delete_menu = wx.Menu()
+		self.delete_item_menu = wx.MenuItem( self.delete_menu, wx.ID_ANY, u"Delete Item", wx.EmptyString, wx.ITEM_NORMAL )
+		self.delete_menu.AppendItem( self.delete_item_menu )
 		
-		self.m_menuItem35 = wx.MenuItem( self.m_menu10, wx.ID_ANY, u"Delete All Items", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu10.AppendItem( self.m_menuItem35 )
+		self.delete_all_menu = wx.MenuItem( self.delete_menu, wx.ID_ANY, u"Delete All Items", wx.EmptyString, wx.ITEM_NORMAL )
+		self.delete_menu.AppendItem( self.delete_all_menu )
 		
-		self.m_menubar1.Append( self.m_menu10, u"Delete" ) 
+		self.m_menubar1.Append( self.delete_menu, u"Delete" ) 
 		
-		self.m_menu111 = wx.Menu()
-		self.m_menuItem36 = wx.MenuItem( self.m_menu111, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
-		self.m_menu111.AppendItem( self.m_menuItem36 )
+		self.help_menu = wx.Menu()
+		self.about_menu = wx.MenuItem( self.help_menu, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
+		self.help_menu.AppendItem( self.about_menu )
 		
-		self.m_menubar1.Append( self.m_menu111, u"Help" ) 
+		self.m_menubar1.Append( self.help_menu, u"Help" ) 
 		
 		self.SetMenuBar( self.m_menubar1 )
 		
 		self.status_bar = self.CreateStatusBar( 2, wx.ST_SIZEGRIP, wx.ID_ANY )
 		self.rc_menu = wx.Menu()
-		self.m_menuItem2 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Update device information", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem2 )
+		self.update_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Update device information", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.update_rc_menu )
 		
-		self.m_menuItem251 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem251 )
+		self.configure__rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.configure__rc_menu )
 		
-		self.m_menuItem261 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem261 )
+		self.ping_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Ping Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.ping_rc_menu )
 		
-		self.m_menuItem271 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem271 )
+		self.send_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.send_rc_menu )
 		
-		self.m_menuItem28 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem28 )
+		self.reset_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.reset_rc_menu )
 		
-		self.m_menuItem29 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Telnet to Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem29 )
+		self.delete_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.delete_rc_menu )
 		
-		self.m_menuItem30 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"FactoryAV", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem30 )
+		self.telnet_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Telnet to Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.telnet_rc_menu )
 		
-		self.m_menuItem31 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem31 )
+		self.factory_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"FactoryAV", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.factory_rc_menu )
 		
-		self.m_menuItem32 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem32 )
+		self.reboot_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.reboot_rc_menu )
 		
-		self.m_menuItem33 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in webbrowser", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem33 )
+		self.mse_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.mse_rc_menu )
+		
+		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in webbrowser", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.browser_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
 		
@@ -194,42 +197,43 @@ class MainFrame ( wx.Frame ):
 		
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.on_close )
-		self.Bind( wx.EVT_MENU, self.import_csv_file, id = self.m_menuItem1.GetId() )
-		self.Bind( wx.EVT_MENU, self.import_ip_list, id = self.m_menuItem3.GetId() )
-		self.Bind( wx.EVT_MENU, self.import_plot, id = self.m_menuItem4.GetId() )
-		self.Bind( wx.EVT_MENU, self.export_to_csv, id = self.m_menuItem8.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_quit, id = self.m_menuItem9.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_select_all, id = self.m_menuItem10.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_select_none, id = self.m_menuItem11.GetId() )
-		self.Bind( wx.EVT_MENU, self.configure_prefs, id = self.m_menuItem12.GetId() )
-		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.m_menuItem13.GetId() )
-		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem14.GetId() )
-		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem15.GetId() )
-		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem16.GetId() )
-		self.Bind( wx.EVT_MENU, self.reboot, id = self.m_menuItem17.GetId() )
-		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.m_menuItem18.GetId() )
-		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.m_menuItem19.GetId() )
-		self.Bind( wx.EVT_MENU, self.plot_mse, id = self.m_menuItem20.GetId() )
-		self.Bind( wx.EVT_MENU, self.add_line, id = self.m_menuItem21.GetId() )
-		self.Bind( wx.EVT_MENU, self.generate_list, id = self.m_menuItem22.GetId() )
-		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.m_menuItem23.GetId() )
-		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.m_menuItem24.GetId() )
-		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.m_menuItem25.GetId() )
+		self.Bind( wx.EVT_MENU, self.import_csv_file, id = self.import_csv_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.import_ip_list, id = self.import_ip_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.export_to_csv, id = self.export_csv_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_quit, id = self.quit_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_select_all, id = self.all_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_select_none, id = self.none_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_prefs, id = self.preferences_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.update_device_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_device, id = self.configure_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.telnet_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.ssh_to, id = self.ssh_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.send_commands, id = self.send_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.reset_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.generate_dgx_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.led_on_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.led_off_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.m_menuItem34.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.m_menuItem35.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.m_menuItem36.GetId() )
-		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.m_menuItem2.GetId() )
-		self.Bind( wx.EVT_MENU, self.configure_device, id = self.m_menuItem251.GetId() )
-		self.Bind( wx.EVT_MENU, self.send_commands, id = self.m_menuItem261.GetId() )
-		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.m_menuItem271.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_item, id = self.m_menuItem28.GetId() )
-		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.m_menuItem29.GetId() )
-		self.Bind( wx.EVT_MENU, self.factory_av, id = self.m_menuItem30.GetId() )
-		self.Bind( wx.EVT_MENU, self.reboot, id = self.m_menuItem31.GetId() )
-		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.m_menuItem32.GetId() )
-		self.Bind( wx.EVT_MENU, self.open_url, id = self.m_menuItem33.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_item_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.delete_all_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.about_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.update_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.configure_device, id = self.configure__rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.send_commands, id = self.send_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.reset_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.delete_item, id = self.delete_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.telnet_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.factory_av, id = self.factory_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.open_url, id = self.browser_rc_menu.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -264,6 +268,12 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def configure_device( self, event ):
+		event.Skip()
+	
+	def telnet_to( self, event ):
+		event.Skip()
+	
+	def ssh_to( self, event ):
 		event.Skip()
 	
 	def send_commands( self, event ):
@@ -315,11 +325,10 @@ class MainFrame ( wx.Frame ):
 	
 	
 	
+	
 	def delete_item( self, event ):
 		event.Skip()
 	
-	def telnet_to( self, event ):
-		event.Skip()
 	
 	def factory_av( self, event ):
 		event.Skip()
@@ -467,10 +476,6 @@ class Preferences ( wx.Dialog ):
 		
 		sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Notifications" ), wx.VERTICAL )
 		
-		self.success_chk = wx.CheckBox( self, wx.ID_ANY, u"Display Successful Connections", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.success_chk.SetValue(True) 
-		sbSizer2.Add( self.success_chk, 0, wx.ALL, 5 )
-		
 		self.sounds_chk = wx.CheckBox( self, wx.ID_ANY, u"Play Sounds", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer2.Add( self.sounds_chk, 0, wx.ALL, 5 )
 		
@@ -559,6 +564,8 @@ class MultiPing ( wx.Dialog ):
 		
 		bSizer4 = wx.BoxSizer( wx.VERTICAL )
 		
+		bSizer44 = wx.BoxSizer( wx.VERTICAL )
+		
 		self.olv_panel = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		self.olv_sizer = wx.BoxSizer( wx.VERTICAL )
 		
@@ -566,7 +573,27 @@ class MultiPing ( wx.Dialog ):
 		self.olv_panel.SetSizer( self.olv_sizer )
 		self.olv_panel.Layout()
 		self.olv_sizer.Fit( self.olv_panel )
-		bSizer4.Add( self.olv_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		bSizer44.Add( self.olv_panel, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		bSizer4.Add( bSizer44, 1, wx.EXPAND, 5 )
+		
+		bSizer45 = wx.BoxSizer( wx.VERTICAL )
+		
+		sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Logging" ), wx.VERTICAL )
+		
+		self.log_enable_chk = wx.CheckBox( self, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
+		sbSizer8.Add( self.log_enable_chk, 0, wx.ALL, 5 )
+		
+		self.log_file_txt = wx.StaticText( self, wx.ID_ANY, u"logfile", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.log_file_txt.Wrap( -1 )
+		sbSizer8.Add( self.log_file_txt, 0, wx.ALL, 5 )
+		
+		
+		bSizer45.Add( sbSizer8, 0, wx.EXPAND, 5 )
+		
+		
+		bSizer4.Add( bSizer45, 0, wx.EXPAND, 5 )
 		
 		
 		self.SetSizer( bSizer4 )
@@ -581,6 +608,7 @@ class MultiPing ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.log_enable_chk.Bind( wx.EVT_CHECKBOX, self.on_log_enable )
 		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.m_menuItem37.GetId() )
 	
 	def __del__( self ):
@@ -588,6 +616,9 @@ class MultiPing ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def on_log_enable( self, event ):
+		event.Skip()
+	
 	def on_show_details( self, event ):
 		event.Skip()
 	
