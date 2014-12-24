@@ -17,6 +17,7 @@ class Telnetjobs(Thread):
         self.queue = queue
         self.parent = parent
 
+
     def run(self):
         while True:
             # gets the job from the queue
@@ -27,26 +28,37 @@ class Telnetjobs(Thread):
             self.queue.task_done()
 
 ########################################################################
+    def establish_telnet(self, ip_address):
+        """Creates the telnet instance"""
+        telnet_session = telnetlib.Telnet(ip_address, 23, 5)
+        telnet_session.set_option_negotiation_callback(self.call_back)
+        return telnet_session
+
+    def call_back(self, sock, cmd, opt):
+        """ Turns on server side echoing"""
+        if opt == telnetlib.ECHO and cmd in (telnetlib.WILL, telnetlib.WONT):
+            sock.sendall(telnetlib.IAC + telnetlib.DO + telnetlib.ECHO)
+
     def get_config_info(self, job):
         """Gets serial number, firmware from device"""
 
         obj = job[1]
-
+        self.set_status(obj, "Connecting") 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             
-            is_dxlink = telnet_session.read_until('Welcome to', int(job[2]))
-            intro = telnet_session.read_very_eager().split()
+            telnet_session.read_until('Welcome to', int(job[2]))
+            intro = telnet_session.read_until('>', int(job[2])).split()
             obj.model = intro[0]
             obj.firmware = intro[1]
             telnet_session.write('get sn \r')
             telnet_session.read_until('Number:', int(job[2]))
-            obj.serial = telnet_session.read_very_eager().split()[0]
+            obj.serial = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get device \r')
             telnet_session.read_until('Value:', int(job[2]))
 
-            obj.device = telnet_session.read_very_eager().split()[0]
+            obj.device = telnet_session.read_until('>', int(job[2])).split()[0]
 
             telnet_session.write('get ip \r')
             telnet_session.read_until('HostName:', int(job[2]))
@@ -65,15 +77,13 @@ class Telnetjobs(Thread):
             obj.subnet = ip_subnet[-2]
             ip_gateway = telnet_session.read_until('MAC').split()
             obj.gateway = ip_gateway[-2]
-            ip_mac = telnet_session.read_very_eager().split()
+            ip_mac = telnet_session.read_until('>', int(job[2])).split()
             obj.mac_address = ip_mac[1]
             self.get_connection(obj, telnet_session, int(job[2]))
 
             telnet_session.write('exit')
             telnet_session.close()
-            if is_dxlink !=("\r\nWelcome to"):
-                raise IOError('Warning, not a recognized dxlink device')
-            self.communication_success(obj) 
+            self.set_status(obj, "Success") 
         except (IOError, Exception) as error:
             self.error_processing(obj, error)
 
@@ -82,31 +92,30 @@ class Telnetjobs(Thread):
         """Sets unit to factory defaults"""
 
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('reset factory\r')
             telnet_session.read_until('>', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
-
+            self.set_status(obj, "Success")
         except IOError, error:
             self.error_processing(obj, error)
 
     def reboot(self, job):
 
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('reboot \r')
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -118,16 +127,17 @@ class Telnetjobs(Thread):
         obj = job[1]
         setdhcp = job[3]
         hostname = job[4]
-        ip_org = job[5]
+        #ip_org = job[5]
         ip_new = job[6]
         subnet = job[7]
         gateway = job[8]
         master = job[9]
         device = job[10]
+        self.set_status(obj, "Connecting")
 
         if setdhcp == True:
             try:
-                telnet_session = telnetlib.Telnet(ip_org, 23, int(job[2]))
+                telnet_session = self.establish_telnet(obj.ip_address)
                 telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set ip \r')
                 telnet_session.read_until('Name:', int(job[2]))
@@ -163,14 +173,14 @@ class Telnetjobs(Thread):
                 telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communication_success(obj)
+                self.set_status(obj, "Success")
 
             except Exception as error:
                 self.error_processing(obj, error)
 
         else:
             try:
-                telnet_session = telnetlib.Telnet(ip_org, 23, int(job[2]))
+                telnet_session = self.establish_telnet(obj.ip_address)
 
                 telnet_session.read_until('>', int(job[2]))
                 telnet_session.write('set ip \r')
@@ -213,7 +223,7 @@ class Telnetjobs(Thread):
                 telnet_session.read_until('Rebooting....', int(job[2]))
                 telnet_session.close()
 
-                self.communication_success(obj)
+                self.set_status(obj, "Success")
 
             except Exception as error:
                 self.error_processing(obj, error)
@@ -221,9 +231,10 @@ class Telnetjobs(Thread):
     def factory_av(self, job):
         """Sets unit audio visual to factory defaults"""
         obj = job[1]
+        self.set_status(obj, "Connecting")
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
 
             telnet_session.read_until('>', int(job[2]))
             self.get_connection(obj, telnet_session, int(job[2]))
@@ -238,60 +249,122 @@ class Telnetjobs(Thread):
                        "\"\'FACTORYAV\'\" \r")
             telnet_session.write(command)
             telnet_session.read_until('Sending', int(job[2]))
-            result_raw = telnet_session.read_very_eager()
+            result_raw = telnet_session.read_until('>', int(job[2]))
             if result_raw.split()[0] != 'command:':
                 raise Exception, ('Command not sent')
             telnet_session.write('reboot \r')
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
 
+    def multiple_send_command(self, job):
+        """Sends multiple commands in a single session"""
+        obj = job[1]
+        command_list = job[3]
+        if obj.device == " ":
+            device = 0
+        else:
+            device = obj.device
+        if obj.system == " ":
+            system = 0
+        else:
+            system = obj.system
+        
+        self.set_status(obj, "Connecting")
+        self.notify_send_command_window(obj)
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', int(job[2]))
+            total = len(command_list)
+            count = 0
+            error = 0
+            for command in command_list:
+                count += 1
+                output = ("send_command " + 
+                          str(device) + 
+                          ":" + 
+                          str(command[1]) + 
+                          ":" + 
+                          str(system) + 
+                          ", " + 
+                          "\"\'" + 
+                          str(command[0]) + 
+                          "\'\"") 
+                telnet_session.write(str(output + " \r"))
+                result_raw = telnet_session.read_until('>', int(job[2]))
+                if result_raw.split()[0] != 'command:':
+                    dispatcher.send(
+                        signal="send_command result", 
+                        sender=((True, 'Sending ' + str(result_raw)[:-1])))
+                    self.set_status(
+                        obj, ('Sent ' + str(count) + ' of ' + str(total)))
+                    self.notify_send_command_window(obj) 
+                else:
+                    error += 1
+                    dispatcher.send(signal="send_command result",
+                                    sender=((False, 'Failed to send command')))
+
+            telnet_session.close()
+            if not error: 
+                self.set_status(obj, 'Success')
+                self.notify_send_command_window(obj)
+            else:
+                self.set_status(obj, 'Failed')
+                self.notify_send_command_window(obj) 
+        except Exception as error:
+            self.error_processing(obj, error)
+            self.notify_send_command_window(obj)
 
     def send_command(self, job):
 
         obj = job[1]
         command_sent = job[3]
+        self.set_status(obj, "Connecting")
 
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
 
             telnet_session.read_until('>', int(job[2]))
-            self.get_connection(obj, telnet_session, int(job[2]))
+            #self.get_connection(obj, telnet_session, int(job[2]))
 
             command = command_sent  + " \r"
             #print command
             telnet_session.write(str(command))
             telnet_session.read_until('Sending', int(job[2]))
-            result_raw = telnet_session.read_very_eager()
+            result_raw = telnet_session.read_until('>', int(job[2]))
+            #print result_raw.split()
             if result_raw.split()[0] != 'command:':
-                raise Exception, ('Command not sent')
+                raise Exception('Command not sent')
             else:
                 dispatcher.send(signal="send_command result", 
-                                sender=('Sending' + str(result_raw[:-1])))
+                                sender=(('Sending ' + str(result_raw)[:-1])))
 
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
+            self.notify_send_command_window(obj)
 
         except Exception as error:
             self.error_processing(obj, error)
+
 
     def turn_on_leds(self, job):
         """Turns on LEDs"""
 
         obj = job[1]
+        self.set_status(obj, "Connecting")
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led on \r')
             telnet_session.read_until('ON', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -300,15 +373,15 @@ class Telnetjobs(Thread):
     def turn_off_leds(self, job):
         """Turns off leds"""
         obj = job[1]
-
+        self.set_status(obj, "Connecting")
         try:
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
+            telnet_session = self.establish_telnet(obj.ip_address)
             telnet_session.read_until('>', int(job[2]))
             telnet_session.write('led off \r')
             telnet_session.read_until('OFF', int(job[2]))
             telnet_session.close()
 
-            self.communication_success(obj)
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)
@@ -316,18 +389,20 @@ class Telnetjobs(Thread):
     def get_dxlink_mse(self, job):
         """Gathers MSE values"""
         obj = job[1]
+        self.set_status(obj, "Connecting")
         try:
 
-            telnet_session = telnetlib.Telnet(obj.ip_address, 23, int(job[2]))
-            telnet_session.read_until('Welcome to')
-            telnet_session.read_very_eager()
-
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', 2)
+            #telnet_session.read_very_eager()
+            self.set_status(obj, "MSE")
             mse = []
             data = []
             while obj.mac_address in self.parent.mse_active_list: 
 
                 telnet_session.write('show vs100 stats \r')
-                stats = telnet_session.read_until('MSE(db)').split()
+                telnet_session.read_until('MSE(db)')
+                stats = telnet_session.read_until('VS100').split()
                 for i in range(len(stats)):
                     if stats[i] == "ChA:":
                         data.append(stats[i+1][:-1])
@@ -343,9 +418,13 @@ class Telnetjobs(Thread):
                     mse = []
                     data = []
 
+                telnet_session.read_until('>', 2)
+            self.set_status(obj, "Success")
+
         except:
             time.sleep(2) # wait for gui to start
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
+            self.set_status(obj, "Failed")
 
     def get_dgx_mse(self, job):
         "Gathers DGX MSE values"
@@ -467,7 +546,7 @@ class Telnetjobs(Thread):
         """ Function to get connection information """
         session.write('get connection \r')
         session.read_until('Mode:', timeout)
-        connection_info = session.read_very_eager().split()
+        connection_info = session.read_until('>', timeout).split()
         if connection_info[0] == 'NDP':
             if connection_info[7] == '(n/a)':
                 obj.master = 'not connected'
@@ -484,18 +563,25 @@ class Telnetjobs(Thread):
                 obj.master = connection_info[7]
                 obj.system = connection_info[4]
 
+    def set_status(self, obj, status):
+        """Updates progress in main"""
+        data = (obj, status)
+        dispatcher.send(signal="Status Update", sender=data)
 
-    def communication_success(self, obj):
+    '''def communication_success(self, obj):
         """Send notification of success to main"""
-        data = [obj.ip_address, 'Success']
-        dispatcher.send(signal="Collect Completions", sender=data)
+        dispatcher.send(signal="Collect Completions", sender=obj)'''\
+        
+    def notify_send_command_window(self, obj):
+        """updates send_command window"""
+        dispatcher.send(signal="Update Window", sender=obj)
 
     def error_processing(self, obj, error):
         """Send notification of error to main"""
 
         if str(error) == 'Not an AMX device':
-            data = (obj.ip_address, 'Warning, not a recognized dxlink device')
+            data = (obj, 'Warning, not a recognized dxlink device')
         else:
-            data = (obj.ip_address, str(error))
+            data = (obj, str(error))
         dispatcher.send(signal="Collect Errors", sender=data)
 

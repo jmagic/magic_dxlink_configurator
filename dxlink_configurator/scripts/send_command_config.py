@@ -8,7 +8,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 import time
 
 
-class MultiSendCommandConfig (wx.Dialog):
+class SendCommandConfig (wx.Dialog):
     
     def __init__(self, parent, device_list, dxlink_model):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, 

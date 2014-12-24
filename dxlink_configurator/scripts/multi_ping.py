@@ -6,6 +6,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 import datetime
 import csv
 import os
+import time
 from scripts import mdc_gui
 
 class PingUnit(object):
@@ -38,7 +39,49 @@ class Ping_Data_Unit(object):
         self.ping_time = ping_time
         self.ms_delay = ms_delay
         self.success = success
-        
+
+class PingDetail(mdc_gui.PingDetail):
+    def __init__(self, parent, device_object):
+        mdc_gui.PingDetail.__init__(self, parent)
+
+        self.detail_list = ObjectListView(self.olv_panel, wx.ID_ANY,  
+                                        style=wx.LC_REPORT |
+                                        wx.SUNKEN_BORDER)
+
+        self.detail_list.SetColumns(
+            [ColumnDefn("Time", "center", 180, "ping_time", 
+                        stringConverter="%d-%m-%Y %H:%M:%S.%f"),
+             ColumnDefn("ms Delay", "center", 80, "ms_delay"),
+             ColumnDefn("Success", "center", 80, "success")])  
+        self.olv_sizer.Add(self.detail_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()  
+        self.SetTitle("Details View for " + device_object.ip_address) 
+        self.device_object = device_object
+        self.detail_list.SetObjects(device_object.ping_data) 
+
+        self.auto_update = self.auto_update_chk.GetValue()
+        self.redraw_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.on_update_list, self.redraw_timer)
+        if self.auto_update:
+            self.redraw_timer.Start(1000)
+
+    def on_update_list(self, _):
+        self.detail_list.SetObjects(self.device_object.ping_data)
+
+    def on_refresh(self, _):
+        self.detail_list.SetObjects(self.device_object.ping_data)
+
+    def on_auto_update(self, _):
+        self.auto_update = not self.auto_update
+        self.auto_update_chk.SetValue(self.auto_update)
+        if self.auto_update:
+            self.redraw_timer.Start(1000)
+        else:
+            self.redraw_timer.Stop()
+
+
+
+
 class DetailsView(wx.Dialog):
     
     def __init__(self, parent, device_object):
@@ -64,7 +107,6 @@ class DetailsView(wx.Dialog):
 
         bsizer121.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 5)
         bsizer1.Add(bsizer121, 0, wx.EXPAND, 5)
-        
                
         self.SetSizer(bsizer1)
         self.Layout()
@@ -87,15 +129,18 @@ class MultiPing(mdc_gui.MultiPing):
         self.ping_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                         style=wx.LC_REPORT|
                                         wx.SUNKEN_BORDER)
+        self.ping_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
+                            self.MultiPingOnContextMenu)
         self.ping_list.SetColumns(
             [ColumnDefn("IP", "center", 100, "ip_address"),
              ColumnDefn("MAC", "center", 130, "mac_address"),
              ColumnDefn("Hostname", "center", 130, "hostname"),
              ColumnDefn("Serial", "center", 150, "serial"),
-             ColumnDefn("Successful Pings", "center", 80, "success"),
+             ColumnDefn("Successful Pings", "center", 90, "success"),
              ColumnDefn("Failed Pings", "center", 80, "failed"),])
         
-        self.olv_sizer.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 5)
+        self.olv_sizer.Add(self.ping_list, 1, wx.ALL|wx.EXPAND, 0)
+        self.olv_sizer.Layout()
 
         self.parent = parent
         self.SetTitle("Multiple Ping Monitor")
@@ -103,6 +148,8 @@ class MultiPing(mdc_gui.MultiPing):
         self.set_objects(device_list)
         self.ping_list.SetObjects(self.ping_objects)
         self.log_files = {}
+        self.logging = False
+        self.on_log_enable(None)
 
         for obj in device_list:
             self.parent.telnet_job_queue.put(
@@ -145,11 +192,25 @@ class MultiPing(mdc_gui.MultiPing):
             ping_info[0],  #.strftime('%H:%M:%S.%f')
             ping_info[1],
             ping_info[2])
-        
+
+    def on_log_enable(self, event):
+        """Toggles log enable"""
+        if self.log_enable_chk.GetValue():
+            self.log_file_txt.SetLabel(
+                'Logging to: ' + 
+                self.parent.path + 'ping_logs\\'
+                'device_XXX.XXX.XXX.XXX_' +
+                time.strftime('%d-%b-%Y-%H-%M-%S') + 
+                '.txt')
+            self.logging = True
+        else:
+            self.log_file_txt.SetLabel('')
+            self.logging = False
+
+
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
         #switch to true to log pings
-        logging = False
         #print sender
         #print '.'
         if self.parent.ping_active:
@@ -171,7 +232,7 @@ class MultiPing(mdc_gui.MultiPing):
                     #print 'success', str(obj.success)
                     #print 'finish incoming'
                     self.ping_list.RefreshObject(obj)
-                    if logging:
+                    if self.logging:
                         self.save_log(obj)
 
         
@@ -183,28 +244,30 @@ class MultiPing(mdc_gui.MultiPing):
         self.Destroy()
         
         
-    def show_details(self, _):
+    def on_show_details(self, _):
         """Show the details of the pings to this device"""        
         for obj in self.ping_list.GetSelectedObjects():
-            dia = DetailsView(self, obj)
+            dia = PingDetail(self, obj)
             dia.Show()
         
         
-    def on_right_click(self, _):
+    '''def on_right_click(self, _):
         """Create a right click menu"""        
         right_click_menu = wx.Menu()                
-        rcitem = right_click_menu.Append(wx.ID_ANY, 'Show Details', 
-                                                                 'Show Details')
+        rcitem = right_click_menu.Append(
+            wx.ID_ANY, 'Show Details', 
+            'Show Details')
         self.Bind(wx.EVT_MENU, self.show_details, rcitem)  
         self.PopupMenu(right_click_menu)
-        right_click_menu.Destroy()
+        right_click_menu.Destroy()'''
 
     def save_log(self, obj):
         """Save log to a file"""
-        user_path = os.path.expanduser('~\\Documents\\Magic_DXLink_Configurator\\')
-        path = user_path + self.log_files[obj]
+        if not os.path.exists(self.parent.path + 'ping_logs'):
+            os.makedirs(self.parent.path + 'ping_logs')
+        output_file = self.parent.path + 'ping_logs\\' + self.log_files[obj]
         
-        with open(path, 'ab') as log_file:
+        with open(output_file, 'ab') as log_file:
             writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
             row = []
             row.append(str(obj.ping_data[-1].ping_time))
