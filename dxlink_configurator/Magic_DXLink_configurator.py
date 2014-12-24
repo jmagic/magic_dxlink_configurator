@@ -121,6 +121,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxftx_models = []
         self.dxfrx_models = []
         self.config_fail = False
+        self.telnet_missing = False
         if os.name == 'nt':
             self.path = os.path.expanduser(
                 '~\\Documents\\Magic_DXLink_Configurator\\')
@@ -128,6 +129,8 @@ class MainFrame(mdc_gui.MainFrame):
             self.path = os.path.expanduser(
                 '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
+        self.check_for_telnet_client()
+
         
         self.name = "Magic DXLink Configurator"
         self.version = "v3.x.x"
@@ -148,6 +151,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                         style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+        self.main_list.SortListItemsBy(self.sort_list, ascending=None)
         self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
                             self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -157,18 +161,17 @@ class MainFrame(mdc_gui.MainFrame):
         self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
-                              ColumnDefn("MAC", "center", 130, "mac_address"),
+                              ColumnDefn("MAC", "center", 120, "mac_address"),
                               ColumnDefn("IP", "center", 100, "ip_address"),
-                              ColumnDefn("Hostname", "left", 130, "hostname"),
+                              ColumnDefn("Hostname", "center", 130, "hostname"),
                               ColumnDefn("Serial", "center", 130, "serial"),
-                              ColumnDefn("Firmware", "center", 80, "firmware"),
+                              ColumnDefn("Firmware", "center", 70, "firmware"),
                               ColumnDefn("Device", "center", 80, "device"),
-                              ColumnDefn("Static", "center", 60, "ip_type"),
+                              ColumnDefn("Static", "center", 50, "ip_type"),
                               ColumnDefn("Master", "center", 100, "master"),
-                              ColumnDefn("System", "center", 80, "system"),
+                              ColumnDefn("System", "center", 60, "system"),
                               ColumnDefn("Status", "left", 120, "status")
                              ]
-
         self.select_columns()
         self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
@@ -217,6 +220,11 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
     #----------------------------------------------------------------------
+
+    def sort_list(self):
+        """Sorts the list and handles IP's *just for DV"""
+        print "hi"
+        pass
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -301,12 +309,10 @@ class MainFrame(mdc_gui.MainFrame):
     def select_columns(self):
         """Sets the columns to be displayed"""
         columns = self.columns_config + ['Time', 'IP', 'Status']
-        print columns
         todisplay = []
         for item in self.columns_setup:
             if item.title in columns:
                 todisplay.append(item)
-        print 'todisplay: ', todisplay
         self.main_list.SetColumns(todisplay)
 
 
@@ -338,7 +344,7 @@ class MainFrame(mdc_gui.MainFrame):
             parent=self,
             message=
             'New setting file created \n\n I\'ve had to create a new '  +
-            'settings file, because the old one couldn\'t be read.',
+            'settings file, \nbecause the old one couldn\'t be read.',
             caption='Default settings file created',
             style=wx.OK)
 
@@ -1017,7 +1023,7 @@ class MainFrame(mdc_gui.MainFrame):
         config = ConfigParser.RawConfigParser()
         config.add_section('Settings')
         config.set('Settings', 'default master address', '192.168.1.1')
-        config.set('Settings', 'default device number', '10001')
+        config.set('Settings', 'default device number', '0')
         config.set('Settings', 'default enable dhcp', True)
         config.set('Settings', 'number of threads', 20)
         config.set('Settings', 'telnet client executable', ('putty.exe'))
@@ -1037,7 +1043,7 @@ class MainFrame(mdc_gui.MainFrame):
             'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
-
+        self.read_config_file()
 
     def write_config_file(self):
         """Update values in config file"""
@@ -1063,6 +1069,24 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Config', 'columns_config', columns)
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
+
+    def check_for_telnet_client(self):
+        """Checks if telnet client in the path"""
+        if not os.path.exists(self.path + self.telnet_client):
+            self.telnet_missing = True
+
+    def telnet_missing_dia(self):
+        """Show dialog for missing putty"""
+        dlg = wx.MessageDialog(
+            parent=self,
+            message=
+            'Please copy ' + self.telnet_client + ' to: \n'  +
+            self.path + 
+            ' \nThis will allow you to telnet to a device.',
+            caption='No telnet client',
+            style=wx.OK)
+
+        dlg.ShowModal()
 
     def set_title_bar(self):
         """Sets title bar text"""
@@ -1128,15 +1152,15 @@ class MainFrame(mdc_gui.MainFrame):
         columns_width = {
             'Time'          : 90,
             'Model'         : 130,
-            'MAC'           : 130,
+            'MAC'           : 120,
             'IP'            : 100,
             'Hostname'      : 130,
             'Serial'        : 130,
-            'Firmware'      : 80,
+            'Firmware'      : 70,
             'Device'        : 80,
             'Static'        : 60,
             'Master'        : 100,
-            'System'        : 80,
+            'System'        : 60,
             'Status'        : 120
         }
 
@@ -1239,16 +1263,18 @@ def show_splash():
 def main():
     """run the main program"""
     dxlink_configurator = wx.App(redirect=True, filename="log.txt")
-    splash = show_splash()
+    #splash = show_splash()
 
 
     # do processing/initialization here and create main window
     dxlink_frame = MainFrame(None)
     dxlink_frame.Show()
-    splash.Destroy()
+    #splash.Destroy()
     
     if dxlink_frame.config_fail == True:
         dxlink_frame.config_fail_dia()
+    if dxlink_frame.telnet_missing == True:
+        dxlink_frame.telnet_missing_dia()
     dxlink_configurator.MainLoop()
 
 if __name__ == '__main__':

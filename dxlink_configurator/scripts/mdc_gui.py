@@ -428,7 +428,7 @@ class Preferences ( wx.Dialog ):
 		
 		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Default Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 		bSizer14.Add( self.m_staticText2, 0, wx.ALL, 5 )
 		
@@ -450,7 +450,7 @@ class Preferences ( wx.Dialog ):
 		
 		bSizer16 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Default Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText3.Wrap( -1 )
 		bSizer16.Add( self.m_staticText3, 0, wx.ALL, 5 )
 		
