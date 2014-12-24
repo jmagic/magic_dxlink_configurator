@@ -110,7 +110,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.thread_number = None
         self.telnet_client = None
         self.telnet_timeout_seconds = None
-        self.displaysuccess = None
         self.dhcp_sniffing = None
         self.amx_only_filter = None
         self.play_sounds = None
@@ -929,8 +928,6 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'telnet client executable'))
             self.telnet_timeout_seconds = (config.get(
                 'Settings', 'telnet timeout in seconds'))
-            self.displaysuccess = (config.getboolean(
-                'Settings', 'display notification of successful connections'))
             self.dhcp_sniffing = (config.getboolean(
                 'Settings', 'DHCP sniffing enabled'))
             self.amx_only_filter = (config.getboolean(
@@ -1020,8 +1017,6 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'telnet client executable', self.telnet_client)
         config.set('Settings', 'telnet timeout in seconds', 
                    self.telnet_timeout_seconds)
-        config.set('Settings', 'display notification of successful connections',
-                   self.displaysuccess)
         config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
         config.set('Settings', 'filter incoming DHCP for AMX only', 
                    self.amx_only_filter)

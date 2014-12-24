@@ -16,7 +16,6 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.master_address_txt.SetValue(self.parent.master_address)
         self.device_number_txt.SetValue(self.parent.device_number)
         
-        self.success_chk.SetValue(int(self.parent.displaysuccess))
         self.sounds_chk.SetValue(int(self.parent.play_sounds))  
         
         for item in self.parent.columns_config:
@@ -35,7 +34,6 @@ class PreferencesConfig(mdc_gui.Preferences):
 
         self.parent.master_address = self.master_address_txt.GetValue()
         self.parent.device_number = self.device_number_txt.GetValue()
-        self.parent.displaysuccess = self.success_chk.GetValue()
         self.parent.play_sounds = self.sounds_chk.GetValue()
         self.parent.update_status_bar()
         self.parent.write_config_file()
