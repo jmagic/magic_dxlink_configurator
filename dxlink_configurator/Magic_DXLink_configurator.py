@@ -938,6 +938,8 @@ class MainFrame(mdc_gui.MainFrame):
             for item in config.get(
                     'Config', 'columns_config').split(','):
                 self.columns_config.append(item.strip())
+            #check for old config file:
+            assert not isinstance(self.columns_config, basestring) 
             for item in config.get(
                     'Config', 'DXLink TX Models').split(','):
                 self.dxtx_models.append(item.strip())
