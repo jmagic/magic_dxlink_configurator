@@ -130,7 +130,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.1"
+        self.version = "v3.0.2"
 
         self.set_title_bar()
 
