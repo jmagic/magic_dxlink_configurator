@@ -33,7 +33,6 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-import threading
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
@@ -149,7 +148,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                         style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.main_list.SortListItemsBy(self.sort_list, ascending=None)
         self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
                             self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -218,11 +216,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
     #----------------------------------------------------------------------
-
-    def sort_list(self):
-        """Sorts the list and handles IP's *just for DV"""
-        print "hi"
-        pass
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -306,6 +299,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def select_columns(self):
         """Sets the columns to be displayed"""
+        #assert isinstance(self.columns_config, basestring)
         columns = self.columns_config + ['Time', 'IP', 'Status']
         todisplay = []
         for item in self.columns_setup:
@@ -729,53 +723,6 @@ class MainFrame(mdc_gui.MainFrame):
         else:
             open_file_dialog.Destroy()
 
-    def import_plot(self, _):
-        """Imports plot data for display"""
-        open_file_dialog = wx.FileDialog(self, message="Import a plot CSV file",
-                                         defaultDir=self.path,
-                                         defaultFile="",
-                                         wildcard="CSV files (*.csv)|*.csv",
-                                         style=wx.FD_OPEN 
-                                         | wx.FD_FILE_MUST_EXIST)
-
-        if open_file_dialog.ShowModal() == wx.ID_OK:
-            open_file_dialog.Destroy()
-            with open(open_file_dialog.GetPath(), 'rb') as csvfile:
-                csv_data = csv.reader(csvfile)
-                header = csv_data.next()
-                plot_object = []
-                data = Unit(device=header[7], mac=header[6], ip_ad=header[5])
-                plot_object.append(data)
-                obj = plot_object[0]
-                row_count = (sum(1 for row in csv_data)-1)*-1
-                dia = plot_class.Multi_Plot(self, obj, row_count)
-                dia.Show()
-            # opening it again to start at top
-            with open(open_file_dialog.GetPath(), 'rb') as csvfile:  
-                csv_data = csv.reader(csvfile)
-                header = csv_data.next()
-                plot_object = []
-                data = Unit(device=header[7], mac=header[6], ip_ad=header[5])
-                plot_object.append(data)
-                obj = plot_object[0]
-                self.mse_active_list.append(obj.mac_address)
-                for item in csv_data:
-                    mse = []
-                    data = []
-                    for i in range(4):
-                        data.append(item[i+1])
-                        #print data
-                    mse_time = [datetime.datetime.strptime(
-                        (item[0]), '%H:%M:%S.%f'), data]
-                    mse.append(mse_time)
-                    mse.append(header[5])
-                    mse.append(header[6])
-                    #print mse
-                    #time.sleep(.1)
-                    dispatcher.send(signal="Incoming MSE", sender=mse)
-        else:
-            open_file_dialog.Destroy()
-
     def import_ip_list(self, _):
         """Imports a list of IP addresses"""
         open_file_dialog = wx.FileDialog(
@@ -934,12 +881,11 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'filter incoming DHCP for AMX only'))
             self.play_sounds = (config.getboolean(
                 'Settings', 'play sounds'))
-            #self.columns_config = (config.get('Config', 'columns_config'))
+            self.columns_config = []
             for item in config.get(
                     'Config', 'columns_config').split(','):
                 self.columns_config.append(item.strip())
-            #check for old config file:
-            assert not isinstance(self.columns_config, basestring) 
+
             for item in config.get(
                     'Config', 'DXLink TX Models').split(','):
                 self.dxtx_models.append(item.strip())
@@ -965,9 +911,10 @@ class MainFrame(mdc_gui.MainFrame):
                     if item.strip() not in self.dxfrx_models:
                         self.dxfrx_models.append(item.strip())
             
-        except: # (ConfigParser.Error, IOError):   
+        except: # (ConfigParser.Error, IOError):
             # Make a new settings file, because we couldn't read the old one
-            self.create_config_file()    
+            self.create_config_file()
+            self.read_config_file()
         return
 
 
@@ -1006,7 +953,7 @@ class MainFrame(mdc_gui.MainFrame):
             'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
         with open((self.path + "settings.txt"), 'w') as configfile:
             config.write(configfile)
-        self.read_config_file()
+        
 
     def write_config_file(self):
         """Update values in config file"""
