@@ -9,6 +9,7 @@
 
 import wx
 import wx.xrc
+import wx.grid
 
 ###########################################################################
 ## Class MainFrame
@@ -107,6 +108,9 @@ class MainFrame ( wx.Frame ):
 		
 		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.mse_menu )
+		
+		self.dipswitch_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"View dipswitches", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.AppendItem( self.dipswitch_menu )
 		
 		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.add_menu )
@@ -213,6 +217,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_dipswitch, id = self.dipswitch_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.generate_dgx_menu.GetId() )
@@ -289,6 +294,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def mse_baseline( self, event ):
+		event.Skip()
+	
+	def on_dipswitch( self, event ):
 		event.Skip()
 	
 	def add_line( self, event ):
@@ -1040,39 +1048,239 @@ class MultiSend ( wx.Dialog ):
 	
 
 ###########################################################################
-## Class ProgressDialog
+## Class Dipswitch
 ###########################################################################
 
-class ProgressDialog ( wx.Dialog ):
+class Dipswitch ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Progress", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Dipswitch", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
-		bSizer42 = wx.BoxSizer( wx.VERTICAL )
+		bSizer46 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_panel7 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
-		bSizer43 = wx.BoxSizer( wx.VERTICAL )
+		self.m_panel8 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer47 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_gauge1 = wx.Gauge( self.m_panel7, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL )
-		self.m_gauge1.SetValue( 0 ) 
-		bSizer43.Add( self.m_gauge1, 0, wx.ALL, 5 )
+		bSizer48 = wx.BoxSizer( wx.VERTICAL )
+		
+		sbSizer11 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel8, wx.ID_ANY, u"Up is ON" ), wx.HORIZONTAL )
+		
+		bSizer54 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dip_one_slider = wx.Slider( self.m_panel8, wx.ID_ANY, 1, 0, 1, wx.DefaultPosition, wx.DefaultSize, wx.SL_VERTICAL )
+		bSizer54.Add( self.dip_one_slider, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_staticText23 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText23.Wrap( -1 )
+		bSizer54.Add( self.m_staticText23, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		self.m_panel7.SetSizer( bSizer43 )
-		self.m_panel7.Layout()
-		bSizer43.Fit( self.m_panel7 )
-		bSizer42.Add( self.m_panel7, 1, wx.EXPAND |wx.ALL, 5 )
+		sbSizer11.Add( bSizer54, 1, wx.EXPAND, 5 )
+		
+		bSizer55 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dip_two_slider = wx.Slider( self.m_panel8, wx.ID_ANY, 1, 0, 1, wx.DefaultPosition, wx.DefaultSize, wx.SL_VERTICAL )
+		bSizer55.Add( self.dip_two_slider, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_staticText24 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"2", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText24.Wrap( -1 )
+		bSizer55.Add( self.m_staticText24, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		self.SetSizer( bSizer42 )
+		sbSizer11.Add( bSizer55, 1, wx.EXPAND, 5 )
+		
+		bSizer56 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dip_three_slider = wx.Slider( self.m_panel8, wx.ID_ANY, 1, 0, 1, wx.DefaultPosition, wx.DefaultSize, wx.SL_VERTICAL )
+		bSizer56.Add( self.dip_three_slider, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_staticText25 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"3", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText25.Wrap( -1 )
+		bSizer56.Add( self.m_staticText25, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		sbSizer11.Add( bSizer56, 1, wx.EXPAND, 5 )
+		
+		bSizer57 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.dip_four_slider = wx.Slider( self.m_panel8, wx.ID_ANY, 1, 0, 1, wx.DefaultPosition, wx.DefaultSize, wx.SL_VERTICAL )
+		bSizer57.Add( self.dip_four_slider, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		self.m_staticText26 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"4", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText26.Wrap( -1 )
+		bSizer57.Add( self.m_staticText26, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		
+		sbSizer11.Add( bSizer57, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer48.Add( sbSizer11, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer47.Add( bSizer48, 1, wx.EXPAND, 5 )
+		
+		sbSizer12 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel8, wx.ID_ANY, u"Information" ), wx.VERTICAL )
+		
+		self.dip_one_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#1 Enable  ICS LAN 10/100 Port", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_one_txt.Wrap( -1 )
+		sbSizer12.Add( self.dip_one_txt, 0, wx.ALL, 5 )
+		
+		self.dip_two_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#2 Enable Manual DXLink Mode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_two_txt.Wrap( -1 )
+		sbSizer12.Add( self.dip_two_txt, 0, wx.ALL, 5 )
+		
+		self.dip_three_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#3 Enable Network Connectivity", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_three_txt.Wrap( -1 )
+		sbSizer12.Add( self.dip_three_txt, 0, wx.ALL, 5 )
+		
+		self.dip_four_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#4 (Fibre only) Enable Unidirectional Mode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_four_txt.Wrap( -1 )
+		sbSizer12.Add( self.dip_four_txt, 0, wx.ALL, 5 )
+		
+		
+		bSizer47.Add( sbSizer12, 0, wx.EXPAND, 5 )
+		
+		
+		self.m_panel8.SetSizer( bSizer47 )
+		self.m_panel8.Layout()
+		bSizer47.Fit( self.m_panel8 )
+		bSizer46.Add( self.m_panel8, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer46 )
 		self.Layout()
-		bSizer42.Fit( self )
+		bSizer46.Fit( self )
 		
 		self.Centre( wx.BOTH )
 	
 	def __del__( self ):
 		pass
+	
+
+###########################################################################
+## Class MSE_Baseline
+###########################################################################
+
+class MSE_Baseline ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"MSE Baseline", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer50 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_panel9 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer51 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer53 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		sbSizer10 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel9, wx.ID_ANY, u"Baseline MSE Values" ), wx.VERTICAL )
+		
+		self.cha_txt = wx.StaticText( self.m_panel9, wx.ID_ANY, u"ChA = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.cha_txt.Wrap( -1 )
+		self.cha_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		
+		sbSizer10.Add( self.cha_txt, 0, wx.ALL, 5 )
+		
+		self.chb_txt = wx.StaticText( self.m_panel9, wx.ID_ANY, u"ChB = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chb_txt.Wrap( -1 )
+		self.chb_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		
+		sbSizer10.Add( self.chb_txt, 0, wx.ALL, 5 )
+		
+		self.chc_txt = wx.StaticText( self.m_panel9, wx.ID_ANY, u"ChC = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chc_txt.Wrap( -1 )
+		self.chc_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		
+		sbSizer10.Add( self.chc_txt, 0, wx.ALL, 5 )
+		
+		self.chd_txt = wx.StaticText( self.m_panel9, wx.ID_ANY, u"ChD = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chd_txt.Wrap( -1 )
+		self.chd_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		
+		sbSizer10.Add( self.chd_txt, 0, wx.ALL, 5 )
+		
+		
+		bSizer53.Add( sbSizer10, 0, wx.EXPAND|wx.ALL, 5 )
+		
+		sbSizer9 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel9, wx.ID_ANY, u"MSE Table" ), wx.VERTICAL )
+		
+		self.mse_manual_grid = wx.grid.Grid( self.m_panel9, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		
+		# Grid
+		self.mse_manual_grid.CreateGrid( 7, 3 )
+		self.mse_manual_grid.EnableEditing( False )
+		self.mse_manual_grid.EnableGridLines( True )
+		self.mse_manual_grid.EnableDragGridSize( False )
+		self.mse_manual_grid.SetMargins( 0, 0 )
+		
+		# Columns
+		self.mse_manual_grid.SetColSize( 0, 120 )
+		self.mse_manual_grid.SetColSize( 1, 20 )
+		self.mse_manual_grid.SetColSize( 2, 160 )
+		self.mse_manual_grid.EnableDragColMove( False )
+		self.mse_manual_grid.EnableDragColSize( False )
+		self.mse_manual_grid.SetColLabelSize( 30 )
+		self.mse_manual_grid.SetColLabelValue( 0, u"MSE Value" )
+		self.mse_manual_grid.SetColLabelValue( 1, u" " )
+		self.mse_manual_grid.SetColLabelValue( 2, u"Cable Quality" )
+		self.mse_manual_grid.SetColLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Rows
+		self.mse_manual_grid.AutoSizeRows()
+		self.mse_manual_grid.EnableDragRowSize( False )
+		self.mse_manual_grid.SetRowLabelSize( 0 )
+		self.mse_manual_grid.SetRowLabelAlignment( wx.ALIGN_CENTRE, wx.ALIGN_CENTRE )
+		
+		# Label Appearance
+		
+		# Cell Defaults
+		self.mse_manual_grid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		sbSizer9.Add( self.mse_manual_grid, 0, wx.ALL, 5 )
+		
+		
+		bSizer53.Add( sbSizer9, 1, wx.EXPAND|wx.ALL, 5 )
+		
+		
+		bSizer51.Add( bSizer53, 1, wx.EXPAND, 5 )
+		
+		bSizer52 = wx.BoxSizer( wx.VERTICAL )
+		
+		m_sdbSizer2 = wx.StdDialogButtonSizer()
+		self.m_sdbSizer2OK = wx.Button( self.m_panel9, wx.ID_OK )
+		m_sdbSizer2.AddButton( self.m_sdbSizer2OK )
+		m_sdbSizer2.Realize();
+		
+		bSizer52.Add( m_sdbSizer2, 0, wx.ALIGN_RIGHT, 5 )
+		
+		
+		bSizer51.Add( bSizer52, 0, wx.EXPAND, 5 )
+		
+		
+		self.m_panel9.SetSizer( bSizer51 )
+		self.m_panel9.Layout()
+		bSizer51.Fit( self.m_panel9 )
+		bSizer50.Add( self.m_panel9, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer50 )
+		self.Layout()
+		bSizer50.Fit( self )
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.m_sdbSizer2OK.Bind( wx.EVT_BUTTON, self.on_close )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_close( self, event ):
+		event.Skip()
 	
 

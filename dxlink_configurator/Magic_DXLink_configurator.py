@@ -36,7 +36,8 @@ import webbrowser
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
-                     multi_ping, mse_baseline, telnet_class, telnetto_class)
+                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     dipswitch)
 
 class Unit(object):
     """
@@ -65,6 +66,7 @@ class Unit(object):
         self.master = master
         self.system = system
         self.status = status
+        self.dipswitch = [2, 2, 2, 2]
 
 
 class MainFrame(mdc_gui.MainFrame):
@@ -467,6 +469,20 @@ class MainFrame(mdc_gui.MainFrame):
                 return False
             dlg.Destroy()
         return True
+
+    def on_dipswitch(self, _):
+        """View what the dipswitches are set to"""
+        if self.check_for_none_selected():
+            return
+        # get dip switch settings
+        for obj in self.main_list.GetSelectedObjects():
+            self.telnet_job_queue.put(['get_dipswitch', obj,
+                                       self.telnet_timeout_seconds])
+            self.set_status((obj, "Queued"))
+
+        for obj in self.main_list.GetSelectedObjects():
+            dia = dipswitch.ShowDipSwitch(self, obj)
+            dia.Show()
 
     def multi_ping(self, _):
         """Ping and track results of many devices"""
