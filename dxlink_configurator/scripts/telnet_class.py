@@ -261,6 +261,31 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
+    def get_dipswitch(self, job):
+        """Gets the dipswitch values"""
+        obj = job[1]
+        self.set_status(obj, "Connecting")
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+
+            telnet_session.read_until('>', int(job[2]))
+            telnet_session.write('dipswitch\r')
+            telnet_session.read_until('=', int(job[2]))
+            result = telnet_session.read_until('>', int(job[2]))
+            for idx, item in enumerate(result.split()):
+                if item == 'ON':
+                    obj.dipswitch[idx] = 1
+                elif item == 'OFF':
+                    obj.dipswitch[idx] = 0
+                else:
+                    obj.dipswitch[idx] = 2 # error
+
+            self.set_status(obj, "Success")
+
+        except Exception as error:
+            self.error_processing(obj, error)
+
+
     def multiple_send_command(self, job):
         """Sends multiple commands in a single session"""
         obj = job[1]

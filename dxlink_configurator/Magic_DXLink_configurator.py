@@ -36,7 +36,8 @@ import webbrowser
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
-                     multi_ping, mse_baseline, telnet_class, telnetto_class)
+                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     dipswitch)
 
 class Unit(object):
     """
@@ -467,6 +468,12 @@ class MainFrame(mdc_gui.MainFrame):
                 return False
             dlg.Destroy()
         return True
+
+    def on_dipswitch(self, _):
+        """View what the dipswitches do"""
+
+        dia = dipswitch.ShowDipSwitch(self)
+        dia.Show()
 
     def multi_ping(self, _):
         """Ping and track results of many devices"""
