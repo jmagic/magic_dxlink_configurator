@@ -109,9 +109,6 @@ class MainFrame ( wx.Frame ):
 		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.mse_menu )
 		
-		self.dipswitch_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"View dipswitches", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.dipswitch_menu )
-		
 		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.add_menu )
 		
@@ -152,6 +149,9 @@ class MainFrame ( wx.Frame ):
 		self.m_menubar1.Append( self.delete_menu, u"Delete" ) 
 		
 		self.help_menu = wx.Menu()
+		self.dipswitch_menu = wx.MenuItem( self.help_menu, wx.ID_ANY, u"Dipswitch Information", wx.EmptyString, wx.ITEM_NORMAL )
+		self.help_menu.AppendItem( self.dipswitch_menu )
+		
 		self.about_menu = wx.MenuItem( self.help_menu, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
 		self.help_menu.AppendItem( self.about_menu )
 		
@@ -217,7 +217,6 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.on_dipswitch, id = self.dipswitch_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.generate_dgx_menu.GetId() )
@@ -227,6 +226,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_item_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.delete_all_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_dipswitch, id = self.dipswitch_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.about_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.update_device_information, id = self.update_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.configure_device, id = self.configure__rc_menu.GetId() )
@@ -296,9 +296,6 @@ class MainFrame ( wx.Frame ):
 	def mse_baseline( self, event ):
 		event.Skip()
 	
-	def on_dipswitch( self, event ):
-		event.Skip()
-	
 	def add_line( self, event ):
 		event.Skip()
 	
@@ -324,6 +321,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def delete_all_items( self, event ):
+		event.Skip()
+	
+	def on_dipswitch( self, event ):
 		event.Skip()
 	
 	def on_about_box( self, event ):
@@ -1065,6 +1065,15 @@ class Dipswitch ( wx.Dialog ):
 		
 		bSizer48 = wx.BoxSizer( wx.VERTICAL )
 		
+		bSizer55 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_staticText27 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"By switching the Dipswitches below, you can see what effect it will have. These dipswitches are locate on the bottom of the units.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText27.Wrap( 200 )
+		bSizer55.Add( self.m_staticText27, 0, wx.ALL, 5 )
+		
+		
+		bSizer48.Add( bSizer55, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
 		sbSizer11 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel8, wx.ID_ANY, u"Up is ON" ), wx.HORIZONTAL )
 		
 		bSizer54 = wx.BoxSizer( wx.VERTICAL )
@@ -1131,11 +1140,11 @@ class Dipswitch ( wx.Dialog ):
 		self.dip_two_txt.Wrap( -1 )
 		sbSizer12.Add( self.dip_two_txt, 0, wx.ALL, 5 )
 		
-		self.dip_three_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#3 Enable Network Connectivity", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_three_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#3 Network Connectivity is ENABLED", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.dip_three_txt.Wrap( -1 )
 		sbSizer12.Add( self.dip_three_txt, 0, wx.ALL, 5 )
 		
-		self.dip_four_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#4 (Fibre only) Enable Unidirectional Mode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.dip_four_txt = wx.StaticText( self.m_panel8, wx.ID_ANY, u"#4 (Fibre only) Enable", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.dip_four_txt.Wrap( -1 )
 		sbSizer12.Add( self.dip_four_txt, 0, wx.ALL, 5 )
 		
@@ -1154,9 +1163,29 @@ class Dipswitch ( wx.Dialog ):
 		bSizer46.Fit( self )
 		
 		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.dip_one_slider.Bind( wx.EVT_SCROLL, self.on_switch_one )
+		self.dip_two_slider.Bind( wx.EVT_SCROLL, self.on_switch_two )
+		self.dip_three_slider.Bind( wx.EVT_SCROLL, self.on_switch_three )
+		self.dip_four_slider.Bind( wx.EVT_SCROLL, self.on_switch_four )
 	
 	def __del__( self ):
 		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_switch_one( self, event ):
+		event.Skip()
+	
+	def on_switch_two( self, event ):
+		event.Skip()
+	
+	def on_switch_three( self, event ):
+		event.Skip()
+	
+	def on_switch_four( self, event ):
+		event.Skip()
 	
 
 ###########################################################################
