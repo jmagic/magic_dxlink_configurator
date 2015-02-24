@@ -36,7 +36,8 @@ import webbrowser
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
-                     multi_ping, mse_baseline, telnet_class, telnetto_class)
+                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     dipswitch)
 
 class Unit(object):
     """
@@ -130,7 +131,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.2"
+        self.version = "v3.0.3"
 
         self.set_title_bar()
 
@@ -467,6 +468,12 @@ class MainFrame(mdc_gui.MainFrame):
                 return False
             dlg.Destroy()
         return True
+
+    def on_dipswitch(self, _):
+        """View what the dipswitches do"""
+
+        dia = dipswitch.ShowDipSwitch(self)
+        dia.Show()
 
     def multi_ping(self, _):
         """Ping and track results of many devices"""
@@ -852,6 +859,9 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
+            if data.hostname[:2] == 'DX':
+                self.telnet_job_queue.put(['get_config_info', data,
+                                           self.telnet_timeout_seconds])
             self.set_status((data, "DHCP"))
 
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
