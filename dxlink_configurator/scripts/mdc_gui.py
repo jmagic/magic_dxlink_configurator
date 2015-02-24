@@ -668,7 +668,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		sbSizer7.Add( self.static_chk, 0, wx.ALL, 5 )
 		
 		
-		bSizer13.Add( sbSizer7, 0, wx.EXPAND, 5 )
+		bSizer13.Add( sbSizer7, 0, wx.EXPAND|wx.ALL, 5 )
 		
 		sbSizer5 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"IP settings" ), wx.VERTICAL )
 		
@@ -711,11 +711,40 @@ class DeviceConfiguration ( wx.Dialog ):
 		
 		bSizer13.Add( sbSizer5, 1, wx.EXPAND|wx.ALL, 5 )
 		
-		sbSizer6 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Master Info" ), wx.VERTICAL )
+		sbSizer13 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Connection Type" ), wx.VERTICAL )
+		
+		bSizer56 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.tcp_chk = wx.RadioButton( self, wx.ID_ANY, u"TCP", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		bSizer56.Add( self.tcp_chk, 0, wx.ALL, 5 )
+		
+		self.udp_chk = wx.RadioButton( self, wx.ID_ANY, u"UDP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.udp_chk, 0, wx.ALL, 5 )
+		
+		self.ndp_chk = wx.RadioButton( self, wx.ID_ANY, u"NDP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.ndp_chk, 0, wx.ALL, 5 )
+		
+		self.auto_chk = wx.RadioButton( self, wx.ID_ANY, u"AUTO", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.auto_chk, 0, wx.ALL, 5 )
+		
+		
+		sbSizer13.Add( bSizer56, 0, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		
+		bSizer211 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText81 = wx.StaticText( self, wx.ID_ANY, u"Master System Number", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText81.Wrap( -1 )
+		bSizer211.Add( self.m_staticText81, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.master_number_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		bSizer211.Add( self.master_number_txt, 0, wx.ALL, 5 )
+		
+		
+		sbSizer13.Add( bSizer211, 1, wx.EXPAND, 5 )
 		
 		bSizer20 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_staticText7 = wx.StaticText( self, wx.ID_ANY, u"Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText7 = wx.StaticText( self, wx.ID_ANY, u"Master IP/URL", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText7.Wrap( -1 )
 		bSizer20.Add( self.m_staticText7, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -723,7 +752,12 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer20.Add( self.master_txt, 0, wx.ALL, 5 )
 		
 		
-		sbSizer6.Add( bSizer20, 1, wx.EXPAND, 5 )
+		sbSizer13.Add( bSizer20, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer13.Add( sbSizer13, 0, wx.EXPAND|wx.ALL, 5 )
+		
+		sbSizer131 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, wx.EmptyString ), wx.VERTICAL )
 		
 		bSizer21 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -735,10 +769,10 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer21.Add( self.device_txt, 0, wx.ALL, 5 )
 		
 		
-		sbSizer6.Add( bSizer21, 1, wx.EXPAND, 5 )
+		sbSizer131.Add( bSizer21, 1, wx.EXPAND, 5 )
 		
 		
-		bSizer13.Add( sbSizer6, 0, wx.ALL|wx.EXPAND, 5 )
+		bSizer13.Add( sbSizer131, 0, wx.EXPAND|wx.ALL, 5 )
 		
 		bSizer16 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -752,7 +786,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer16.Add( self.m_button3, 0, wx.ALL, 5 )
 		
 		
-		bSizer13.Add( bSizer16, 0, wx.ALL, 5 )
+		bSizer13.Add( bSizer16, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
 		self.SetSizer( bSizer13 )
@@ -765,6 +799,10 @@ class DeviceConfiguration ( wx.Dialog ):
 		self.Bind( wx.EVT_CLOSE, self.on_cancel )
 		self.dhcp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
 		self.static_chk.Bind( wx.EVT_RADIOBUTTON, self.on_dhcp )
+		self.tcp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.udp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.ndp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.auto_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
 		self.m_button1.Bind( wx.EVT_BUTTON, self.on_set )
 		self.m_button2.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_button3.Bind( wx.EVT_BUTTON, self.on_abort )
@@ -779,6 +817,12 @@ class DeviceConfiguration ( wx.Dialog ):
 	
 	def on_dhcp( self, event ):
 		event.Skip()
+	
+	
+	def on_connection_type( self, event ):
+		event.Skip()
+	
+	
 	
 	
 	def on_set( self, event ):
