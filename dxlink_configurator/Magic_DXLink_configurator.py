@@ -859,6 +859,9 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
+            if data.hostname[:2] == 'DX':
+                self.telnet_job_queue.put(['get_config_info', data,
+                                           self.telnet_timeout_seconds])
             self.set_status((data, "DHCP"))
 
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
