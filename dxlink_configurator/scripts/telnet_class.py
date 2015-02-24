@@ -104,6 +104,28 @@ class Telnetjobs(Thread):
         except IOError, error:
             self.error_processing(obj, error)
 
+    def set_watchdog(self, job):
+        """Enable or disables watchdog"""
+
+        obj = job[1]
+        enable = job[3]
+        self.set_status(obj, "Connecting")
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', int(job[2]))
+            if enable:
+                telnet_session.write('WD ON\r')
+            else:
+                telnet_session.write('WD OFF\r')
+            telnet_session.read_until('>', int(job[2]))
+            telnet_session.write('reboot \r')
+            telnet_session.read_until('Rebooting....', int(job[2]))
+            telnet_session.close()
+
+            self.set_status(obj, "Success")
+        except IOError, error:
+            self.error_processing(obj, error)
+
     def reboot(self, job):
 
         obj = job[1]

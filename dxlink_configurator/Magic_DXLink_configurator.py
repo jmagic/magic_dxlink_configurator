@@ -131,7 +131,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.3"
+        self.version = "v3.0.4"
 
         self.set_title_bar()
 
@@ -158,7 +158,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.columns_setup = [ColumnDefn("Time", "center", 100, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
-                              ColumnDefn("MAC", "center", 120, "mac_address"),
+                              ColumnDefn("MAC", "center", 125, "mac_address"),
                               ColumnDefn("IP", "center", 100, "ip_address"),
                               ColumnDefn("Hostname", "center", 130, "hostname"),
                               ColumnDefn("Serial", "center", 130, "serial"),
@@ -581,6 +581,24 @@ class MainFrame(mdc_gui.MainFrame):
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
 
+    def enable_wd(self, _):
+        """Enables the Watchdog"""
+        if self.check_for_none_selected():
+            return
+        for obj in self.main_list.GetSelectedObjects():
+            self.telnet_job_queue.put(['set_watchdog', obj,
+                                       self.telnet_timeout_seconds, True])
+            self.set_status((obj, "Queued"))
+
+    def disable_wd(self, _):
+        """disables the Watchdog"""
+        if self.check_for_none_selected():
+            return
+        for obj in self.main_list.GetSelectedObjects():
+            self.telnet_job_queue.put(['set_watchdog', obj,
+                                       self.telnet_timeout_seconds, False])
+            self.set_status((obj, "Queued"))
+
     def send_commands(self, _):
         """Send commands to selected devices"""
         if self.check_for_none_selected():
@@ -829,6 +847,8 @@ class MainFrame(mdc_gui.MainFrame):
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
+                    if obj.arrival_time > (incoming_time - datetime.timedelta(seconds=2)):
+                        break
                     data.model = obj.model
                     data.serial = obj.serial
                     data.firmware = obj.firmware
@@ -842,11 +862,11 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
-            if data.hostname[:2] == 'DX':
+            
+            self.set_status((data, "DHCP"))
+        if data.hostname[:2] == 'DX':
                 self.telnet_job_queue.put(['get_config_info', data,
                                            self.telnet_timeout_seconds])
-            self.set_status((data, "DHCP"))
-
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()

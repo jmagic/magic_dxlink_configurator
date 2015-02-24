@@ -118,6 +118,15 @@ class MainFrame ( wx.Frame ):
 		self.generate_dgx_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate DGX List", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.generate_dgx_menu )
 		
+		self.watchdog_menu = wx.Menu()
+		self.wd_enable_menu = wx.MenuItem( self.watchdog_menu, wx.ID_ANY, u"Enable Watchdog", wx.EmptyString, wx.ITEM_NORMAL )
+		self.watchdog_menu.AppendItem( self.wd_enable_menu )
+		
+		self.wd_disable_menu = wx.MenuItem( self.watchdog_menu, wx.ID_ANY, u"Disable Watchdog", wx.EmptyString, wx.ITEM_NORMAL )
+		self.watchdog_menu.AppendItem( self.wd_disable_menu )
+		
+		self.tools_menu.AppendSubMenu( self.watchdog_menu, u"Watchdog" )
+		
 		self.m_menubar1.Append( self.tools_menu, u"Tools" ) 
 		
 		self.identify_menu = wx.Menu()
@@ -220,6 +229,8 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.generate_dgx_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.enable_wd, id = self.wd_enable_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.disable_wd, id = self.wd_disable_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.led_on_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_off_leds, id = self.led_off_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
@@ -303,6 +314,12 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def generate_dgx_list( self, event ):
+		event.Skip()
+	
+	def enable_wd( self, event ):
+		event.Skip()
+	
+	def disable_wd( self, event ):
 		event.Skip()
 	
 	def turn_on_leds( self, event ):
