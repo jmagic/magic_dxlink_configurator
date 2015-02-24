@@ -61,6 +61,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.gateway = obj.gateway
         self.master = obj.master
         self.device = obj.device
+        self.system = obj.system
 
         if self.hostname == '':
             self.hostname = 'hostname'
@@ -75,6 +76,10 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
             
         if self.device == '' or obj.device == '0':
             self.device = str(self.parent.device_number)
+
+        if self.system == '':
+            self.system = '0'
+
             
         self.hostname_txt.SetLabel(self.hostname)
 
@@ -90,9 +95,22 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.gateway_txt.SetLabel(self.gateway)
         self.master_txt.SetValue(self.master)
         self.device_txt.SetValue(self.device)
+        self.master_number_txt.SetValue(self.system)
 
         self.on_dhcp(None) #call to update dhcp / static
+        self.on_connection_type(None)
 
+    def on_connection_type(self, _):
+        """Sets up for connection type"""
+        if self.tcp_chk.GetValue() or self.udp_chk.GetValue:
+            self.master_number_txt.Enable(False)
+            self.master_txt.Enable(True)
+        if self.ndp_chk.GetValue():
+            self.master_number_txt.Enable(False)
+            self.master_txt.Enable(False)
+        if self.auto_chk.GetValue():
+            self.master_number_txt.Enable(True)
+            self.master_txt.Enable(False)
 
     def on_dhcp(self, _):
         """Sets DHCP mode on or off and enables the DHCP options"""
@@ -139,11 +157,25 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
                 str(self.ip_address_txt.GetValue()),
                 str(self.subnet_txt.GetValue()),
                 str(self.gateway_txt.GetValue()),
+                str(self.get_type()),
+                str(self.master_number_txt.GetValue()),
                 str(self.master_txt.GetValue()),
                 str(self.device_txt.GetValue())]
 
         self.parent.telnet_job_queue.put(info)
         self.Destroy()
+
+    def get_type(self):
+        """Gets the connection type"""
+        if self.tcp_chk.GetValue():
+            return "TCP"
+        if self.udp_chk.GetValue():
+            return "UDP"
+        if self.ndp_chk.GetValue():
+            return "NDP"
+        if self.auto_chk.GetValue():
+            return "AUTO"
+
 
 
 class IpListGen(mdc_gui.GenerateIP):

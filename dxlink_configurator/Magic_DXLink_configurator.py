@@ -36,7 +36,8 @@ import webbrowser
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
-                     multi_ping, mse_baseline, telnet_class, telnetto_class)
+                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     dipswitch)
 
 class Unit(object):
     """
@@ -130,7 +131,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.2"
+        self.version = "v3.0.4"
 
         self.set_title_bar()
 
@@ -154,10 +155,10 @@ class MainFrame(mdc_gui.MainFrame):
 
 
         self.columns = []
-        self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
+        self.columns_setup = [ColumnDefn("Time", "center", 100, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
-                              ColumnDefn("MAC", "center", 120, "mac_address"),
+                              ColumnDefn("MAC", "center", 125, "mac_address"),
                               ColumnDefn("IP", "center", 100, "ip_address"),
                               ColumnDefn("Hostname", "center", 130, "hostname"),
                               ColumnDefn("Serial", "center", 130, "serial"),
@@ -468,6 +469,12 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.Destroy()
         return True
 
+    def on_dipswitch(self, _):
+        """View what the dipswitches do"""
+
+        dia = dipswitch.ShowDipSwitch(self)
+        dia.Show()
+
     def multi_ping(self, _):
         """Ping and track results of many devices"""
         
@@ -507,7 +514,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['factory_av', obj, 
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
 
     def reset_factory(self, _):
@@ -527,7 +533,6 @@ class MainFrame(mdc_gui.MainFrame):
                 
             else:
                 return
-        #self.display_progress()
 
 
     def reboot(self, _):
@@ -538,7 +543,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['reboot', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
 
     def open_url(self, _):
@@ -558,8 +562,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['get_config_info', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
-
 
     def turn_on_leds(self, _):
         """Turns on front panel LEDs"""
@@ -569,7 +571,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_on_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
     def turn_off_leds(self, _):
         """Turns off front panel LEDs"""
@@ -579,7 +580,24 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
+
+    def enable_wd(self, _):
+        """Enables the Watchdog"""
+        if self.check_for_none_selected():
+            return
+        for obj in self.main_list.GetSelectedObjects():
+            self.telnet_job_queue.put(['set_watchdog', obj,
+                                       self.telnet_timeout_seconds, True])
+            self.set_status((obj, "Queued"))
+
+    def disable_wd(self, _):
+        """disables the Watchdog"""
+        if self.check_for_none_selected():
+            return
+        for obj in self.main_list.GetSelectedObjects():
+            self.telnet_job_queue.put(['set_watchdog', obj,
+                                       self.telnet_timeout_seconds, False])
+            self.set_status((obj, "Queued"))
 
     def send_commands(self, _):
         """Send commands to selected devices"""
@@ -649,20 +667,9 @@ class MainFrame(mdc_gui.MainFrame):
             style=wx.SAVE)
         if save_file_dialog.ShowModal() == wx.ID_OK:
             path = save_file_dialog.GetPath()
-            dlg = wx.ProgressDialog(
-                "Storing Device Information",
-                "Storing Device Information",
-                maximum=len(self.main_list.GetSelectedObjects()),
-                parent=self,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_ELAPSED_TIME)
-            count = 0
             with open(path, 'ab') as store_file:
                 write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
                 for obj in self.main_list.GetSelectedObjects():
-                    count += 1
-                    dlg.Update(count)
                     data = [obj.model,
                             obj.hostname,
                             obj.serial,
@@ -678,6 +685,7 @@ class MainFrame(mdc_gui.MainFrame):
                             obj.system]
                     
                     write_csv.writerow(data)
+                    self.set_status((obj, 'Exported'))
             self.dump_pickle()
 
     def import_csv_file(self, _):
@@ -839,6 +847,8 @@ class MainFrame(mdc_gui.MainFrame):
         else:
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
+                    if obj.arrival_time > (incoming_time - datetime.timedelta(seconds=2)):
+                        break
                     data.model = obj.model
                     data.serial = obj.serial
                     data.firmware = obj.firmware
@@ -852,8 +862,11 @@ class MainFrame(mdc_gui.MainFrame):
                         selected_items.append(data)
                     self.main_list.RemoveObject(obj)
             self.main_list.AddObject(data)
+            
             self.set_status((data, "DHCP"))
-
+        if data.hostname[:2] == 'DX':
+                self.telnet_job_queue.put(['get_config_info', data,
+                                           self.telnet_timeout_seconds])
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()

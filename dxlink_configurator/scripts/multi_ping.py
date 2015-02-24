@@ -199,7 +199,7 @@ class MultiPing(mdc_gui.MultiPing):
             self.log_file_txt.SetLabel(
                 'Logging to: ' + 
                 self.parent.path + 'ping_logs\\'
-                'device_XXX.XXX.XXX.XXX_' +
+                'device_***IP of device***_' +
                 time.strftime('%d-%b-%Y-%H-%M-%S') + 
                 '.txt')
             self.logging = True

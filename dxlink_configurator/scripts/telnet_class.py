@@ -104,6 +104,28 @@ class Telnetjobs(Thread):
         except IOError, error:
             self.error_processing(obj, error)
 
+    def set_watchdog(self, job):
+        """Enable or disables watchdog"""
+
+        obj = job[1]
+        enable = job[3]
+        self.set_status(obj, "Connecting")
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until('>', int(job[2]))
+            if enable:
+                telnet_session.write('WD ON\r')
+            else:
+                telnet_session.write('WD OFF\r')
+            telnet_session.read_until('>', int(job[2]))
+            telnet_session.write('reboot \r')
+            telnet_session.read_until('Rebooting....', int(job[2]))
+            telnet_session.close()
+
+            self.set_status(obj, "Success")
+        except IOError, error:
+            self.error_processing(obj, error)
+
     def reboot(self, job):
 
         obj = job[1]
@@ -125,56 +147,31 @@ class Telnetjobs(Thread):
 
         #print job
         obj = job[1]
+        delay = int(job[2])
         setdhcp = job[3]
         hostname = job[4]
         #ip_org = job[5]
         ip_new = job[6]
         subnet = job[7]
         gateway = job[8]
-        master = job[9]
-        device = job[10]
+        conn_type = job[9]
+        master_number = job[10]
+        master = job[11]
+        device = job[12]
         self.set_status(obj, "Connecting")
 
-        if setdhcp == True:
+        if setdhcp:
             try:
                 telnet_session = self.establish_telnet(obj.ip_address)
-                telnet_session.read_until('>', int(job[2]))
+                telnet_session.read_until('>', delay)
                 telnet_session.write('set ip \r')
-                telnet_session.read_until('Name:', int(job[2]))
+                telnet_session.read_until('Name:', delay)
                 telnet_session.write(hostname + '\r')
-                telnet_session.read_until('Enter:', int(job[2]))
+                telnet_session.read_until('Enter:', delay)
                 telnet_session.write('d\r')
-                telnet_session.read_until('Enter', int(job[2]))
+                telnet_session.read_until('Enter', delay)
                 telnet_session.write('y\r')
-                telnet_session.read_until('>', int(job[2]))
-
-                telnet_session.write('set connection\r')
-                telnet_session.read_until('Enter:', int(job[2]))
-                telnet_session.write('t\r')
-                telnet_session.read_until('URL:', int(job[2]))
-                telnet_session.write(master + '\r')
-                telnet_session.read_until('Port:', int(job[2]))
-                telnet_session.write('\r')
-                telnet_session.read_until('User:', int(job[2]))
-                telnet_session.write('\r')
-                telnet_session.read_until('Password:', int(job[2]))
-                telnet_session.write('\r')
-                telnet_session.read_until('Password:', int(job[2]))
-                telnet_session.write('\r')
-                telnet_session.read_until('Enter ->', int(job[2]))
-                telnet_session.write('y\r')
-                telnet_session.read_until('written.', int(job[2]))
-                telnet_session.read_until('>', int(job[2]))
-                telnet_session.write('set device ' + str(device) + '\r')
-                telnet_session.read_until('device', int(job[2]))
-                telnet_session.read_until('>', int(job[2]))
-
-                telnet_session.write('reboot \r')
-                telnet_session.read_until('Rebooting....', int(job[2]))
-                telnet_session.close()
-
-                self.set_status(obj, "Success")
-
+                telnet_session.read_until('>', delay)
             except Exception as error:
                 self.error_processing(obj, error)
 
@@ -182,45 +179,113 @@ class Telnetjobs(Thread):
             try:
                 telnet_session = self.establish_telnet(obj.ip_address)
 
-                telnet_session.read_until('>', int(job[2]))
+                telnet_session.read_until('>', delay)
                 telnet_session.write('set ip \r')
-                telnet_session.read_until('Name:', int(job[2]))
+                telnet_session.read_until('Name:', delay)
                 telnet_session.write(hostname + '\r')
-                telnet_session.read_until('Enter:', int(job[2]))
+                telnet_session.read_until('Enter:', delay)
                 telnet_session.write('s\r')
-                telnet_session.read_until('Address:', int(job[2]))
+                telnet_session.read_until('Address:', delay)
                 telnet_session.write(ip_new + '\r')
-                telnet_session.read_until('Mask:', int(job[2]))
+                telnet_session.read_until('Mask:', delay)
                 telnet_session.write(subnet + '\r')
-                telnet_session.read_until('IP:', int(job[2]))
+                telnet_session.read_until('IP:', delay)
                 telnet_session.write(gateway + '\r')
-                telnet_session.read_until('Enter ->', int(job[2]))
+                telnet_session.read_until('Enter ->', delay)
                 telnet_session.write('y\r')
-                telnet_session.read_until('settings.', int(job[2]))
-                telnet_session.read_until('>', int(job[2]))
+                telnet_session.read_until('settings.', delay)
+                telnet_session.read_until('>', delay)
+            except Exception as error:
+                self.error_processing(obj, error)
 
+        if conn_type == "TCP" or conn_type == "UDP":
+            try:
                 telnet_session.write('set connection\r')
-                telnet_session.read_until('Enter:', int(job[2]))
-                telnet_session.write('t\r')
-                telnet_session.read_until('URL:', int(job[2]))
+                telnet_session.read_until('Enter:', delay)
+                if conn_type == "TCP":
+                    telnet_session.write('t\r')
+                else:
+                    telnet_session.write('u\r')
+                telnet_session.read_until('URL:', delay)
                 telnet_session.write(master + '\r')
-                telnet_session.read_until('Port:', int(job[2]))
+                telnet_session.read_until('Port:', delay)
                 telnet_session.write('\r')
-                telnet_session.read_until('User:', int(job[2]))
+                telnet_session.read_until('User:', delay)
                 telnet_session.write('\r')
-                telnet_session.read_until('Password:', int(job[2]))
+                telnet_session.read_until('Password:', delay)
                 telnet_session.write('\r')
-                telnet_session.read_until('Password:', int(job[2]))
+                telnet_session.read_until('Password:', delay)
                 telnet_session.write('\r')
-                telnet_session.read_until('Enter ->', int(job[2]))
+                telnet_session.read_until('Enter ->', delay)
                 telnet_session.write('y\r')
-                telnet_session.read_until('written.', int(job[2]))
-                telnet_session.read_until('>', int(job[2]))
+                telnet_session.read_until('written.', delay)
+                telnet_session.read_until('>', delay)
                 telnet_session.write('set device ' + str(device) + '\r')
-                telnet_session.read_until('device', int(job[2]))
-                telnet_session.read_until('>', int(job[2]))
+                telnet_session.read_until('device', delay)
+                telnet_session.read_until('>', delay)
+
+                telnet_session.write('reboot \r')
+                telnet_session.read_until('Rebooting....', delay)
+                telnet_session.close()
+
+                self.set_status(obj, "Success")
+
+            except Exception as error:
+                self.error_processing(obj, error)
+
+        if conn_type == "AUTO":
+            try:
+                telnet_session.write('set connection\r')
+                telnet_session.read_until('Enter:', delay)
+                telnet_session.write('a\r')
+                telnet_session.read_until('Number:', delay)
+                telnet_session.write(master_number + '\r')
+                telnet_session.read_until('Port:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('User:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Password:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Password:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Enter ->', delay)
+                telnet_session.write('y\r')
+                telnet_session.read_until('written.', delay)
+                telnet_session.read_until('>', delay)
+                telnet_session.write('set device ' + str(device) + '\r')
+                telnet_session.read_until('device', delay)
+                telnet_session.read_until('>', delay)
                 telnet_session.write('reboot\r')
-                telnet_session.read_until('Rebooting....', int(job[2]))
+                telnet_session.read_until('Rebooting....', delay)
+                telnet_session.close()
+
+                self.set_status(obj, "Success")
+
+            except Exception as error:
+                self.error_processing(obj, error)
+
+        if conn_type == "NDP":
+            try:
+                telnet_session.write('set connection\r')
+                telnet_session.read_until('Enter:', delay)
+                telnet_session.write('n\r')
+                telnet_session.read_until('Port:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('User:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Password:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Password:', delay)
+                telnet_session.write('\r')
+                telnet_session.read_until('Enter ->', delay)
+                telnet_session.write('y\r')
+                telnet_session.read_until('written.', delay)
+                telnet_session.read_until('>', delay)
+                telnet_session.write('set device ' + str(device) + '\r')
+                telnet_session.read_until('device', delay)
+                telnet_session.read_until('>', delay)
+                telnet_session.write('reboot\r')
+                telnet_session.read_until('Rebooting....', delay)
                 telnet_session.close()
 
                 self.set_status(obj, "Success")
@@ -260,6 +325,31 @@ class Telnetjobs(Thread):
 
         except Exception as error:
             self.error_processing(obj, error)
+
+    def get_dipswitch(self, job):
+        """Gets the dipswitch values"""
+        obj = job[1]
+        self.set_status(obj, "Connecting")
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+
+            telnet_session.read_until('>', int(job[2]))
+            telnet_session.write('dipswitch\r')
+            telnet_session.read_until('=', int(job[2]))
+            result = telnet_session.read_until('>', int(job[2]))
+            for idx, item in enumerate(result.split()):
+                if item == 'ON':
+                    obj.dipswitch[idx] = 1
+                elif item == 'OFF':
+                    obj.dipswitch[idx] = 0
+                else:
+                    obj.dipswitch[idx] = 2 # error
+
+            self.set_status(obj, "Success")
+
+        except Exception as error:
+            self.error_processing(obj, error)
+
 
     def multiple_send_command(self, job):
         """Sends multiple commands in a single session"""
