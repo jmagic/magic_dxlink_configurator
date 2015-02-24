@@ -155,7 +155,7 @@ class MainFrame(mdc_gui.MainFrame):
 
 
         self.columns = []
-        self.columns_setup = [ColumnDefn("Time", "center", 90, "arrival_time", 
+        self.columns_setup = [ColumnDefn("Time", "center", 100, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
                               ColumnDefn("Model", "center", 130, "model"),
                               ColumnDefn("MAC", "center", 120, "mac_address"),
@@ -533,7 +533,6 @@ class MainFrame(mdc_gui.MainFrame):
                 
             else:
                 return
-        #self.display_progress()
 
 
     def reboot(self, _):
@@ -544,7 +543,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['reboot', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
 
     def open_url(self, _):
@@ -564,8 +562,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['get_config_info', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
-
 
     def turn_on_leds(self, _):
         """Turns on front panel LEDs"""
@@ -575,7 +571,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_on_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
     def turn_off_leds(self, _):
         """Turns off front panel LEDs"""
@@ -585,7 +580,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
     def send_commands(self, _):
         """Send commands to selected devices"""
@@ -655,20 +649,9 @@ class MainFrame(mdc_gui.MainFrame):
             style=wx.SAVE)
         if save_file_dialog.ShowModal() == wx.ID_OK:
             path = save_file_dialog.GetPath()
-            dlg = wx.ProgressDialog(
-                "Storing Device Information",
-                "Storing Device Information",
-                maximum=len(self.main_list.GetSelectedObjects()),
-                parent=self,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_ELAPSED_TIME)
-            count = 0
             with open(path, 'ab') as store_file:
                 write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
                 for obj in self.main_list.GetSelectedObjects():
-                    count += 1
-                    dlg.Update(count)
                     data = [obj.model,
                             obj.hostname,
                             obj.serial,
@@ -684,6 +667,7 @@ class MainFrame(mdc_gui.MainFrame):
                             obj.system]
                     
                     write_csv.writerow(data)
+                    self.set_status((obj, 'Exported'))
             self.dump_pickle()
 
     def import_csv_file(self, _):
