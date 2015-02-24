@@ -514,7 +514,6 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['factory_av', obj, 
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
-        #self.display_progress()
 
 
     def reset_factory(self, _):
