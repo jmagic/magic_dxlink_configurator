@@ -131,7 +131,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.4"
+        self.version = "v3.0.5"
 
         self.set_title_bar()
 
@@ -817,7 +817,7 @@ class MainFrame(mdc_gui.MainFrame):
             master=master,
             system=system)
         self.main_list.AddObject(data)
-        self.dump_pickle()
+        #self.dump_pickle()
         return data
    
 
