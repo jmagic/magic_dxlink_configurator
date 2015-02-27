@@ -3,6 +3,7 @@
 import wx
 import csv
 from scripts import mdc_gui
+from netaddr import IPAddress, IPRange
 
 class PreferencesConfig(mdc_gui.Preferences):
     def __init__(self, parent):
@@ -194,32 +195,40 @@ class IpListGen(mdc_gui.GenerateIP):
 
     def on_replace(self, _):
         """Replaces list with generated list"""
-        self.parent.main_list.DeleteAllItems()
-        self.on_add(None)
+        self.gen_list()
+        if self.check_size():
+            self.parent.main_list.DeleteAllItems()
+            self.on_add(None)
+        else:
+            self.Destroy()
 
     def on_add(self, _):
         """Adds to the bottom of the list"""
         self.gen_list()
-        for item in self.data:
-            self.parent.create_add_unit(ip_ad=str(item))
-        self.parent.dump_pickle()
+        if self.check_size():
+            for item in self.data:
+                self.parent.create_add_unit(ip_ad=str(item))
+            self.parent.dump_pickle()
         self.Destroy()
 
     def on_save(self, _):
         """Saves the ip list to a file"""
         self.gen_list()
-        save_file_dialog = wx.FileDialog(self, message="Save IP list",
-                                         defaultDir=self.parent.path,
-                                         defaultFile="generatediplist.csv",
-                                         wildcard="CSV files (*.csv)|*.csv",
-                                         style=wx.SAVE)
-        if save_file_dialog.ShowModal() == wx.ID_OK:
+        if self.check_size():
+            save_file_dialog = wx.FileDialog(self, message="Save IP list",
+                                             defaultDir=self.parent.path,
+                                             defaultFile="generatediplist.csv",
+                                             wildcard="CSV files (*.csv)|*.csv",
+                                             style=wx.SAVE)
+            if save_file_dialog.ShowModal() == wx.ID_OK:
 
-            path = save_file_dialog.GetPath()
-            with open(path, 'wb') as ip_list_file:
-                writer_csv = csv.writer(ip_list_file)
-                for item in self.data:
-                    writer_csv.writerow([item])
+                path = save_file_dialog.GetPath()
+                with open(path, 'wb') as ip_list_file:
+                    writer_csv = csv.writer(ip_list_file)
+                    for item in self.data:
+                        writer_csv.writerow([item])
+                    self.Destroy()
+            else:
                 self.Destroy()
         else:
             self.Destroy()
@@ -227,19 +236,29 @@ class IpListGen(mdc_gui.GenerateIP):
     def gen_list(self):
         """Generates the IP list"""
         self.data = []
-        count = 0
-        #try: Later
-        start = str(self.start_txt.GetValue())
-        start = start.split('.')[3]
-        finish = str(self.finish_txt.GetValue())
-        finish = finish.split('.')[3]
-        for _ in range(int(start), (int(finish)+1)):
-            ip_gen = (self.start_txt.GetValue().split('.')[0] + "." +
-                      self.start_txt.GetValue().split('.')[1] + "." +
-                      self.start_txt.GetValue().split('.')[2] + "." +
-                      str(int(start)  + count))
-            self.data.append(ip_gen)
-            count += 1
+        ip_range = IPRange(self.start_txt.GetValue(),
+                           self.finish_txt.GetValue())
+        for address in list(ip_range):
+            self.data.append(str(address))
+
+
+    def check_size(self):
+        """Warning abou the size of the range"""
+        if len(self.data) > 500:
+            dlg = wx.MessageDialog(
+                parent=self,
+                message=
+                'Are you sure? \n\nThis will create ' +
+                str(len(self.data)) +
+                ' IP\'s. Creating more than 1000 IP\'s could slow or even crash the program',
+                caption='Creating IP list',
+                style=wx.OK|wx.CANCEL)
+            if dlg.ShowModal() == wx.ID_OK:
+                return True
+            else:
+                return False
+        else:
+            return True
 
 class DGXListGen(wx.Dialog):
     def __init__(self, parent):
