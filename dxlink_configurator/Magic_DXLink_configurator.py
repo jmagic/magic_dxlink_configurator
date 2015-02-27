@@ -817,7 +817,7 @@ class MainFrame(mdc_gui.MainFrame):
             master=master,
             system=system)
         self.main_list.AddObject(data)
-        self.dump_pickle()
+        #self.dump_pickle()
         return data
    
 
