@@ -195,7 +195,8 @@ class IpListGen(mdc_gui.GenerateIP):
 
     def on_replace(self, _):
         """Replaces list with generated list"""
-        self.gen_list()
+        if not self.gen_list():
+            return
         if self.check_size():
             self.parent.main_list.DeleteAllItems()
             self.on_add(None)
@@ -204,7 +205,8 @@ class IpListGen(mdc_gui.GenerateIP):
 
     def on_add(self, _):
         """Adds to the bottom of the list"""
-        self.gen_list()
+        if not self.gen_list():
+            return
         if self.check_size():
             for item in self.data:
                 self.parent.create_add_unit(ip_ad=str(item))
@@ -213,7 +215,8 @@ class IpListGen(mdc_gui.GenerateIP):
 
     def on_save(self, _):
         """Saves the ip list to a file"""
-        self.gen_list()
+        if not self.gen_list():
+            return
         if self.check_size():
             save_file_dialog = wx.FileDialog(self, message="Save IP list",
                                              defaultDir=self.parent.path,
@@ -236,10 +239,19 @@ class IpListGen(mdc_gui.GenerateIP):
     def gen_list(self):
         """Generates the IP list"""
         self.data = []
-        ip_range = IPRange(self.start_txt.GetValue(),
-                           self.finish_txt.GetValue())
+        try:
+            ip_range = IPRange(self.start_txt.GetValue(),
+                               self.finish_txt.GetValue())
+        except Exception as e:
+            dlg = wx.MessageDialog(parent=self, 
+                                   message='The IP address entered is invalid',
+                                   caption='Invalid IP',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            return False
         for address in list(ip_range):
             self.data.append(str(address))
+        return True
 
 
     def check_size(self):
