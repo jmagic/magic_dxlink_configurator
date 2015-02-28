@@ -157,16 +157,16 @@ class MainFrame(mdc_gui.MainFrame):
         self.columns = []
         self.columns_setup = [ColumnDefn("Time", "center", 100, "arrival_time", 
                                          stringConverter="%I:%M:%S%p"),
-                              ColumnDefn("Model", "center", 130, "model"),
-                              ColumnDefn("MAC", "center", 125, "mac_address"),
-                              ColumnDefn("IP", "center", 100, "ip_address"),
-                              ColumnDefn("Hostname", "center", 130, "hostname"),
-                              ColumnDefn("Serial", "center", 130, "serial"),
-                              ColumnDefn("Firmware", "center", 70, "firmware"),
-                              ColumnDefn("Device", "center", 80, "device"),
-                              ColumnDefn("Static", "center", 50, "ip_type"),
-                              ColumnDefn("Master", "center", 100, "master"),
-                              ColumnDefn("System", "center", 60, "system"),
+                              ColumnDefn("Model", "left", 160, "model"),
+                              ColumnDefn("MAC", "left", 125, "mac_address"),
+                              ColumnDefn("IP", "left", 100, "ip_address"),
+                              ColumnDefn("Hostname", "left", 150, "hostname"),
+                              ColumnDefn("Serial", "left", 150, "serial"),
+                              ColumnDefn("Firmware", "left", 70, "firmware"),
+                              ColumnDefn("Device", "left", 80, "device"),
+                              ColumnDefn("Static", "left", 50, "ip_type"),
+                              ColumnDefn("Master", "left", 100, "master"),
+                              ColumnDefn("System", "left", 60, "system"),
                               ColumnDefn("Status", "left", 120, "status")
                              ]
         self.select_columns()
