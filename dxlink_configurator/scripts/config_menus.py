@@ -3,9 +3,10 @@
 import wx
 import csv
 from scripts import mdc_gui
-from netaddr import IPAddress, IPRange
+from netaddr import IPRange
 
 class PreferencesConfig(mdc_gui.Preferences):
+    """Sets the preferences """
     def __init__(self, parent):
         mdc_gui.Preferences.__init__(self, parent)
 
@@ -19,11 +20,12 @@ class PreferencesConfig(mdc_gui.Preferences):
         
         self.sounds_chk.SetValue(int(self.parent.play_sounds))  
         
-        for item in self.parent.columns_config:
-            #print 'item: ', item.lower()
-            #print self.model_chk.GetValue()
-            #getattr(self, 'model_chk').GetValue()
-            getattr(self, item.lower() + '_chk').SetValue(True)
+        if self.parent.columns_config != ['']:
+            for item in self.parent.columns_config:
+                #print 'item: ', item.lower()
+                #print self.model_chk.GetValue()
+                #getattr(self, 'model_chk').GetValue()
+                getattr(self, item.lower() + '_chk').SetValue(True)
 
 
     def on_ok(self, _):
@@ -48,6 +50,7 @@ class PreferencesConfig(mdc_gui.Preferences):
 
 
 class DeviceConfig(mdc_gui.DeviceConfiguration):
+    """Configures a device"""
     def __init__(self, parent, obj):
         mdc_gui.DeviceConfiguration.__init__(self, parent)
 
@@ -193,25 +196,37 @@ class IpListGen(mdc_gui.GenerateIP):
 
         self.SetTitle("Generate IP list")
 
+    def on_action(self, event):
+        """Testing event"""
+        if not self.gen_list():
+            return
+        if self.check_size():
+            if event.GetEventObject().GetLabel() == "Add to List":
+                self.on_add()
+            elif event.GetEventObject().GetLabel() == "Replace List":
+                self.on_replace()
+        else:
+            return
 
-    def on_replace(self, _):
+
+    def on_replace(self):
         """Replaces list with generated list"""
         if not self.gen_list():
             return
-        if self.check_size():
-            self.parent.main_list.DeleteAllItems()
-            self.on_add(None)
-        else:
-            self.Destroy()
+        self.parent.main_list.DeleteAllItems()
+        for item in self.data:
+            self.parent.create_add_unit(ip_ad=str(item))
+        self.parent.dump_pickle()
+        self.Destroy()
 
-    def on_add(self, _):
+
+    def on_add(self):
         """Adds to the bottom of the list"""
         if not self.gen_list():
             return
-        if self.check_size():
-            for item in self.data:
-                self.parent.create_add_unit(ip_ad=str(item))
-            self.parent.dump_pickle()
+        for item in self.data:
+            self.parent.create_add_unit(ip_ad=str(item))
+        self.parent.dump_pickle()
         self.Destroy()
 
     def on_save(self, _):
@@ -235,7 +250,7 @@ class IpListGen(mdc_gui.GenerateIP):
             else:
                 self.Destroy()
         else:
-            self.Destroy()
+            return
 
     def gen_list(self):
         """Generates the IP list"""
@@ -243,7 +258,7 @@ class IpListGen(mdc_gui.GenerateIP):
         try:
             ip_range = IPRange(self.start_txt.GetValue(),
                                self.finish_txt.GetValue())
-        except Exception as e:
+        except ValueError:
             dlg = wx.MessageDialog(parent=self, 
                                    message='The IP address entered is invalid',
                                    caption='Invalid IP',
@@ -273,63 +288,4 @@ class IpListGen(mdc_gui.GenerateIP):
         else:
             return True
 
-
-class DGXListGen(mdc_gui.GenerateBCPU):
-    """Generates a list of BCPU cards"""
-    def __init__(self, parent):
-        mdc_gui.GenerateBCPU.__init__(self, parent)
-
-        self.parent = parent
-        self.data = []
-
-        self.SetTitle("Generate DGX Card list")
-        dlg = wx.MessageDialog(parent=self, message='This will generate ' +
-                               'a list of the BCPU card names for getting' +
-                               ' MSE values from a DGX. Please enter your' +
-                               ' card in the format \'BCPU1\'',
-                               caption='Build DGX list',
-                               style=wx.OK)
-        dlg.ShowModal()
-
-
-    def on_replace(self, _):
-        """Replaces list with generated list"""
-        self.parent.main_list.DeleteAllItems()
-        self.on_add(None)
-
-    def on_add(self, _):
-        """Adds to the bottom of the list"""
-        self.gen_list()
-        for item in self.data:
-            self.parent.create_add_unit(ip_ad=item, 
-                                        hostname=self.com_port_txt.GetValue())
-            '''self.parent.main_list.AddObject(self.parent.make_unit(
-                                            ('', item, 
-                                            self.com_port.GetValue())))'''
-        self.parent.dump_pickle()
-        self.Destroy()
-
-    def gen_list(self):
-        """Generates the IP list"""
-        try:
-            self.data = []
-
-            start = str(self.start_card_txt.GetValue()[4:])
-
-            finish = str(self.finish_card_txt.GetValue()[4:])
-
-            for bcpu in range(int(start), (int(finish)+1)):
-                for port in range(4):
-                    dgx_gen = 'BCPU' + str(bcpu) + '_Ch' + str(port + 1)
-                    self.data.append(dgx_gen)
-
-        except ValueError as error:
-            dlg = wx.MessageDialog(parent=self, message='This command didn\'t' +
-                                   ' complete. The error text was ' + 
-                                   error[0].split(':')[-1] + ' Most likely ' +
-                                   'the board name you entered is invalid',
-                                   caption='Build DGX list',
-                                   style=wx.OK)
-            dlg.ShowModal()
-            self.Destroy()
 

@@ -155,20 +155,37 @@ class MainFrame(mdc_gui.MainFrame):
 
 
         self.columns = []
-        self.columns_setup = [ColumnDefn("Time", "center", 100, "arrival_time", 
-                                         stringConverter="%I:%M:%S%p"),
-                              ColumnDefn("Model", "left", 160, "model"),
-                              ColumnDefn("MAC", "left", 125, "mac_address"),
-                              ColumnDefn("IP", "left", 100, "ip_address"),
-                              ColumnDefn("Hostname", "left", 150, "hostname"),
-                              ColumnDefn("Serial", "left", 150, "serial"),
-                              ColumnDefn("Firmware", "left", 70, "firmware"),
-                              ColumnDefn("Device", "left", 80, "device"),
-                              ColumnDefn("Static", "left", 50, "ip_type"),
-                              ColumnDefn("Master", "left", 100, "master"),
-                              ColumnDefn("System", "left", 60, "system"),
-                              ColumnDefn("Status", "left", 120, "status")
-                             ]
+        self.min_panel_width = 450
+        self.panel_width_offset = 60 
+        self.col_width = {
+            'Time'          : 100,
+            'Model'         : 160,
+            'MAC'           : 125,
+            'IP'            : 120,
+            'Hostname'      : 150,
+            'Serial'        : 150,
+            'Firmware'      : 80,
+            'Device'        : 80,
+            'Static'        : 50,
+            'Master'        : 100,
+            'System'        : 60,
+            'Status'        : 120
+        }
+        self.columns_setup = [
+            ColumnDefn("Time", "center", self.col_width['Time'], "arrival_time", 
+                       stringConverter="%I:%M:%S%p"),
+            ColumnDefn("Model", "left", self.col_width['Model'], "model"),
+            ColumnDefn("MAC", "left", self.col_width['MAC'], "mac_address"),
+            ColumnDefn("IP", "left", self.col_width['IP'], "ip_address"),
+            ColumnDefn("Hostname", "left", self.col_width['Hostname'], "hostname"),
+            ColumnDefn("Serial", "left", self.col_width['Serial'], "serial"),
+            ColumnDefn("Firmware", "left", self.col_width['Firmware'], "firmware"),
+            ColumnDefn("Device", "left", self.col_width['Device'], "device"),
+            ColumnDefn("Static", "left", self.col_width['Static'], "ip_type"),
+            ColumnDefn("Master", "left", self.col_width['Master'], "master"),
+            ColumnDefn("System", "left", self.col_width['System'], "system"),
+            ColumnDefn("Status", "left", self.col_width['Status'], "status")]
+
         self.select_columns()
         self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
@@ -262,7 +279,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.completionlist.append(sender)
         sender.status = "Success"
         self.main_list.RefreshObject(sender)
-
 
     def collect_errors(self, sender):
         """Creates a list of incomplete connections"""
@@ -422,24 +438,15 @@ class MainFrame(mdc_gui.MainFrame):
             if self.mse_rx_check(obj):
                 if not self.mse_in_active(obj):
                     self.mse_enable_thread(obj)
-                else:
-                    if obj.ip_address[:3] == "COM":
-                        self.serial_active.append(obj.mac_address)
                 self.mse_active_list.append(obj.mac_address)
                 dia = mse_baseline.MSE_Baseline(self, obj)
                 dia.Show()
 
     def mse_enable_thread(self, obj):
         """Adds mse thread for plotting / baseline"""
-        if obj.ip_address[:3] == "COM":
-            self.serial_active.append(obj.mac_address)
-            self.telnet_job_queue.put(['get_dgx_mse', obj, 
-                                       self.telnet_timeout_seconds])
-            self.set_status((obj, "Queued"))
-        else:
-            self.telnet_job_queue.put(['get_dxlink_mse', obj,
-                                       self.telnet_timeout_seconds])
-            self.set_status((obj, "Queued"))
+        self.telnet_job_queue.put(['get_dxlink_mse', obj,
+                                   self.telnet_timeout_seconds])
+        self.set_status((obj, "Queued"))
 
 
     def mse_in_active(self, obj):
@@ -456,7 +463,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def mse_rx_check(self, obj):
         """Checks if device is a RX"""
-        if obj.model not in self.dxrx_models and obj.ip_address[:3] != "COM":
+        if obj.model not in self.dxrx_models:
             dlg = wx.MessageDialog(parent=self, message='This does not ' +
                                    'appear to be a RX device. You can only' +
                                    ' get MSE values from RX devices. Click ' +
@@ -761,12 +768,6 @@ class MainFrame(mdc_gui.MainFrame):
         dia.ShowModal()
         dia.Destroy()
 
-    def generate_dgx_list(self, _):
-        """Generates a list of ip addresses"""
-        dia = config_menus.DGXListGen(self)
-        dia.ShowModal()
-        dia.Destroy()
-
     def add_line(self, _):
         """Adds a line to the main list"""
         data = Unit(arrival_time=datetime.datetime.now())
@@ -1068,28 +1069,14 @@ class MainFrame(mdc_gui.MainFrame):
 
     def resize_frame(self):
         """Resizes the Frame"""
-        #self.olv_sizer.Layout()
-        panel_width = 40
-        columns_width = {
-            'Time'          : 90,
-            'Model'         : 130,
-            'MAC'           : 120,
-            'IP'            : 100,
-            'Hostname'      : 130,
-            'Serial'        : 130,
-            'Firmware'      : 70,
-            'Device'        : 80,
-            'Static'        : 60,
-            'Master'        : 100,
-            'System'        : 60,
-            'Status'        : 120
-        }
-
-        columns = self.columns_config + ['Time', 'IP', 'Status']
+        panel_width = self.panel_width_offset
+        columns = ['Time', 'IP', 'Status']
+        if self.columns_config != ['']:
+            columns += self.columns_config
         for item in columns:
-            panel_width += columns_width[item]
-        if panel_width < 400:
-            panel_width = 400
+            panel_width += self.col_width[item]
+        if panel_width < self.min_panel_width:
+            panel_width = self.min_panel_width
         self.SetSize((panel_width, 600))
 
 
