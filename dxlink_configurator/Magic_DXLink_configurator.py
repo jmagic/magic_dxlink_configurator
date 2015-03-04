@@ -145,6 +145,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.ping_active = False
         self.ping_window = None
         self.abort = False
+        self.dev_inc_num = 0
 
         self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
                                         style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -1019,12 +1020,14 @@ class MainFrame(mdc_gui.MainFrame):
         if self.check_for_none_selected():
             return
         self.configure_list = []
+        self.dev_inc_num = int(self.device_number)
         for obj in self.main_list.GetSelectedObjects():
             self.set_status((obj, "Configuring"))
             self.configure_list.append(obj)
-            dia = config_menus.DeviceConfig(self, obj)
+            dia = config_menus.DeviceConfig(self, obj, str(self.dev_inc_num))
             dia.ShowModal()
             dia.Destroy()
+            self.dev_inc_num += 1
             if self.abort == True:
                 self.abort = False
                 return

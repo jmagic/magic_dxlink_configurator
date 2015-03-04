@@ -51,12 +51,13 @@ class PreferencesConfig(mdc_gui.Preferences):
 
 class DeviceConfig(mdc_gui.DeviceConfiguration):
     """Configures a device"""
-    def __init__(self, parent, obj):
+    def __init__(self, parent, obj, device_num):
         mdc_gui.DeviceConfiguration.__init__(self, parent)
 
         self.parent = parent
         self.obj = obj
         self.ip_org = obj.ip_address
+        self.device_num = device_num
 
         self.SetTitle("Device settings for %s %s" %(obj.ip_address, obj.device))
         self.hostname = obj.hostname
@@ -79,7 +80,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
             self.master = str(self.parent.master_address)
             
         if self.device == '' or obj.device == '0':
-            self.device = str(self.parent.device_number)
+            self.device = str(device_num)
 
         if self.system == '':
             self.system = '0'
@@ -165,7 +166,8 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
                 str(self.master_number_txt.GetValue()),
                 str(self.master_txt.GetValue()),
                 str(self.device_txt.GetValue())]
-
+        if self.device_txt.GetValue() != str(self.device_num):
+            self.parent.dev_inc_num = int(self.device_txt.GetValue())
         self.parent.telnet_job_queue.put(info)
         self.Destroy()
 
