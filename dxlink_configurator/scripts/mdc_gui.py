@@ -115,9 +115,6 @@ class MainFrame ( wx.Frame ):
 		self.generate_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate IP List", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.generate_menu )
 		
-		self.generate_dgx_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate DGX List", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.generate_dgx_menu )
-		
 		self.watchdog_menu = wx.Menu()
 		self.wd_enable_menu = wx.MenuItem( self.watchdog_menu, wx.ID_ANY, u"Enable Watchdog", wx.EmptyString, wx.ITEM_NORMAL )
 		self.watchdog_menu.AppendItem( self.wd_enable_menu )
@@ -200,7 +197,7 @@ class MainFrame ( wx.Frame ):
 		self.mse_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.AppendItem( self.mse_rc_menu )
 		
-		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in webbrowser", wx.EmptyString, wx.ITEM_NORMAL )
+		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in Web Browser", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.AppendItem( self.browser_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
@@ -228,7 +225,6 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.generate_dgx_list, id = self.generate_dgx_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.enable_wd, id = self.wd_enable_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.disable_wd, id = self.wd_disable_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.turn_on_leds, id = self.led_on_menu.GetId() )
@@ -311,9 +307,6 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def generate_list( self, event ):
-		event.Skip()
-	
-	def generate_dgx_list( self, event ):
 		event.Skip()
 	
 	def enable_wd( self, event ):
@@ -922,8 +915,8 @@ class GenerateIP ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.m_button5.Bind( wx.EVT_BUTTON, self.on_replace )
-		self.m_button6.Bind( wx.EVT_BUTTON, self.on_add )
+		self.m_button5.Bind( wx.EVT_BUTTON, self.on_action )
+		self.m_button6.Bind( wx.EVT_BUTTON, self.on_action )
 		self.m_button7.Bind( wx.EVT_BUTTON, self.on_save )
 	
 	def __del__( self ):
@@ -931,11 +924,9 @@ class GenerateIP ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def on_replace( self, event ):
+	def on_action( self, event ):
 		event.Skip()
 	
-	def on_add( self, event ):
-		event.Skip()
 	
 	def on_save( self, event ):
 		event.Skip()
