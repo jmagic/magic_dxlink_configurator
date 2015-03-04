@@ -73,7 +73,9 @@ class MainFrame(mdc_gui.MainFrame):
         mdc_gui.MainFrame.__init__(self, parent)
 
         self.parent = parent
-
+        self.name = "Magic DXLink Configurator"
+        self.version = "v3.0.6"
+        
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
@@ -128,10 +130,6 @@ class MainFrame(mdc_gui.MainFrame):
                 '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.check_for_telnet_client()
-
-        
-        self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.5"
 
         self.set_title_bar()
 
