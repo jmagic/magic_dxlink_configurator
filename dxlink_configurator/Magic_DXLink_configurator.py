@@ -74,7 +74,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.0.6"
+        self.version = "v3.1.0"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
