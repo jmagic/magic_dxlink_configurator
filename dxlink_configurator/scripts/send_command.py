@@ -69,14 +69,6 @@ class SendCommandConfig(mdc_gui.MultiSend):
         for obj in self.device_list.GetObjects():
             self.device_list.ToggleCheck(obj)
         self.device_list.RefreshObjects(self.device_list.GetObjects())
-
-
-        '''dispatcher.connect(self.collect_completions,
-                           signal="Collect Completions", 
-                           sender=dispatcher.Any)
-        dispatcher.connect(self.collect_errors, 
-                           signal="send_com", 
-                           sender=dispatcher.Any)'''
         dispatcher.connect(self.on_result, 
                            signal="send_command result", 
                            sender=dispatcher.Any)
@@ -86,107 +78,6 @@ class SendCommandConfig(mdc_gui.MultiSend):
                            sender=dispatcher.Any)
         self.time_out = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_time_out, self.time_out)
-
-
-    #----------------------------------------------------------------------
-    
-    '''def collect_completions(self, sender):
-        """Creates a list of completed connections"""
-        self.completionlist.append(sender)
-
-    def collect_errors(self, sender):
-        """Creates a list of incomplete connections"""
-        self.errorlist.append(sender)
-
-    def display_progress(self):
-        """Shows progress of connections"""
-        if len(self.device_list.GetCheckedObjects()) == 1:
-
-            dlg = wx.ProgressDialog(
-                "Attempting connect to selected device",
-                'Attempting connection to selected device',
-                maximum=len(self.device_list.GetCheckedObjects()),
-                parent=self.parent,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH)
-
-            while ((len(self.completionlist) + 
-                    len(self.errorlist)) < 
-                   len(self.device_list.GetCheckedObjects())):
-                count = (len(self.completionlist) + len(self.errorlist))
-                time.sleep(.01)
-                dlg.Pulse()
-        else:
-            dlg = wx.ProgressDialog(
-                "Attempting connect to selected devices",
-                'Attempting connection to all selected devices',
-                maximum=len(self.device_list.GetCheckedObjects()),
-                parent=self.parent,
-                style=wx.PD_APP_MODAL
-                | wx.PD_AUTO_HIDE
-                | wx.PD_SMOOTH
-                | wx.PD_ELAPSED_TIME)
-
-            while ((len(self.completionlist) + 
-                    len(self.errorlist)) <
-                   len(self.device_list.GetCheckedObjects())):
-                count = (len(self.completionlist) + len(self.errorlist))
-                dlg.Update(
-                    count, "Attempting connection to %s of %s devices" %
-                    ((count + 1), len(self.device_list.GetCheckedObjects())))
-
-        dlg.Destroy()
-        errortext = ""
-        phil = " "
-        
-        for i in xrange(len(self.errorlist)):
-            while (len(self.errorlist[i][0]) + (len(phil) - 1)) < 15:
-                phil = phil + " "
-            errortext = errortext + self.errorlist[i][0] + " " + phil + " " +  \
-                        self.errorlist[i][1] + "\n"
-            phil = " "
-
-        completiontext = ""
-        for i in range(len(self.completionlist)):
-            completiontext = completiontext + self.completionlist[i][0] + "\n"
-        
-        if len(self.completionlist) == 0:
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='Failed to connect to' + 
-                '\n=======================' + 
-                ' \n%s ' % errortext,
-                caption='Failed connection list',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-        elif len(self.errorlist) == 0:
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='Successfully connected to: \n' +
-                '=======================' + 
-                '\n%s' % completiontext,
-                caption='Connection list',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-        else:
-            dlg = wx.MessageDialog(
-                parent=self, 
-                message='Failed to connect to: \n========' +
-                '=============== \n%s \n \n' % (errortext) +
-                'Successfully connected to: \n============' +
-                '===========' +
-                ' \n%s' % (completiontext),
-                caption='Connection list',
-                style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-
-        self.errorlist = []
-        self.completionlist = []'''
-
 
     def on_command_combo(self, _):
         """Updates the command combo box"""
@@ -245,8 +136,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
     
     def update_action_combo(self, selection):
         """Updates action combo box"""
-        #phasesList = {"rx": self.rxList , "tx": self.txList ,
-        # "mftx": self.mftxList }
+
         self.action_cmb.Clear()
         for item in self.rx_tx_commands[self.dxlink_model][selection][1]:
             self.action_cmb.Append(item)
