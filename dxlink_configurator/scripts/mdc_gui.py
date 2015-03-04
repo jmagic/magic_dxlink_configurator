@@ -197,7 +197,7 @@ class MainFrame ( wx.Frame ):
 		self.mse_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.AppendItem( self.mse_rc_menu )
 		
-		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in webbrowser", wx.EmptyString, wx.ITEM_NORMAL )
+		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in Web Browser", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.AppendItem( self.browser_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
