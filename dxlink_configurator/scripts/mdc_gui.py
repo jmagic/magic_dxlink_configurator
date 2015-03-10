@@ -1301,7 +1301,8 @@ class MSE_Baseline ( wx.Dialog ):
 		# Columns
 		self.mse_manual_grid.SetColSize( 0, 120 )
 		self.mse_manual_grid.SetColSize( 1, 20 )
-		self.mse_manual_grid.SetColSize( 2, 160 )
+		self.mse_manual_grid.SetColSize( 2, 220 )
+		self.mse_manual_grid.AutoSizeColumns()
 		self.mse_manual_grid.EnableDragColMove( False )
 		self.mse_manual_grid.EnableDragColSize( False )
 		self.mse_manual_grid.SetColLabelSize( 30 )
