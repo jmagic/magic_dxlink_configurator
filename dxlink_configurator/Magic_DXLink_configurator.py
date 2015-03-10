@@ -157,7 +157,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.min_panel_width = 450
         self.panel_width_offset = 60 
         self.col_width = {
-            'Time'          : 100,
+            'Time'          : 110,
             'Model'         : 160,
             'MAC'           : 125,
             'IP'            : 120,
