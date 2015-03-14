@@ -33,6 +33,8 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
+import requests
+import urllib
 from pydispatch import dispatcher
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
@@ -108,6 +110,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.master_address = None
         self.device_number = None
+        self.default_connection_type = None
         self.default_dhcp = None
         self.thread_number = None
         self.telnet_client = None
@@ -352,7 +355,8 @@ class MainFrame(mdc_gui.MainFrame):
             parent=self,
             message=
             'New setting file created \n\n I\'ve had to create a new '  +
-            'settings file, \nbecause the old one couldn\'t be read.',
+            'settings file, \nbecause the old one couldn\'t be read \n' +
+            'or was from a old version',
             caption='Default settings file created',
             style=wx.OK)
 
@@ -865,8 +869,8 @@ class MainFrame(mdc_gui.MainFrame):
             
             self.set_status((data, "DHCP"))
         if data.hostname[:2] == 'DX':
-                self.telnet_job_queue.put(['get_config_info', data,
-                                           self.telnet_timeout_seconds])
+            self.telnet_job_queue.put(['get_config_info', data,
+                                       self.telnet_timeout_seconds])
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
         self.dump_pickle()
         self.play_sound()
@@ -880,6 +884,8 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'default master address'))
             self.device_number = (config.get(
                 'Settings', 'default device number'))
+            self.default_connection_type = (config.get(
+                'Settings', 'default connection type'))
             self.default_dhcp = (config.getboolean(
                 'Settings', 'default enable DHCP'))
             self.thread_number = (config.get(
@@ -947,6 +953,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.add_section('Settings')
         config.set('Settings', 'default master address', '192.168.1.1')
         config.set('Settings', 'default device number', '0')
+        config.set('Settings', 'default connection type', 'TCP')
         config.set('Settings', 'default enable dhcp', True)
         config.set('Settings', 'number of threads', 20)
         config.set('Settings', 'telnet client executable', ('putty.exe'))
@@ -974,6 +981,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.read((self.path + "settings.txt"))
         config.set('Settings', 'default master address', self.master_address)
         config.set('Settings', 'default device number', self.device_number)
+        config.set('Settings', 'default connection type', self.default_connection_type)
         config.set('Settings', 'default enable dhcp', self.default_dhcp)
         config.set('Settings', 'number of threads', self.thread_number)
         config.set('Settings', 'telnet client executable', self.telnet_client)
@@ -1001,6 +1009,27 @@ class MainFrame(mdc_gui.MainFrame):
         dlg = wx.MessageDialog(
             parent=self,
             message=
+            'I notice that you don\'t have a copy of putty.exe \n' +
+            'availiable. Click OK to automaticly download this \n' +
+            'telnet client.',
+            caption='Auto download',
+            style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            #download
+
+            putty_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe'
+            try:
+                resp = requests.head(putty_url)
+                print resp.status_code
+                if resp.status_code != 404:
+                    urllib.urlretrieve(putty_url, self.path + 'putty.exe')
+                dlg.Destroy
+                return
+            except Exception as error:
+                dlg.Destroy
+        dlg = wx.MessageDialog(
+            parent=self,
+            message=
             'Please copy ' + self.telnet_client + ' to: \n'  +
             self.path + 
             ' \nThis will allow you to telnet to a device.',
@@ -1008,6 +1037,7 @@ class MainFrame(mdc_gui.MainFrame):
             style=wx.OK)
 
         dlg.ShowModal()
+        dlg.Destroy()
 
     def set_title_bar(self):
         """Sets title bar text"""
