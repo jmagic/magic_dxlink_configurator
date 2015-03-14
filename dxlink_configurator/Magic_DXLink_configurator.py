@@ -1019,9 +1019,12 @@ class MainFrame(mdc_gui.MainFrame):
             return
         self.configure_list = []
         self.dev_inc_num = int(self.device_number)
+
         for obj in self.main_list.GetSelectedObjects():
             self.set_status((obj, "Configuring"))
             self.configure_list.append(obj)
+            if self.device_number == "0":
+                self.dev_inc_num = 0
             dia = config_menus.DeviceConfig(self, obj, str(self.dev_inc_num))
             dia.ShowModal()
             dia.Destroy()
