@@ -445,40 +445,51 @@ class Preferences ( wx.Dialog ):
 		
 		sbSizer1 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Configuration Default Values" ), wx.VERTICAL )
 		
-		bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer11 = wx.BoxSizer( wx.VERTICAL )
 		
-		bSizer14 = wx.BoxSizer( wx.VERTICAL )
+		bSizer61 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer56 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.tcp_chk = wx.RadioButton( self, wx.ID_ANY, u"TCP", wx.DefaultPosition, wx.DefaultSize, wx.RB_GROUP )
+		bSizer56.Add( self.tcp_chk, 0, wx.ALL, 5 )
+		
+		self.udp_chk = wx.RadioButton( self, wx.ID_ANY, u"UDP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.udp_chk, 0, wx.ALL, 5 )
+		
+		self.ndp_chk = wx.RadioButton( self, wx.ID_ANY, u"NDP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.ndp_chk, 0, wx.ALL, 5 )
+		
+		self.auto_chk = wx.RadioButton( self, wx.ID_ANY, u"AUTO", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer56.Add( self.auto_chk, 0, wx.ALL, 5 )
+		
+		
+		bSizer61.Add( bSizer56, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer11.Add( bSizer61, 0, wx.EXPAND, 5 )
+		
+		bSizer62 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		self.m_staticText2 = wx.StaticText( self, wx.ID_ANY, u"Default Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
-		bSizer14.Add( self.m_staticText2, 0, wx.ALL, 5 )
-		
-		
-		bSizer11.Add( bSizer14, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		bSizer13 = wx.BoxSizer( wx.VERTICAL )
+		bSizer13.Add( self.m_staticText2, 0, wx.ALL, 5 )
 		
 		self.master_address_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer13.Add( self.master_address_txt, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
-		bSizer11.Add( bSizer13, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		
-		sbSizer1.Add( bSizer11, 1, wx.EXPAND, 5 )
+		bSizer62.Add( bSizer13, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		bSizer16 = wx.BoxSizer( wx.VERTICAL )
+		bSizer17 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		self.m_staticText3 = wx.StaticText( self, wx.ID_ANY, u"Default Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText3.Wrap( -1 )
-		bSizer16.Add( self.m_staticText3, 0, wx.ALL, 5 )
-		
-		
-		bSizer15.Add( bSizer16, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
-		
-		bSizer17 = wx.BoxSizer( wx.VERTICAL )
+		bSizer17.Add( self.m_staticText3, 0, wx.ALL, 5 )
 		
 		self.device_number_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.EXPAND, 5 )
@@ -487,7 +498,13 @@ class Preferences ( wx.Dialog ):
 		bSizer15.Add( bSizer17, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
-		sbSizer1.Add( bSizer15, 1, wx.EXPAND, 5 )
+		bSizer62.Add( bSizer15, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer11.Add( bSizer62, 1, wx.EXPAND, 5 )
+		
+		
+		sbSizer1.Add( bSizer11, 1, wx.EXPAND, 5 )
 		
 		
 		bSizer10.Add( sbSizer1, 0, wx.EXPAND|wx.ALL, 5 )
@@ -554,6 +571,10 @@ class Preferences ( wx.Dialog ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.tcp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.udp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.ndp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.auto_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
 		self.m_sdbSizer3Cancel.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_sdbSizer3OK.Bind( wx.EVT_BUTTON, self.on_ok )
 	
@@ -562,6 +583,12 @@ class Preferences ( wx.Dialog ):
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def on_connection_type( self, event ):
+		event.Skip()
+	
+	
+	
+	
 	def on_cancel( self, event ):
 		event.Skip()
 	
@@ -1301,7 +1328,8 @@ class MSE_Baseline ( wx.Dialog ):
 		# Columns
 		self.mse_manual_grid.SetColSize( 0, 120 )
 		self.mse_manual_grid.SetColSize( 1, 20 )
-		self.mse_manual_grid.SetColSize( 2, 160 )
+		self.mse_manual_grid.SetColSize( 2, 220 )
+		self.mse_manual_grid.AutoSizeColumns()
 		self.mse_manual_grid.EnableDragColMove( False )
 		self.mse_manual_grid.EnableDragColSize( False )
 		self.mse_manual_grid.SetColLabelSize( 30 )

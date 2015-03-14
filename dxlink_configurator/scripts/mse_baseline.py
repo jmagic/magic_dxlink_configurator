@@ -134,7 +134,7 @@ class MSE_Baseline(wx.Dialog):
         # Columns
         self.m_grid1.SetColSize(0, 120)
         self.m_grid1.SetColSize(1, 20)
-        self.m_grid1.SetColSize(2, 160)
+        self.m_grid1.SetColSize(2, 220)
 
         self.m_grid1.EnableDragColMove(False)
         self.m_grid1.EnableDragColSize(False)

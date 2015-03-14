@@ -17,6 +17,8 @@ class PreferencesConfig(mdc_gui.Preferences):
         """Set the field values"""
         self.master_address_txt.SetValue(self.parent.master_address)
         self.device_number_txt.SetValue(self.parent.device_number)
+        getattr(self, self.parent.default_connection_type.lower() + '_chk').SetValue(True)
+
         
         self.sounds_chk.SetValue(int(self.parent.play_sounds))  
         
@@ -37,6 +39,14 @@ class PreferencesConfig(mdc_gui.Preferences):
 
         self.parent.master_address = self.master_address_txt.GetValue()
         self.parent.device_number = self.device_number_txt.GetValue()
+        if self.tcp_chk.GetValue():
+            self.parent.default_connection_type = "TCP"
+        if self.udp_chk.GetValue():
+            self.parent.default_connection_type = "UDP"
+        if self.ndp_chk.GetValue():
+            self.parent.default_connection_type = "NDP"
+        if self.auto_chk.GetValue():
+            self.parent.default_connection_type = "AUTO"
         self.parent.play_sounds = self.sounds_chk.GetValue()
         self.parent.update_status_bar()
         self.parent.write_config_file()
@@ -103,6 +113,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.master_number_txt.SetValue(self.system)
 
         self.on_dhcp(None) #call to update dhcp / static
+        getattr(self, self.parent.default_connection_type.lower() + '_chk').SetValue(True)
         self.on_connection_type(None)
 
     def on_connection_type(self, _):
