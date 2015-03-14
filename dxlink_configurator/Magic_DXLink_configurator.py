@@ -33,7 +33,7 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-import requests
+#import requests
 import urllib
 from pydispatch import dispatcher
 
@@ -1019,9 +1019,9 @@ class MainFrame(mdc_gui.MainFrame):
 
             putty_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe'
             try:
-                resp = requests.head(putty_url)
-                if resp.status_code != 404:
-                    urllib.urlretrieve(putty_url, self.path + 'putty.exe')
+                #resp = requests.head(putty_url)
+                #if resp.status_code != 404:
+                urllib.urlretrieve(putty_url, self.path + 'putty.exe')
                 dlg.Destroy()
                 return
             except Exception as error:
@@ -1029,7 +1029,7 @@ class MainFrame(mdc_gui.MainFrame):
         dlg = wx.MessageDialog(
             parent=self,
             message=
-            'Please copy ' + self.telnet_client + ' to: \n'  +
+            'Please manually copy ' + self.telnet_client + ' to: \n'  +
             self.path + 
             ' \nThis will allow you to telnet to a device.',
             caption='No telnet client',
