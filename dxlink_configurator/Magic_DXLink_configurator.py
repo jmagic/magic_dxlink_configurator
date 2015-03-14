@@ -76,7 +76,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.1.0"
+        self.version = "v3.1.1"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -1020,13 +1020,12 @@ class MainFrame(mdc_gui.MainFrame):
             putty_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe'
             try:
                 resp = requests.head(putty_url)
-                print resp.status_code
                 if resp.status_code != 404:
                     urllib.urlretrieve(putty_url, self.path + 'putty.exe')
-                dlg.Destroy
+                dlg.Destroy()
                 return
             except Exception as error:
-                dlg.Destroy
+                dlg.Destroy()
         dlg = wx.MessageDialog(
             parent=self,
             message=
