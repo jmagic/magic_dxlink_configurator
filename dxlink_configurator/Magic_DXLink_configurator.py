@@ -33,9 +33,12 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-#import requests
+import requests
 import urllib
+from bs4 import BeautifulSoup
+from distutils.version import StrictVersion
 from pydispatch import dispatcher
+from threading import Thread
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
@@ -76,7 +79,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.1.1"
+        self.version = "v3.1.0"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -118,6 +121,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_sniffing = None
         self.amx_only_filter = None
         self.play_sounds = None
+        self.check_for_updates = None
         self.columns_config = []
         self.dxtx_models = []
         self.dxrx_models = []
@@ -148,17 +152,17 @@ class MainFrame(mdc_gui.MainFrame):
         self.abort = False
         self.dev_inc_num = 0
 
-        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY, 
-                                        style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY,
+                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, 
+        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
                             self.MainFrameOnContextMenu)
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
 
         self.columns = []
         self.min_panel_width = 450
-        self.panel_width_offset = 60 
+        self.panel_width_offset = 60
         self.col_width = {
             'Time'          : 110,
             'Model'         : 160,
@@ -221,21 +225,71 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
-        dispatcher.connect(self.incoming_packet, 
-                           signal="Incoming Packet", 
+        dispatcher.connect(self.incoming_packet,
+                           signal="Incoming Packet",
                            sender=dispatcher.Any)
         dispatcher.connect(self.set_status,
                            signal="Status Update",
                            sender=dispatcher.Any)
         dispatcher.connect(self.collect_completions,
-                           signal="Collect Completions", 
+                           signal="Collect Completions",
                            sender=dispatcher.Any)
-        dispatcher.connect(self.collect_errors, 
-                           signal="Collect Errors", 
+        dispatcher.connect(self.collect_errors,
+                           signal="Collect Errors",
                            sender=dispatcher.Any)
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
-    #----------------------------------------------------------------------
+        if self.check_for_updates:
+            print 'check for updates'
+            Thread(target=self.update_check).start()
+
+    # ----------------------------------------------------------------------
+
+    def update_check(self):
+        """Checks on line for updates"""
+        print 'in update'
+        try:
+            webpage = requests.get(
+              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases')
+            # Scrape page for latest version
+            soup = BeautifulSoup(webpage.text)
+            # Get the <div> sections in lable-latest
+            divs = soup.find_all("div", class_="release label-latest")
+            # Get the 'href' of the release
+            url_path = divs[0].find_all('a')[-3].get('href')
+            # Get the 'verison' number
+            online_version = url_path.split('/')[-2][1:]
+            if StrictVersion(online_version) > StrictVersion(self.version[1:]):
+                # Try update
+                self.do_update(url_path, online_version)
+            else:
+                # All up to date pass
+                print 'up to date'
+                return
+        except Exception as error:
+            # print error
+            # we have had a problem, maybe update will work next time.
+            print 'error ', error
+            pass
+
+    def do_update(self, url_path, online_version):
+        """download and install"""
+        # ask if they want to update
+        dlg = wx.MessageDialog(
+                parent=self,
+                message=
+                'A new Magic DXLink Configurator is available \r' +
+                str(StrictVersion(online_version)),
+                caption='Do you want to update?',
+                style=wx.OK | wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            # download url and show progress bar
+            pass
+
+        # close program & lauch installer
+
+
+                  
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -386,7 +440,7 @@ class MainFrame(mdc_gui.MainFrame):
         else:
             dlg = wx.MessageDialog(
                 parent=self, message='Could not find ' +
-                'telnet client \nPlease put ' + 
+                'telnet client \nPlease put ' +
                 '%s in \n%s' % (self.telnet_client, self.path),
                 caption='No %s' % self.telnet_client,
                 style=wx.OK)
@@ -395,7 +449,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def ssh_to(self, _):
         """Telnet to the selected device(s)"""
-        if self.check_for_none_selected(): 
+        if self.check_for_none_selected():
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(
@@ -900,6 +954,8 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'filter incoming DHCP for AMX only'))
             self.play_sounds = (config.getboolean(
                 'Settings', 'play sounds'))
+            self.check_for_updates = (config.getboolean(
+                'Settings', 'check for updates'))
             self.columns_config = []
             for item in config.get(
                     'Config', 'columns_config').split(','):
@@ -930,10 +986,15 @@ class MainFrame(mdc_gui.MainFrame):
                     if item.strip() not in self.dxfrx_models:
                         self.dxfrx_models.append(item.strip())
             
-        except: # (ConfigParser.Error, IOError):
+        except Exception as error:  # (ConfigParser.Error, IOError):
             # Make a new settings file, because we couldn't read the old one
-            self.create_config_file()
-            self.read_config_file()
+            print error
+            try:
+                self.create_config_file()
+                self.read_config_file()
+            except Exception as error:
+                print error
+                pass
         return
 
 
@@ -963,6 +1024,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'DHCP sniffing enabled', True)
         config.set('Settings', 'filter incoming DHCP for AMX only', False)
         config.set('Settings', 'play sounds', True)
+        config.set('Settings', 'check for updates', True)
         config.add_section('Config')
         config.set('Config', 'columns_config', self.columns_default)
         config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
@@ -991,6 +1053,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'filter incoming DHCP for AMX only', 
                    self.amx_only_filter)
         config.set('Settings', 'play sounds', self.play_sounds)
+        config.set('Settings', 'check for updates', self.check_for_updates)
         columns = ''
         for item in self.columns_config:
             columns = columns + item + ', '
@@ -1008,30 +1071,29 @@ class MainFrame(mdc_gui.MainFrame):
         """Show dialog for missing putty"""
         dlg = wx.MessageDialog(
             parent=self,
-            message=
-            'I notice that you don\'t have a copy of putty.exe \n' +
-            'availiable. Click OK to automaticly download this \n' +
+            message='I notice that you don\'t have a copy of putty.exe \n' +
+            'available. Click OK to automatically download this \n' +
             'telnet client.',
             caption='Auto download',
-            style=wx.OK|wx.CANCEL)
+            style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            #download
-
-            putty_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe'
+            # download
+            putty_url = ('http://the.earth.li/' +
+                         '~sgtatham/putty/latest/x86/putty.exe')
             try:
-                #resp = requests.head(putty_url)
-                #if resp.status_code != 404:
-                urllib.urlretrieve(putty_url, self.path + 'putty.exe')
+                # resp = requests.head(putty_url)
+                # if resp.status_code != 404:
+                Thread(target=urllib.urlretrieve,
+                       args=(putty_url, self.path + 'putty.exe')).start()
                 dlg.Destroy()
                 return
-            except Exception as error:
+            except:
                 dlg.Destroy()
         dlg = wx.MessageDialog(
             parent=self,
-            message=
-            'Please manually copy ' + self.telnet_client + ' to: \n'  +
-            self.path + 
-            ' \nThis will allow you to telnet to a device.',
+            message=('Please manually copy ' +
+                     self.path +
+                     ' \nThis will allow you to telnet to a device.'),
             caption='No telnet client',
             style=wx.OK)
 
