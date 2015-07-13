@@ -19,6 +19,7 @@ online_version = url_path.split('/')[-2]
 
 if StrictVersion(online_version[1:]) > StrictVersion(version[1:]):
     print 'time to update to ', StrictVersion(online_version[1:])
+    print url_path
 else:
     print 'not updating to', StrictVersion(version[1:])
 #    print div.find_all("a")[-3].get('href').split('/')[-2]

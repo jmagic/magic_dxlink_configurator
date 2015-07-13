@@ -39,6 +39,7 @@ from bs4 import BeautifulSoup
 from distutils.version import StrictVersion
 from pydispatch import dispatcher
 from threading import Thread
+import subprocess
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command, 
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
@@ -277,19 +278,42 @@ class MainFrame(mdc_gui.MainFrame):
         # ask if they want to update
         dlg = wx.MessageDialog(
                 parent=self,
-                message=
-                'A new Magic DXLink Configurator is available \r' +
-                str(StrictVersion(online_version)),
-                caption='Do you want to update?',
-                style=wx.OK | wx.CANCEL)
+                message='A new Magic DXLink Configurator is available v' +
+                        str(StrictVersion(online_version)) + '\r' +
+                        'Do you want to download and update?',
+                        caption='Do you want to update?',
+                        style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            # download url and show progress bar
-            pass
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='I\'ll download the new version now.\r',
+                style=wx.OK)
+            dlg.ShowModal()
+            temp_folder = os.environ.get('temp')
+            with open(temp_folder +
+                      'Magic_DXLink_Configurator_Setup_' +
+                      str(StrictVersion(online_version)), 'wb') as handle:
+                response = requests.get('https://github.com' + url_path)
+                if not response.ok:
+                    return
 
-        # close program & lauch installer
+                for block in response.iter_content(1024):
+                    handle.write(block)
 
+            # close program & lauch installer
+            # print 'downloaded'
+            dlg = wx.MessageDialog(
+                parent=self,
+                message='Do you want to update to version ' +
+                        str(StrictVersion(online_version)) + ' now?',
+                caption='Update program',
+                style=wx.OK | wx.CANCEL)
 
-                  
+            if dlg.ShowModal() == wx.ID_OK:
+                subprocess.Popen(temp_folder +
+                                 'Magic_DXLink_Configurator_Setup_' +
+                                 str(StrictVersion(online_version)))
+                self.on_close(None)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
