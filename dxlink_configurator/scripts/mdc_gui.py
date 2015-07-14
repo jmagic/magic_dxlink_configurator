@@ -514,6 +514,9 @@ class Preferences ( wx.Dialog ):
 		self.sounds_chk = wx.CheckBox( self, wx.ID_ANY, u"Play Sounds", wx.DefaultPosition, wx.DefaultSize, 0 )
 		sbSizer2.Add( self.sounds_chk, 0, wx.ALL, 5 )
 		
+		self.check_for_updates_chk = wx.CheckBox( self, wx.ID_ANY, u"Check for updates", wx.DefaultPosition, wx.DefaultSize, 0 )
+		sbSizer2.Add( self.check_for_updates_chk, 0, wx.ALL, 5 )
+		
 		
 		bSizer10.Add( sbSizer2, 0, wx.EXPAND|wx.ALL, 5 )
 		
