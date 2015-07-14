@@ -241,7 +241,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
         if self.check_for_updates:
-            print 'check for updates'
             Thread(target=self.update_check).start()
 
     # ----------------------------------------------------------------------
