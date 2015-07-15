@@ -1,4 +1,6 @@
 # -*- mode: python -*-
+import PyInstaller.hooks.hookutils
+
 a = Analysis(['Magic_DXLink_configurator.py'],
              pathex=['C:\\Users\\jim.maciejewski\\Documents\\configurator\\dxlink_configurator'],
              hiddenimports=[],
@@ -26,6 +28,8 @@ a.datas += extra_datas('media')
 a.datas += extra_datas('sounds')
 a.datas += extra_datas('send_commands')
 a.datas += extra_datas('docs')
+a.datas.append(('cacert.pem', 'cacert.pem', 'DATA'))
+
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,

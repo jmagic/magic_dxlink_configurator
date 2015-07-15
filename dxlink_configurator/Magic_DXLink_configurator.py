@@ -40,6 +40,7 @@ from distutils.version import StrictVersion
 from pydispatch import dispatcher
 from threading import Thread
 import subprocess
+import sys
 
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
@@ -131,12 +132,8 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxfrx_models = []
         self.config_fail = False
         self.telnet_missing = False
-        if os.name == 'nt':
-            self.path = os.path.expanduser(
+        self.path = os.path.expanduser(
                 '~\\Documents\\Magic_DXLink_Configurator\\')
-        else:
-            self.path = os.path.expanduser(
-                '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.check_for_telnet_client()
 
@@ -204,6 +201,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
         self.olv_sizer.Layout()
         self.resize_frame()
+        self.cert_path = self.resource_path('cacert.pem')
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
@@ -245,15 +243,21 @@ class MainFrame(mdc_gui.MainFrame):
 
     # ----------------------------------------------------------------------
 
+    def resource_path(self, relative):
+        return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
+                            relative)
+
     def update_check(self):
         """Checks on line for updates"""
         # print 'in update'
         try:
             webpage = requests.get(
-              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases')
+              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
+              verify=self.cert_path)
             # Scrape page for latest version
             soup = BeautifulSoup(webpage.text)
             # Get the <div> sections in lable-latest
+            # print 'divs'
             divs = soup.find_all("div", class_="release label-latest")
             # Get the 'href' of the release
             url_path = divs[0].find_all('a')[-3].get('href')
@@ -261,13 +265,14 @@ class MainFrame(mdc_gui.MainFrame):
             online_version = url_path.split('/')[-2][1:]
             if StrictVersion(online_version) > StrictVersion(self.version[1:]):
                 # Try update
+                # print 'try update'
                 self.do_update(url_path, online_version)
             else:
                 # All up to date pass
                 # print 'up to date'
                 return
-        except:
-            # print error
+        except Exception as error:
+            # print 'error'error
             # we have had a problem, maybe update will work next time.
             # print 'error ', error
             pass
@@ -292,7 +297,8 @@ class MainFrame(mdc_gui.MainFrame):
             with open(temp_folder +
                       'Magic_DXLink_Configurator_Setup_' +
                       str(StrictVersion(online_version)), 'wb') as handle:
-                response = requests.get('https://github.com' + url_path)
+                response = requests.get('https://github.com' + url_path,
+                                        verify=self.cert_path)
                 if not response.ok:
                     return
 
