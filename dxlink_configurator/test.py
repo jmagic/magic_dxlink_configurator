@@ -109,6 +109,10 @@ class MyPanel(scrolled.ScrolledPanel):
         url = self.dl_txt.GetValue()
         try:
             header = requests.head(url)
+            print header.is_redirect
+            print header.url
+            print dir(header)
+            length = requests.
             fsize = int(header.headers["content-length"]) / 1024
  
             sizer = wx.BoxSizer(wx.HORIZONTAL)
