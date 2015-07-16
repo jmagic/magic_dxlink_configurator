@@ -41,7 +41,7 @@ from pydispatch import dispatcher
 from threading import Thread
 import subprocess
 import sys
-
+import time
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
@@ -288,42 +288,54 @@ class MainFrame(mdc_gui.MainFrame):
                         caption='Do you want to update?',
                         style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            response = requests.get('https://github.com' + url_path,
-                                    verify=self.cert_path, stream=True)
+            # response = requests.get('https://github.com' + url_path,
+            #                        verify=self.cert_path, stream=True)
+            print 'before respose'
+            response = requests.get('http://localhost:8000/Magic_DXLink_Configurator_Setup_3.1.1.exe')
+            print response
             if not response.ok:
                 return
             total_length = response.headers.get('content-length')
             if total_length is None:  # no content length header
                 pass
             else:
-                total_length = int(total_length) / 1024
-            dlg = wx.ProgressDialog("Progress dialog example",
-                                    "An informative message",
-                                    maximum=total_length,
-                                    parent=self,
-                                    style=wx.PD_APP_MODAL
-                                    | wx.PD_AUTO_HIDE
-                                    | wx.PD_CAN_ABORT
-                                    | wx.PD_ESTIMATED_TIME
-                                    | wx.PD_REMAINING_TIME
-                                    | wx.PD_SMOOTH
-                                    )
-            temp_folder = os.environ.get('temp')
-            with open(temp_folder +
-                      'Magic_DXLink_Configurator_Setup_' +
-                      str(StrictVersion(online_version)), 'wb') as handle:
-
-                count = 0
-                for data in response.iter_content(1024):
-                    count += len(data) / 1024
-                    handle.write(data)
-                    (cancel, skip) = dlg.Update(count - 1)
+                total_length = int(total_length)
+                dlg2 = wx.ProgressDialog("Progress dialog example",
+                                         "An informative message",
+                                         maximum=total_length,
+                                         parent=self,
+                                         style=# wx.PD_APP_MODAL
+                                         # | wx.PD_AUTO_HIDE
+                                         wx.PD_CAN_ABORT
+                                         | wx.PD_ESTIMATED_TIME
+                                         | wx.PD_REMAINING_TIME
+                                         )
+                temp_folder = os.environ.get('temp')
+                for x in range(total_length):
+                    print x
+                    time.sleep(.1)
+                    (cancel, skip) = dlg2.Update(x)
                     if not cancel:
-                        print 'cancel pressed'
+                        # dlg2.Update(total_length)
+                        dlg2.Destroy()
+                        print dir(dlg2)
+                        print 'cancel pushed'
                         break
+                # with open(temp_folder +
+                #           'Magic_DXLink_Configurator_Setup_' +
+                #           str(StrictVersion(online_version)), 'wb') as handle:
+
+                #     count = 0
+                #     for data in response.iter_content():
+                #         count += len(data)
+                #         handle.write(data)
+                #         (cancel, skip) = dlg.Update(count)
+                #         if not cancel:
+                #             print 'cancel pressed'
+                #             break
                         
                 print 'out of for loop'
-            dlg.Destroy()
+            dlg2.Destroy()
             self.install_update()
 
     def install_update(self):
