@@ -288,61 +288,63 @@ class MainFrame(mdc_gui.MainFrame):
                         caption='Do you want to update?',
                         style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            # dlg = wx.MessageDialog(
-            #     parent=self,
-            #     message='I\'ll download the new version now.\r',
-            #     style=wx.OK)
-            # dlg.ShowModal()
+            response = requests.get('https://github.com' + url_path,
+                                    verify=self.cert_path, stream=True)
+            if not response.ok:
+                return
+            total_length = response.headers.get('content-length')
+            if total_length is None:  # no content length header
+                pass
+            else:
+                total_length = int(total_length) / 1024
+            dlg = wx.ProgressDialog("Progress dialog example",
+                                    "An informative message",
+                                    maximum=total_length,
+                                    parent=self,
+                                    style=wx.PD_APP_MODAL
+                                    | wx.PD_AUTO_HIDE
+                                    | wx.PD_CAN_ABORT
+                                    | wx.PD_ESTIMATED_TIME
+                                    | wx.PD_REMAINING_TIME
+                                    | wx.PD_SMOOTH
+                                    )
             temp_folder = os.environ.get('temp')
             with open(temp_folder +
                       'Magic_DXLink_Configurator_Setup_' +
                       str(StrictVersion(online_version)), 'wb') as handle:
-                response = requests.get('https://github.com' + url_path,
-                                        verify=self.cert_path, stream=True)
-                if not response.ok:
-                    return
-                total_length = response.headers.get('content-length')
 
-                if total_length is None:  # no content length header
-                    handle.write(response.content)
-                else:
-                    total_length = int(total_length) / 1024
-                    dlg = wx.ProgressDialog("Progress dialog example",
-                                            "An informative message",
-                                            maximum=total_length,
-                                            parent=self,
-                                            style=wx.PD_CAN_ABORT
-                                            | wx.PD_ESTIMATED_TIME
-                                            | wx.PD_REMAINING_TIME
-                                            )
-                    dlg.Show()
-                    count = 0
-                    for data in response.iter_content(1024):
-                        count += len(data) / 1024
-                        handle.write(data)
-                        print 'count: ', count
-                        print 'total_length: ', total_length
-                        (abort, _) = dlg.Update(count - 1)
-                        if not abort:  # if abort is False the cancel button has been pushed
-                            dlg.Destroy()
-                            return
+                count = 0
+                for data in response.iter_content(1024):
+                    count += len(data) / 1024
+                    handle.write(data)
+                    (cancel, skip) = dlg.Update(count - 1)
+                    if not cancel:
+                        print 'cancel pressed'
+                        break
+                        
+                print 'out of for loop'
+            dlg.Destroy()
+            self.install_update()
 
-                    dlg.Destroy()
-
+    def install_update(self):
+        """Installs the downloaded update"""
+            #if not abort:
+            #    return  # since we aborted the download, don't try to install
             # close program & launch installer
             # print 'downloaded'
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='Do you want to update to version ' +
-                        str(StrictVersion(online_version)) + ' now?',
-                caption='Update program',
-                style=wx.OK | wx.CANCEL)
 
-            if dlg.ShowModal() == wx.ID_OK:
-                subprocess.Popen(temp_folder +
-                                 'Magic_DXLink_Configurator_Setup_' +
-                                 str(StrictVersion(online_version)))
-                self.on_close(None)
+        dlg = wx.MessageDialog(
+            parent=self,
+            message='Do you want to update to version ' +
+                    str(StrictVersion(online_version)) + ' now?',
+            caption='Update program',
+            style=wx.OK | wx.CANCEL)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            subprocess.Popen(temp_folder +
+                             'Magic_DXLink_Configurator_Setup_' +
+                             str(StrictVersion(online_version)))
+            self.on_close(None)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
