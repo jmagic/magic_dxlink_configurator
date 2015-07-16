@@ -240,7 +240,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         if self.check_for_updates:
             Thread(target=self.update_check).start()
-
+        # self.do_update('/', '3.1.1')
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -288,10 +288,10 @@ class MainFrame(mdc_gui.MainFrame):
                         caption='Do you want to update?',
                         style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            # response = requests.get('https://github.com' + url_path,
-            #                        verify=self.cert_path, stream=True)
-            print 'before respose'
-            response = requests.get('http://localhost:8000/Magic_DXLink_Configurator_Setup_3.1.1.exe')
+            response = requests.get('https://github.com' + url_path,
+                                   verify=self.cert_path, stream=True)
+            # print 'before respose'
+            # response = requests.get('http://localhost:8000/Magic_DXLink_Configurator_Setup_3.1.1.exe')
             print response
             if not response.ok:
                 return
@@ -304,41 +304,34 @@ class MainFrame(mdc_gui.MainFrame):
                                          "An informative message",
                                          maximum=total_length,
                                          parent=self,
-                                         style=# wx.PD_APP_MODAL
-                                         # | wx.PD_AUTO_HIDE
-                                         wx.PD_CAN_ABORT
-                                         | wx.PD_ESTIMATED_TIME
-                                         | wx.PD_REMAINING_TIME
+                                         style=wx.PD_APP_MODAL
+                                         | wx.PD_AUTO_HIDE
+                                         | wx.PD_CAN_ABORT
+                                         #| wx.PD_ESTIMATED_TIME
+                                         #| wx.PD_REMAINING_TIME
+                                         | wx.PD_ELAPSED_TIME
                                          )
                 temp_folder = os.environ.get('temp')
-                for x in range(total_length):
-                    print x
-                    time.sleep(.1)
-                    (cancel, skip) = dlg2.Update(x)
-                    if not cancel:
-                        # dlg2.Update(total_length)
-                        dlg2.Destroy()
-                        print dir(dlg2)
-                        print 'cancel pushed'
-                        break
-                # with open(temp_folder +
-                #           'Magic_DXLink_Configurator_Setup_' +
-                #           str(StrictVersion(online_version)), 'wb') as handle:
+                with open(temp_folder +
+                          'Magic_DXLink_Configurator_Setup_' +
+                          str(StrictVersion(online_version)), 'wb') as handle:
 
-                #     count = 0
-                #     for data in response.iter_content():
-                #         count += len(data)
-                #         handle.write(data)
-                #         (cancel, skip) = dlg.Update(count)
-                #         if not cancel:
-                #             print 'cancel pressed'
-                #             break
+                    count = 0
+                    for data in response.iter_content(1024):
+                        count += len(data)
+                        handle.write(data)
+                        (cancel, skip) = dlg2.Update(count)
+                        if not cancel:
+                            break
+                            
                         
                 print 'out of for loop'
             dlg2.Destroy()
-            self.install_update()
+            if not cancel:
+                return
+            self.install_update(online_version)
 
-    def install_update(self):
+    def install_update(self, online_version):
         """Installs the downloaded update"""
             #if not abort:
             #    return  # since we aborted the download, don't try to install
