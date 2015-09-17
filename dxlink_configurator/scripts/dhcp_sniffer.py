@@ -4,8 +4,6 @@ from threading import Thread
 import socket
 from pydispatch import dispatcher
 import wx
-import time
-
 
 ########################################################################
 class DHCPListener(Thread):
@@ -20,9 +18,6 @@ class DHCPListener(Thread):
         self.dhcp_options = None
         self.dhcp_sniffing_enabled = False
         self.shutdown = False
-        self.received = None
-        self.last_received = 0
-        self.last_mac = ''
         
         Thread.__init__(self)
 
@@ -42,12 +37,10 @@ class DHCPListener(Thread):
 
         
         
-        self.last_received = time.time() - 30
-
+        
         while not self.shutdown:
             msg, _ = self.lis_sock.recvfrom(1024)
             # check if it is a DHCP "request" message
-            self.received = time.time()
             if ((msg[240] == "\x35" and 
                  msg[241] == "\x01" and 
                  msg[242] == "\x03")):
@@ -104,13 +97,6 @@ class DHCPListener(Thread):
                 if ip_address == '':
                     continue
 
-                #print "last: ", self.last_received, self.received, 'diff:', (self.last_received - self.received)
-                if self.last_received < (self.received + 5) and self.last_mac == mac_address:
-                    #print "skipping double"
-                    continue
-
-                self.last_received = time.time()
-                self.last_mac = mac_address
                 # check if we have been told to stop listening
                 if not self.shutdown and self.dhcp_sniffing_enabled:
                     #send the processed packet to the main loop
