@@ -245,8 +245,8 @@ class MainFrame(mdc_gui.MainFrame):
         if self.check_for_updates:
             Thread(target=self.update_check).start()
 
-        dia = config_menus.TestDia(self)
-        dia.Show()
+        # dia = config_menus.TestDia(self)
+        # dia.Show()
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
