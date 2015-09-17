@@ -82,7 +82,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.2.0"
+        self.version = "v3.2.1"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -289,10 +289,8 @@ class MainFrame(mdc_gui.MainFrame):
                         style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
             response = requests.get('https://github.com' + url_path,
-                                   verify=self.cert_path, stream=True)
-            # print 'before respose'
-            # response = requests.get('http://localhost:8000/Magic_DXLink_Configurator_Setup_3.1.1.exe')
-            print response
+                                    verify=self.cert_path, stream=True)
+            # print response
             if not response.ok:
                 return
             total_length = response.headers.get('content-length')
@@ -307,8 +305,8 @@ class MainFrame(mdc_gui.MainFrame):
                                          style=wx.PD_APP_MODAL
                                          | wx.PD_AUTO_HIDE
                                          | wx.PD_CAN_ABORT
-                                         #| wx.PD_ESTIMATED_TIME
-                                         #| wx.PD_REMAINING_TIME
+                                         # | wx.PD_ESTIMATED_TIME
+                                         # | wx.PD_REMAINING_TIME
                                          | wx.PD_ELAPSED_TIME
                                          )
                 temp_folder = os.environ.get('temp')
@@ -323,21 +321,15 @@ class MainFrame(mdc_gui.MainFrame):
                         (cancel, skip) = dlg2.Update(count)
                         if not cancel:
                             break
-                            
-                        
-                print 'out of for loop'
+
+                # print 'out of for loop'
             dlg2.Destroy()
             if not cancel:
                 return
-            self.install_update(online_version)
+            self.install_update(online_version, temp_folder)
 
-    def install_update(self, online_version):
+    def install_update(self, online_version, temp_folder):
         """Installs the downloaded update"""
-            #if not abort:
-            #    return  # since we aborted the download, don't try to install
-            # close program & launch installer
-            # print 'downloaded'
-
         dlg = wx.MessageDialog(
             parent=self,
             message='Do you want to update to version ' +
@@ -346,9 +338,9 @@ class MainFrame(mdc_gui.MainFrame):
             style=wx.OK | wx.CANCEL)
 
         if dlg.ShowModal() == wx.ID_OK:
-            subprocess.Popen(temp_folder +
-                             'Magic_DXLink_Configurator_Setup_' +
-                             str(StrictVersion(online_version)))
+            os.startfile(temp_folder +
+                         'Magic_DXLink_Configurator_Setup_' +
+                         str(StrictVersion(online_version)))
             self.on_close(None)
 
     def on_key_down(self, event):
