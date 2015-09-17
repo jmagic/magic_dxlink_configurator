@@ -298,8 +298,8 @@ class MainFrame(mdc_gui.MainFrame):
                 pass
             else:
                 total_length = int(total_length)
-                dlg2 = wx.ProgressDialog("Progress dialog example",
-                                         "An informative message",
+                dlg2 = wx.ProgressDialog("Download Progress",
+                                         "Downloading update now",
                                          maximum=total_length,
                                          parent=self,
                                          style=wx.PD_APP_MODAL
@@ -311,8 +311,9 @@ class MainFrame(mdc_gui.MainFrame):
                                          )
                 temp_folder = os.environ.get('temp')
                 with open(temp_folder +
-                          'Magic_DXLink_Configurator_Setup_' +
-                          str(StrictVersion(online_version)), 'wb') as handle:
+                          '\Magic_DXLink_Configurator_Setup_' +
+                          str(StrictVersion(online_version)) +
+                          '.exe', 'wb') as handle:
 
                     count = 0
                     for data in response.iter_content(1024):
@@ -339,8 +340,9 @@ class MainFrame(mdc_gui.MainFrame):
 
         if dlg.ShowModal() == wx.ID_OK:
             os.startfile(temp_folder +
-                         'Magic_DXLink_Configurator_Setup_' +
-                         str(StrictVersion(online_version)))
+                         '\Magic_DXLink_Configurator_Setup_' +
+                         str(StrictVersion(online_version)) +
+                         '.exe')
             self.on_close(None)
 
     def on_key_down(self, event):
