@@ -81,7 +81,7 @@ class Telnetjobs(Thread):
             obj.mac_address = ip_mac[1]
             self.get_connection(obj, telnet_session, int(job[2]))
 
-            telnet_session.write('exit')
+            telnet_session.write('exit\r')
             telnet_session.close()
             self.set_status(obj, "Success") 
         except (IOError, Exception) as error:

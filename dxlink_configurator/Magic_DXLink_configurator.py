@@ -1,4 +1,4 @@
-"""Configurator is a program that integrates device discovery and telnet 
+"""Configurator is a program that integrates device discovery and telnet
 commands to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
@@ -40,7 +40,8 @@ from distutils.version import StrictVersion
 from pydispatch import dispatcher
 from threading import Thread
 import subprocess
-
+import sys
+import time
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
@@ -81,7 +82,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.1.0"
+        self.version = "v3.2.0"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -131,12 +132,8 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxfrx_models = []
         self.config_fail = False
         self.telnet_missing = False
-        if os.name == 'nt':
-            self.path = os.path.expanduser(
+        self.path = os.path.expanduser(
                 '~\\Documents\\Magic_DXLink_Configurator\\')
-        else:
-            self.path = os.path.expanduser(
-                '~/Documents/Magic_DXLink_Configurator/')
         self.read_config_file()
         self.check_for_telnet_client()
 
@@ -204,6 +201,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
         self.olv_sizer.Layout()
         self.resize_frame()
+        self.cert_path = self.resource_path('cacert.pem')
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
@@ -242,18 +240,24 @@ class MainFrame(mdc_gui.MainFrame):
 
         if self.check_for_updates:
             Thread(target=self.update_check).start()
-
+        # self.do_update('/', '3.1.1')
     # ----------------------------------------------------------------------
+
+    def resource_path(self, relative):
+        return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
+                            relative)
 
     def update_check(self):
         """Checks on line for updates"""
         # print 'in update'
         try:
             webpage = requests.get(
-              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases')
+              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
+              verify=self.cert_path)
             # Scrape page for latest version
             soup = BeautifulSoup(webpage.text)
             # Get the <div> sections in lable-latest
+            # print 'divs'
             divs = soup.find_all("div", class_="release label-latest")
             # Get the 'href' of the release
             url_path = divs[0].find_all('a')[-3].get('href')
@@ -261,13 +265,14 @@ class MainFrame(mdc_gui.MainFrame):
             online_version = url_path.split('/')[-2][1:]
             if StrictVersion(online_version) > StrictVersion(self.version[1:]):
                 # Try update
+                # print 'try update'
                 self.do_update(url_path, online_version)
             else:
                 # All up to date pass
                 # print 'up to date'
                 return
-        except:
-            # print error
+        except Exception as error:
+            # print 'error'error
             # we have had a problem, maybe update will work next time.
             # print 'error ', error
             pass
@@ -283,36 +288,68 @@ class MainFrame(mdc_gui.MainFrame):
                         caption='Do you want to update?',
                         style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='I\'ll download the new version now.\r',
-                style=wx.OK)
-            dlg.ShowModal()
-            temp_folder = os.environ.get('temp')
-            with open(temp_folder +
-                      'Magic_DXLink_Configurator_Setup_' +
-                      str(StrictVersion(online_version)), 'wb') as handle:
-                response = requests.get('https://github.com' + url_path)
-                if not response.ok:
-                    return
+            response = requests.get('https://github.com' + url_path,
+                                   verify=self.cert_path, stream=True)
+            # print 'before respose'
+            # response = requests.get('http://localhost:8000/Magic_DXLink_Configurator_Setup_3.1.1.exe')
+            print response
+            if not response.ok:
+                return
+            total_length = response.headers.get('content-length')
+            if total_length is None:  # no content length header
+                pass
+            else:
+                total_length = int(total_length)
+                dlg2 = wx.ProgressDialog("Progress dialog example",
+                                         "An informative message",
+                                         maximum=total_length,
+                                         parent=self,
+                                         style=wx.PD_APP_MODAL
+                                         | wx.PD_AUTO_HIDE
+                                         | wx.PD_CAN_ABORT
+                                         #| wx.PD_ESTIMATED_TIME
+                                         #| wx.PD_REMAINING_TIME
+                                         | wx.PD_ELAPSED_TIME
+                                         )
+                temp_folder = os.environ.get('temp')
+                with open(temp_folder +
+                          'Magic_DXLink_Configurator_Setup_' +
+                          str(StrictVersion(online_version)), 'wb') as handle:
 
-                for block in response.iter_content(1024):
-                    handle.write(block)
+                    count = 0
+                    for data in response.iter_content(1024):
+                        count += len(data)
+                        handle.write(data)
+                        (cancel, skip) = dlg2.Update(count)
+                        if not cancel:
+                            break
+                            
+                        
+                print 'out of for loop'
+            dlg2.Destroy()
+            if not cancel:
+                return
+            self.install_update(online_version)
 
+    def install_update(self, online_version):
+        """Installs the downloaded update"""
+            #if not abort:
+            #    return  # since we aborted the download, don't try to install
             # close program & launch installer
             # print 'downloaded'
-            dlg = wx.MessageDialog(
-                parent=self,
-                message='Do you want to update to version ' +
-                        str(StrictVersion(online_version)) + ' now?',
-                caption='Update program',
-                style=wx.OK | wx.CANCEL)
 
-            if dlg.ShowModal() == wx.ID_OK:
-                subprocess.Popen(temp_folder +
-                                 'Magic_DXLink_Configurator_Setup_' +
-                                 str(StrictVersion(online_version)))
-                self.on_close(None)
+        dlg = wx.MessageDialog(
+            parent=self,
+            message='Do you want to update to version ' +
+                    str(StrictVersion(online_version)) + ' now?',
+            caption='Update program',
+            style=wx.OK | wx.CANCEL)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            subprocess.Popen(temp_folder +
+                             'Magic_DXLink_Configurator_Setup_' +
+                             str(StrictVersion(online_version)))
+            self.on_close(None)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -1272,7 +1309,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     # splash = show_splash()
 
     # do processing/initialization here and create main window
