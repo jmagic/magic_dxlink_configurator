@@ -83,7 +83,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.2.1"
+        self.version = "v3.2.2"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -128,6 +128,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.subnet_filter = None
         self.play_sounds = None
         self.check_for_updates = None
+        self.debug = False
         self.columns_config = []
         self.dxtx_models = []
         self.dxrx_models = []
@@ -1019,6 +1020,8 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'play sounds'))
             self.check_for_updates = (config.getboolean(
                 'Settings', 'check for updates'))
+            self.debug = (config.getboolean(
+                'Config', 'debug'))
             self.columns_config = []
             for item in config.get(
                     'Config', 'columns_config').split(','):
@@ -1089,7 +1092,9 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'subnet filter', '')
         config.set('Settings', 'play sounds', True)
         config.set('Settings', 'check for updates', True)
+        
         config.add_section('Config')
+        config.set('Config', 'debug', False)
         config.set('Config', 'columns_config', self.columns_default)
         config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
         config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
@@ -1121,6 +1126,7 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'subnet filter', self.subnet_filter)
         config.set('Settings', 'play sounds', self.play_sounds)
         config.set('Settings', 'check for updates', self.check_for_updates)
+        config.set('Config', 'debug', self.debug)
         columns = ''
         for item in self.columns_config:
             columns = columns + item + ', '
