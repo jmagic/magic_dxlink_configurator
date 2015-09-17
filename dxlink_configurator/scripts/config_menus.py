@@ -3,7 +3,7 @@
 import wx
 import csv
 from scripts import mdc_gui
-from netaddr import IPRange
+from netaddr import IPRange, IPNetwork
 from threading import Thread
 from pydispatch import dispatcher
 
@@ -20,7 +20,8 @@ class PreferencesConfig(mdc_gui.Preferences):
         """Set the field values"""
         self.master_address_txt.SetValue(self.parent.master_address)
         self.device_number_txt.SetValue(self.parent.device_number)
-        self.subnet_filter_txt.SetValue(self.parent.subnet_filter)
+        self.subnet_filter_txt.SetValue(
+            str(IPNetwork(self.parent.subnet_filter).cidr))
         self.subnet_filter_txt.Enable(self.parent.subnet_filter_enable)
         self.subnet_filter_chk.SetValue(self.parent.subnet_filter_enable)
         getattr(self, self.parent.default_connection_type.lower() +
@@ -46,7 +47,13 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.parent.master_address = self.master_address_txt.GetValue()
         self.parent.device_number = self.device_number_txt.GetValue()
         self.parent.subnet_filter_enable = self.subnet_filter_chk.GetValue()
-        self.parent.subnet_filter = self.subnet_filter_txt.GetValue()
+        if self.subnet_filter_chk.GetValue():
+            try:
+                IPNetwork(self.subnet_filter_txt.GetValue())
+            except Exception as error:
+                self.bad_subnet(error)
+                return
+            self.parent.subnet_filter = self.subnet_filter_txt.GetValue()
         if self.tcp_chk.GetValue():
             self.parent.default_connection_type = "TCP"
         if self.udp_chk.GetValue():
@@ -64,6 +71,19 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.parent.select_columns()
         self.parent.resize_frame()
         self.Destroy()
+
+    def bad_subnet(self, error):
+        """Dialog showing error"""
+        dlg = wx.MessageDialog(
+                parent=self,
+                message='The subnet you have entered is invalid. \n\n' +
+                str(error) + '\n' +
+                'CIDR example 192.168.71.0/24 or 192.168.71.0/255.255.255.0',
+                caption='Error saving subnet',
+                style=wx.OK)
+        dlg.ShowModal()
+        self.subnet_filter_chk.SetValue(False)
+        self.subnet_filter_txt.Enable(False)
 
     def on_subnet_enable(self, event):
         """Enable or disable the subnet field"""

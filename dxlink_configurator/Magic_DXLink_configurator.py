@@ -244,8 +244,8 @@ class MainFrame(mdc_gui.MainFrame):
         if self.check_for_updates:
             Thread(target=self.update_check).start()
 
-        # dia = config_menus.TestDia(self)
-        # dia.Show()
+        dia = config_menus.TestDia(self)
+        dia.Show()
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -931,6 +931,12 @@ class MainFrame(mdc_gui.MainFrame):
             ip_ad=sender[2],
             arrival_time=incoming_time)
 
+        print (incoming_time,
+               ' received ',
+               data.hostname,
+               data.mac_address,
+               data.ip_address)
+
         self.status_bar.SetStatusText(
             incoming_time.strftime('%I:%M:%S%p') +
             ' -- ' + data.hostname +
@@ -945,16 +951,21 @@ class MainFrame(mdc_gui.MainFrame):
             if data.ip_address not in IPNetwork(self.subnet_filter):
                 return
         selected_items = self.main_list.GetSelectedObjects()
+        dx_update = True
         if self.main_list.GetObjects() == []:
             self.main_list.AddObject(data)
             self.set_status((data, "DHCP"))
         else:
+
             for obj in self.main_list.GetObjects():
                 if obj.mac_address == data.mac_address:
+                    # Get a time 10 seconds ago
                     time_between_packets = (incoming_time -
-                                            datetime.timedelta(seconds=2))
+                                            datetime.timedelta(seconds=10))
+                    # If the existing item was added less than 10 seconds ago,
+                    # don't do a DX update
                     if obj.arrival_time > time_between_packets:
-                        break
+                        dx_update = False
                     data.model = obj.model
                     data.serial = obj.serial
                     data.firmware = obj.firmware
@@ -970,7 +981,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.main_list.AddObject(data)
 
             self.set_status((data, "DHCP"))
-        if data.hostname[:2] == 'DX':
+        if data.hostname[:2] == 'DX' and dx_update:
             self.telnet_job_queue.put(['get_config_info', data,
                                        self.telnet_timeout_seconds])
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
