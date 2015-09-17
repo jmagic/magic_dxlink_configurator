@@ -1,4 +1,4 @@
-"""Configurator is a program that integrates device discovery and telnet 
+"""Configurator is a program that integrates device discovery and telnet
 commands to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
@@ -82,7 +82,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.1.0"
+        self.version = "v3.2.0"
 
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -1309,7 +1309,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     # splash = show_splash()
 
     # do processing/initialization here and create main window
