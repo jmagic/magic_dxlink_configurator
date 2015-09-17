@@ -509,6 +509,33 @@ class Preferences ( wx.Dialog ):
 		
 		bSizer10.Add( sbSizer1, 0, wx.EXPAND|wx.ALL, 5 )
 		
+		sbSizer14 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Subnet Filter" ), wx.VERTICAL )
+		
+		bSizer63 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.subnet_filter_chk = wx.CheckBox( self, wx.ID_ANY, u"Enable Subnet Filter", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer63.Add( self.subnet_filter_chk, 0, wx.ALL, 5 )
+		
+		
+		sbSizer14.Add( bSizer63, 0, wx.EXPAND, 5 )
+		
+		bSizer64 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText31 = wx.StaticText( self, wx.ID_ANY, u"CIDR", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText31.Wrap( -1 )
+		bSizer64.Add( self.m_staticText31, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.subnet_filter_txt = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.subnet_filter_txt.SetToolTipString( u"Please enter the subnet you would like to monitor, using CIDR notation. For example: 192.168.71.0/255.255.255.0 or 192.168.71.0/24" )
+		
+		bSizer64.Add( self.subnet_filter_txt, 1, wx.ALL, 5 )
+		
+		
+		sbSizer14.Add( bSizer64, 0, wx.EXPAND, 5 )
+		
+		
+		bSizer10.Add( sbSizer14, 0, wx.ALL|wx.EXPAND, 5 )
+		
 		sbSizer2 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Notifications" ), wx.VERTICAL )
 		
 		self.sounds_chk = wx.CheckBox( self, wx.ID_ANY, u"Play Sounds", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -578,6 +605,7 @@ class Preferences ( wx.Dialog ):
 		self.udp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
 		self.ndp_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
 		self.auto_chk.Bind( wx.EVT_RADIOBUTTON, self.on_connection_type )
+		self.subnet_filter_chk.Bind( wx.EVT_CHECKBOX, self.on_subnet_enable )
 		self.m_sdbSizer3Cancel.Bind( wx.EVT_BUTTON, self.on_cancel )
 		self.m_sdbSizer3OK.Bind( wx.EVT_BUTTON, self.on_ok )
 	
@@ -591,6 +619,9 @@ class Preferences ( wx.Dialog ):
 	
 	
 	
+	
+	def on_subnet_enable( self, event ):
+		event.Skip()
 	
 	def on_cancel( self, event ):
 		event.Skip()
@@ -1393,6 +1424,80 @@ class MSE_Baseline ( wx.Dialog ):
 	
 	# Virtual event handlers, overide them in your derived class
 	def on_close( self, event ):
+		event.Skip()
+	
+
+###########################################################################
+## Class TestDialog
+###########################################################################
+
+class TestDialog ( wx.Dialog ):
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		
+		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		
+		bSizer59 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_panel9 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer60 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer61 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText29 = wx.StaticText( self.m_panel9, wx.ID_ANY, u"DHCP IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText29.Wrap( -1 )
+		bSizer61.Add( self.m_staticText29, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.fake_ip_txt = wx.TextCtrl( self.m_panel9, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer61.Add( self.fake_ip_txt, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer60.Add( bSizer61, 1, wx.EXPAND, 5 )
+		
+		bSizer62 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		self.m_staticText30 = wx.StaticText( self.m_panel9, wx.ID_ANY, u"Mac Address", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText30.Wrap( -1 )
+		bSizer62.Add( self.m_staticText30, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		self.mac_address_txt = wx.TextCtrl( self.m_panel9, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer62.Add( self.mac_address_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer60.Add( bSizer62, 1, wx.EXPAND, 5 )
+		
+		m_sdbSizer3 = wx.StdDialogButtonSizer()
+		self.m_sdbSizer3OK = wx.Button( self.m_panel9, wx.ID_OK )
+		m_sdbSizer3.AddButton( self.m_sdbSizer3OK )
+		self.m_sdbSizer3Cancel = wx.Button( self.m_panel9, wx.ID_CANCEL )
+		m_sdbSizer3.AddButton( self.m_sdbSizer3Cancel )
+		m_sdbSizer3.Realize();
+		
+		bSizer60.Add( m_sdbSizer3, 1, wx.EXPAND, 5 )
+		
+		
+		self.m_panel9.SetSizer( bSizer60 )
+		self.m_panel9.Layout()
+		bSizer60.Fit( self.m_panel9 )
+		bSizer59.Add( self.m_panel9, 1, wx.EXPAND |wx.ALL, 5 )
+		
+		
+		self.SetSizer( bSizer59 )
+		self.Layout()
+		bSizer59.Fit( self )
+		
+		self.Centre( wx.BOTH )
+		
+		# Connect Events
+		self.m_sdbSizer3OK.Bind( wx.EVT_BUTTON, self.on_ok )
+	
+	def __del__( self ):
+		pass
+	
+	
+	# Virtual event handlers, overide them in your derived class
+	def on_ok( self, event ):
 		event.Skip()
 	
 
