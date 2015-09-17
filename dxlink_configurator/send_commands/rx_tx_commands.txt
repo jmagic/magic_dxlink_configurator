@@ -318,7 +318,8 @@
             1, 
             [
                 "ENABLE", 
-                "DISABLE"
+                "DISABLE",
+                "ANALOG"
             ], 
             "VIDIN_AUTO_SELECT \n\nEnables or disables the Auto Select mode \nfor the video input signal on the \nMulti-Format TX, Wallplate TX, or Decor \nWallplate TX.\nNote: This command applies to all DXLink \nTransmitters except the HDMI TX.", 
             "Syntax: \n\nSEND_COMMAND <DEV>,\"'VIDIN_AUTO_SELECT-<ENABLE|DISABLE>'\"\n\nVariable:\nvalue = ENABLE | DISABLE\n\nExample:\nSEND_COMMAND dvMFTX,\"'VIDIN_AUTO_SELECT-ENABLE'\""

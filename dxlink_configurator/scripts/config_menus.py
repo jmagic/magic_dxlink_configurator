@@ -4,6 +4,7 @@ import wx
 import csv
 from scripts import mdc_gui
 from netaddr import IPRange
+from threading import Thread
 
 class PreferencesConfig(mdc_gui.Preferences):
     """Sets the preferences """
@@ -19,16 +20,15 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.device_number_txt.SetValue(self.parent.device_number)
         getattr(self, self.parent.default_connection_type.lower() + '_chk').SetValue(True)
 
-        
-        self.sounds_chk.SetValue(int(self.parent.play_sounds))  
-        
+        self.sounds_chk.SetValue(int(self.parent.play_sounds))
+        self.check_for_updates_chk.SetValue(int(self.parent.check_for_updates))
+
         if self.parent.columns_config != ['']:
             for item in self.parent.columns_config:
-                #print 'item: ', item.lower()
-                #print self.model_chk.GetValue()
-                #getattr(self, 'model_chk').GetValue()
+                # print 'item: ', item.lower()
+                # print self.model_chk.GetValue()
+                # getattr(self, 'model_chk').GetValue()
                 getattr(self, item.lower() + '_chk').SetValue(True)
-
 
     def on_ok(self, _):
         """When user clicks ok"""
@@ -48,6 +48,9 @@ class PreferencesConfig(mdc_gui.Preferences):
         if self.auto_chk.GetValue():
             self.parent.default_connection_type = "AUTO"
         self.parent.play_sounds = self.sounds_chk.GetValue()
+        self.parent.check_for_updates = self.check_for_updates_chk.GetValue()
+        if self.parent.check_for_updates:
+            Thread(target=self.parent.update_check).start()
         self.parent.update_status_bar()
         self.parent.write_config_file()
         self.parent.select_columns()
