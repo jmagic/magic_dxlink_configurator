@@ -42,6 +42,7 @@ from threading import Thread
 import subprocess
 import sys
 import time
+from netaddr import IPNetwork
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
@@ -123,6 +124,8 @@ class MainFrame(mdc_gui.MainFrame):
         self.telnet_timeout_seconds = None
         self.dhcp_sniffing = None
         self.amx_only_filter = None
+        self.subnet_filter_enable = None
+        self.subnet_filter = None
         self.play_sounds = None
         self.check_for_updates = None
         self.columns_config = []
@@ -240,7 +243,9 @@ class MainFrame(mdc_gui.MainFrame):
 
         if self.check_for_updates:
             Thread(target=self.update_check).start()
-        # self.do_update('/', '3.1.1')
+
+        # dia = config_menus.TestDia(self)
+        # dia.Show()
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -936,6 +941,9 @@ class MainFrame(mdc_gui.MainFrame):
             if data.mac_address[0:8] != '00:60:9f':
                 self.main_list.SetFocus()
                 return
+        if self.subnet_filter_enable:
+            if data.ip_address not in IPNetwork(self.subnet_filter):
+                return
         selected_items = self.main_list.GetSelectedObjects()
         if self.main_list.GetObjects() == []:
             self.main_list.AddObject(data)
@@ -992,6 +1000,10 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'DHCP sniffing enabled'))
             self.amx_only_filter = (config.getboolean(
                 'Settings', 'filter incoming DHCP for AMX only'))
+            self.subnet_filter_enable = (config.getboolean(
+                'Settings', 'subnet filter enabled'))
+            self.subnet_filter = (config.get(
+                'Settings', 'subnet filter'))
             self.play_sounds = (config.getboolean(
                 'Settings', 'play sounds'))
             self.check_for_updates = (config.getboolean(
@@ -1062,6 +1074,8 @@ class MainFrame(mdc_gui.MainFrame):
                    'display notification of successful connections', True)
         config.set('Settings', 'DHCP sniffing enabled', True)
         config.set('Settings', 'filter incoming DHCP for AMX only', False)
+        config.set('Settings', 'subnet filter enabled', False)
+        config.set('Settings', 'subnet filter', '')
         config.set('Settings', 'play sounds', True)
         config.set('Settings', 'check for updates', True)
         config.add_section('Config')
@@ -1091,6 +1105,9 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
         config.set('Settings', 'filter incoming DHCP for AMX only',
                    self.amx_only_filter)
+        config.set('Settings', 'subnet filter enabled',
+                   self.subnet_filter_enable)
+        config.set('Settings', 'subnet filter', self.subnet_filter)
         config.set('Settings', 'play sounds', self.play_sounds)
         config.set('Settings', 'check for updates', self.check_for_updates)
         columns = ''

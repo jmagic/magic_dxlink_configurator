@@ -5,6 +5,8 @@ import csv
 from scripts import mdc_gui
 from netaddr import IPRange
 from threading import Thread
+from pydispatch import dispatcher
+
 
 class PreferencesConfig(mdc_gui.Preferences):
     """Sets the preferences """
@@ -18,7 +20,11 @@ class PreferencesConfig(mdc_gui.Preferences):
         """Set the field values"""
         self.master_address_txt.SetValue(self.parent.master_address)
         self.device_number_txt.SetValue(self.parent.device_number)
-        getattr(self, self.parent.default_connection_type.lower() + '_chk').SetValue(True)
+        self.subnet_filter_txt.SetValue(self.parent.subnet_filter)
+        self.subnet_filter_txt.Enable(self.parent.subnet_filter_enable)
+        self.subnet_filter_chk.SetValue(self.parent.subnet_filter_enable)
+        getattr(self, self.parent.default_connection_type.lower() +
+                '_chk').SetValue(True)
 
         self.sounds_chk.SetValue(int(self.parent.play_sounds))
         self.check_for_updates_chk.SetValue(int(self.parent.check_for_updates))
@@ -39,6 +45,8 @@ class PreferencesConfig(mdc_gui.Preferences):
 
         self.parent.master_address = self.master_address_txt.GetValue()
         self.parent.device_number = self.device_number_txt.GetValue()
+        self.parent.subnet_filter_enable = self.subnet_filter_chk.GetValue()
+        self.parent.subnet_filter = self.subnet_filter_txt.GetValue()
         if self.tcp_chk.GetValue():
             self.parent.default_connection_type = "TCP"
         if self.udp_chk.GetValue():
@@ -57,6 +65,10 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.parent.resize_frame()
         self.Destroy()
 
+    def on_subnet_enable(self, event):
+        """Enable or disable the subnet field"""
+        self.subnet_filter_txt.Enable(self.subnet_filter_chk.GetValue())
+
     def on_cancel(self, _):
         """When user clicks cancel"""
         self.Destroy()
@@ -72,7 +84,8 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.ip_org = obj.ip_address
         self.device_num = device_num
 
-        self.SetTitle("Device settings for %s %s" %(obj.ip_address, obj.device))
+        self.SetTitle("Device settings for %s %s"
+                      % (obj.ip_address, obj.device))
         self.hostname = obj.hostname
         self.ip_address = obj.ip_address
         self.subnet = obj.subnet
@@ -91,14 +104,13 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
             self.gateway = '0.0.0.0'
         if self.master == '' or self.master == 'not connected':
             self.master = str(self.parent.master_address)
-            
+
         if self.device == '' or obj.device == '0':
             self.device = str(device_num)
 
         if self.system == '':
             self.system = '0'
 
-            
         self.hostname_txt.SetLabel(self.hostname)
 
         if obj.ip_type == 's':
@@ -115,8 +127,9 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.device_txt.SetValue(self.device)
         self.master_number_txt.SetValue(self.system)
 
-        self.on_dhcp(None) #call to update dhcp / static
-        getattr(self, self.parent.default_connection_type.lower() + '_chk').SetValue(True)
+        self.on_dhcp(None)  # call to update dhcp / static
+        getattr(self, self.parent.default_connection_type.lower() +
+                '_chk').SetValue(True)
         self.on_connection_type(None)
 
     def on_connection_type(self, _):
@@ -144,13 +157,13 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
             self.subnet_txt.Enable(True)
             self.gateway_txt.Enable(True)
 
-
     def on_cancel(self, _):
         """Canel and close"""
         selected_items = self.parent.main_list.GetSelectedObjects()
         selected_items.remove(self.obj)
         self.parent.configure_list.remove(self.obj)
-        self.parent.main_list.SelectObjects(selected_items, deselectOthers=True)
+        self.parent.main_list.SelectObjects(selected_items,
+                                            deselectOthers=True)
         self.Destroy()
 
     def on_abort(self, _):
@@ -158,7 +171,6 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.parent.abort = True
         self.parent.main_list.DeselectAll()
         self.Destroy()
-
 
     def on_set(self, _):
         """Sends the setting to the device"""
@@ -170,7 +182,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         info = ['set_device_config',
                 self.obj,
                 self.parent.telnet_timeout_seconds,
-                setdhcp, 
+                setdhcp,
                 str(self.hostname_txt.GetValue()),
                 str(self.ip_org),
                 str(self.ip_address_txt.GetValue()),
@@ -195,7 +207,6 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
             return "NDP"
         if self.auto_chk.GetValue():
             return "AUTO"
-
 
 
 class IpListGen(mdc_gui.GenerateIP):
@@ -224,7 +235,6 @@ class IpListGen(mdc_gui.GenerateIP):
         else:
             return
 
-
     def on_replace(self):
         """Replaces list with generated list"""
         if not self.gen_list():
@@ -234,7 +244,6 @@ class IpListGen(mdc_gui.GenerateIP):
             self.parent.create_add_unit(ip_ad=str(item))
         self.parent.dump_pickle()
         self.Destroy()
-
 
     def on_add(self):
         """Adds to the bottom of the list"""
@@ -250,11 +259,12 @@ class IpListGen(mdc_gui.GenerateIP):
         if not self.gen_list():
             return
         if self.check_size():
-            save_file_dialog = wx.FileDialog(self, message="Save IP list",
-                                             defaultDir=self.parent.path,
-                                             defaultFile="generatediplist.csv",
-                                             wildcard="CSV files (*.csv)|*.csv",
-                                             style=wx.SAVE)
+            save_file_dialog = wx.FileDialog(
+                 self, message="Save IP list",
+                 defaultDir=self.parent.path,
+                 defaultFile="generatediplist.csv",
+                 wildcard="CSV files (*.csv)|*.csv",
+                 style=wx.SAVE)
             if save_file_dialog.ShowModal() == wx.ID_OK:
 
                 path = save_file_dialog.GetPath()
@@ -275,7 +285,7 @@ class IpListGen(mdc_gui.GenerateIP):
             ip_range = IPRange(self.start_txt.GetValue(),
                                self.finish_txt.GetValue())
         except ValueError:
-            dlg = wx.MessageDialog(parent=self, 
+            dlg = wx.MessageDialog(parent=self,
                                    message='The IP address entered is invalid',
                                    caption='Invalid IP',
                                    style=wx.OK)
@@ -285,18 +295,17 @@ class IpListGen(mdc_gui.GenerateIP):
             self.data.append(str(address))
         return True
 
-
     def check_size(self):
         """Warning abou the size of the range"""
         if len(self.data) > 500:
             dlg = wx.MessageDialog(
                 parent=self,
-                message=
-                'Are you sure? \n\nThis will create ' +
-                str(len(self.data)) +
-                ' IP\'s. Creating more than 1000 IP\'s could slow or even crash the program',
-                caption='Creating IP list',
-                style=wx.OK|wx.CANCEL)
+                message='Are you sure? \n\nThis will create ' +
+                        str(len(self.data)) +
+                        ' IP\'s. Creating more than 1000 IP\'s could slow' +
+                        ' or even crash the program',
+                        caption='Creating IP list',
+                        style=wx.OK | wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:
                 return True
             else:
@@ -305,3 +314,16 @@ class IpListGen(mdc_gui.GenerateIP):
             return True
 
 
+class TestDia(mdc_gui.TestDialog):
+    def __init__(self, parent):
+        mdc_gui.TestDialog.__init__(self, parent)
+
+        self.parent = parent
+
+    def on_ok(self, event):
+        """send fake DHCP"""
+        ip = self.fake_ip_txt.GetValue()
+        hostname = 'Fake DHCP host'
+        mac_address = self.mac_address_txt.GetValue()
+        dispatcher.send(signal="Incoming Packet",
+                        sender=(hostname, mac_address, ip))
