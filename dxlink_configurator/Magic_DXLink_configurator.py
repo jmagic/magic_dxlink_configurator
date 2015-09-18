@@ -39,9 +39,7 @@ from bs4 import BeautifulSoup
 from distutils.version import StrictVersion
 from pydispatch import dispatcher
 from threading import Thread
-import subprocess
 import sys
-import time
 from netaddr import IPNetwork
 from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
