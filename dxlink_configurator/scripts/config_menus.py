@@ -20,8 +20,7 @@ class PreferencesConfig(mdc_gui.Preferences):
         """Set the field values"""
         self.master_address_txt.SetValue(self.parent.master_address)
         self.device_number_txt.SetValue(self.parent.device_number)
-        self.subnet_filter_txt.SetValue(
-            str(IPNetwork(self.parent.subnet_filter).cidr))
+        self.subnet_filter_txt.SetValue(self.parent.subnet_filter)
         self.subnet_filter_txt.Enable(self.parent.subnet_filter_enable)
         self.subnet_filter_chk.SetValue(self.parent.subnet_filter_enable)
         getattr(self, self.parent.default_connection_type.lower() +
