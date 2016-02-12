@@ -659,14 +659,27 @@ class MultiPing ( wx.Dialog ):
 		
 		bSizer45 = wx.BoxSizer( wx.VERTICAL )
 		
-		sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Logging" ), wx.VERTICAL )
+		sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Logging" ), wx.HORIZONTAL )
+		
+		bSizer65 = wx.BoxSizer( wx.VERTICAL )
 		
 		self.log_enable_chk = wx.CheckBox( self, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
-		sbSizer8.Add( self.log_enable_chk, 0, wx.ALL, 5 )
+		bSizer65.Add( self.log_enable_chk, 0, wx.ALL, 5 )
 		
 		self.log_file_txt = wx.StaticText( self, wx.ID_ANY, u"logfile", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.log_file_txt.Wrap( -1 )
-		sbSizer8.Add( self.log_file_txt, 0, wx.ALL, 5 )
+		bSizer65.Add( self.log_file_txt, 0, wx.ALL, 5 )
+		
+		
+		sbSizer8.Add( bSizer65, 1, wx.EXPAND, 5 )
+		
+		bSizer66 = wx.BoxSizer( wx.VERTICAL )
+		
+		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Reset Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer66.Add( self.m_button10, 0, wx.ALL, 5 )
+		
+		
+		sbSizer8.Add( bSizer66, 0, wx.ALIGN_BOTTOM, 5 )
 		
 		
 		bSizer45.Add( sbSizer8, 0, wx.EXPAND, 5 )
@@ -688,6 +701,7 @@ class MultiPing ( wx.Dialog ):
 		
 		# Connect Events
 		self.log_enable_chk.Bind( wx.EVT_CHECKBOX, self.on_log_enable )
+		self.m_button10.Bind( wx.EVT_BUTTON, self.on_reset )
 		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.m_menuItem37.GetId() )
 	
 	def __del__( self ):
@@ -696,6 +710,9 @@ class MultiPing ( wx.Dialog ):
 	
 	# Virtual event handlers, overide them in your derived class
 	def on_log_enable( self, event ):
+		event.Skip()
+	
+	def on_reset( self, event ):
 		event.Skip()
 	
 	def on_show_details( self, event ):

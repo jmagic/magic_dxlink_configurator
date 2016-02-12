@@ -172,7 +172,14 @@ class MultiPing(mdc_gui.MultiPing):
     def on_redraw_timer(self, _):
         """Refresh objects when timer expires"""
         self.ping_list.RefreshObject(self.ping_objects)
- 
+
+    def on_reset(self, _):
+        """Resets the selected item"""
+        for obj in self.ping_list.GetSelectedObjects():
+            obj.ping_data = []
+            obj.success = 0
+            obj.failed = 0
+
     def set_objects(self, device_list):
         """Creates a ping object and adds it to the list"""
         for obj in device_list:
