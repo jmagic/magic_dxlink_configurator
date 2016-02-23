@@ -106,6 +106,21 @@ class MainFrame ( wx.Frame ):
 		self.ping_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Ping Devices", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.ping_menu )
 		
+		self.dgx_100 = wx.Menu()
+		self.dgx800 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 800", wx.EmptyString, wx.ITEM_NORMAL )
+		self.dgx_100.AppendItem( self.dgx800 )
+		
+		self.dgx1600_menu = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 1600", wx.EmptyString, wx.ITEM_NORMAL )
+		self.dgx_100.AppendItem( self.dgx1600_menu )
+		
+		self.dgx3200 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 3200", wx.EmptyString, wx.ITEM_NORMAL )
+		self.dgx_100.AppendItem( self.dgx3200 )
+		
+		self.dgx6400 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 6400", wx.EmptyString, wx.ITEM_NORMAL )
+		self.dgx_100.AppendItem( self.dgx6400 )
+		
+		self.tools_menu.AppendSubMenu( self.dgx_100, u"DGX 100 Auto Populate" )
+		
 		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.AppendItem( self.mse_menu )
 		
@@ -222,6 +237,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.reset_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx800.GetId() )
 		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
@@ -298,6 +314,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def multi_ping( self, event ):
+		event.Skip()
+	
+	def on_gen_dgx_100( self, event ):
 		event.Skip()
 	
 	def mse_baseline( self, event ):

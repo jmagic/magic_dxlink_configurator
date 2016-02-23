@@ -35,6 +35,7 @@ import Queue
 import webbrowser
 import requests
 import urllib
+from netaddr import IPRange
 from bs4 import BeautifulSoup
 from distutils.version import StrictVersion
 from pydispatch import dispatcher
@@ -687,6 +688,21 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
+
+    def on_gen_dgx_100(self, event):
+        """Generates a list of IP's for the 100 series"""
+        item_id = event.GetId()
+        menu = event.GetEventObject()
+        menuItem = menu.FindItemById(item_id)
+        num_of_devices = str(int(menuItem.GetLabel().split()[1][:1])/2)
+        # print 
+       
+        ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
+        for address in list(ip_range):
+            print str(address)
+        ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
+        for address in list(ip_range):
+            print str(address)
 
     def enable_wd(self, _):
         """Enables the Watchdog"""
