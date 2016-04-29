@@ -260,7 +260,7 @@ class MainFrame(mdc_gui.MainFrame):
               'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
               verify=self.cert_path)
             # Scrape page for latest version
-            soup = BeautifulSoup(webpage.text)
+            soup = BeautifulSoup(webpage.text, "html.parser")
             # Get the <div> sections in lable-latest
             # print 'divs'
             divs = soup.find_all("div", class_="release label-latest")
@@ -699,7 +699,8 @@ class MainFrame(mdc_gui.MainFrame):
        
         ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
         for address in list(ip_range):
-            print str(address)
+            new_unit = self.create_add_unit(ip_ad=address)
+            self.main_list.AddObject(new_unit)
         ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
         for address in list(ip_range):
             print str(address)
