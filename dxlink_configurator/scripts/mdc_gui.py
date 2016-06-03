@@ -202,7 +202,6 @@ class MainFrame ( wx.Frame ):
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
 		
-		
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
