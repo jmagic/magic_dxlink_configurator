@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Magic DXLink Configurator"
-#define MyAppVersion "3.2.3"
+#define MyAppVersion "3.3.1"
 #define MyAppPublisher "ItsMagic"
 #define MyAppURL "http://www.ornear.com/give_a_beer"
 #define MyAppExeName "Magic_DXLink_Configurator.exe"
