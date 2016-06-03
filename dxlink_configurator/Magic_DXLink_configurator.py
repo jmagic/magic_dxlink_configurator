@@ -77,11 +77,11 @@ class Unit(object):
 
 
 class MainFrame(mdc_gui.MainFrame):
-    def __init__(self):
-        mdc_gui.MainFrame.__init__(self, None)
+    def __init__(self, parent):
+        mdc_gui.MainFrame.__init__(self, parent)
 
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.2.3"
+        self.version = "v3.3.1"
         self.path = os.path.expanduser(
                 '~\\Documents\\' + self.name + '\\')
         self.SetTitle(self.name + " " + self.version)
@@ -723,10 +723,10 @@ class MainFrame(mdc_gui.MainFrame):
         ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
         # print 'ip_range: ', ip_range
         for address in list(ip_range):
-            self.create_add_unit(ip_ad=address)
+            self.create_add_unit(ip_ad=str(address))
         ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
         for address in list(ip_range):
-            self.create_add_unit(ip_ad=address)
+            self.create_add_unit(ip_ad=str(address))
 
     def enable_wd(self, _):
         """Enables the Watchdog"""
@@ -1374,11 +1374,11 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     # splash = show_splash()
 
     # do processing/initialization here and create main window
-    dxlink_frame = MainFrame()
+    dxlink_frame = MainFrame(None)
     dxlink_frame.Show()
     # splash.Destroy()
 
