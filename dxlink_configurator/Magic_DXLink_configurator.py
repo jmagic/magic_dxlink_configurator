@@ -35,6 +35,7 @@ import Queue
 import webbrowser
 import requests
 import urllib
+from netaddr import IPRange
 from bs4 import BeautifulSoup
 from distutils.version import StrictVersion
 from pydispatch import dispatcher
@@ -259,7 +260,7 @@ class MainFrame(mdc_gui.MainFrame):
               'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
               verify=self.cert_path)
             # Scrape page for latest version
-            soup = BeautifulSoup(webpage.text)
+            soup = BeautifulSoup(webpage.text, "html.parser")
             # Get the <div> sections in lable-latest
             # print 'divs'
             divs = soup.find_all("div", class_="release label-latest")
@@ -687,6 +688,22 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['turn_off_leds', obj,
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
+
+    def on_gen_dgx_100(self, event):
+        """Generates a list of IP's for the 100 series"""
+        item_id = event.GetId()
+        menu = event.GetEventObject()
+        menuItem = menu.FindItemById(item_id)
+        num_of_devices = str(int(menuItem.GetLabel().split()[1][:1])/2)
+        # print 
+       
+        ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
+        for address in list(ip_range):
+            new_unit = self.create_add_unit(ip_ad=address)
+            self.main_list.AddObject(new_unit)
+        ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
+        for address in list(ip_range):
+            print str(address)
 
     def enable_wd(self, _):
         """Enables the Watchdog"""
