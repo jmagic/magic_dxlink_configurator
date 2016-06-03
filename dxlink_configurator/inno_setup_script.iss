@@ -29,6 +29,10 @@ SolidCompression=yes
 VersionInfoVersion={#MyAppVersion}
 UninstallDisplayIcon={app}\icon\MDC_icon.ico
 
+[InstallDelete]
+Type: files; Name: {app}\kernel32
+Type: files; Name: {app}\cacert.pem
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
