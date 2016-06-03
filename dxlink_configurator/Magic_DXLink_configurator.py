@@ -33,17 +33,16 @@ import csv
 from ObjectListView import ObjectListView, ColumnDefn
 import Queue
 import webbrowser
-import requests
+# import requests
 import urllib
-from bs4 import BeautifulSoup
-from distutils.version import StrictVersion
+from netaddr import IPRange
+# from bs4 import BeautifulSoup
+# from distutils.version import StrictVersion
 from pydispatch import dispatcher
 from threading import Thread
-import subprocess
 import sys
-import time
 from netaddr import IPNetwork
-from scripts import (config_menus, dhcp_sniffer, mdc_gui, send_command,
+from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
 
@@ -81,13 +80,15 @@ class MainFrame(mdc_gui.MainFrame):
     def __init__(self, parent):
         mdc_gui.MainFrame.__init__(self, parent)
 
-        self.parent = parent
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.2.3"
-
+        self.version = "v3.3.1"
+        self.path = os.path.expanduser(
+                '~\\Documents\\' + self.name + '\\')
+        self.SetTitle(self.name + " " + self.version)
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
+        self.check_migrate()
 
         self.dxtx_models_default = (
             'DXLINK-HDMI-MFTX, ' +
@@ -136,8 +137,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.dxfrx_models = []
         self.config_fail = False
         self.telnet_missing = False
-        self.path = os.path.expanduser(
-                '~\\Documents\\Magic_DXLink_Configurator\\')
         self.read_config_file()
         self.check_for_telnet_client()
 
@@ -243,7 +242,12 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
         if self.check_for_updates:
-            Thread(target=self.update_check).start()
+            update_thread = auto_update.AutoUpdate(self, self.version, self.name)
+            update_thread.setDaemon(True)
+            update_thread.start()
+
+        # if self.check_for_updates:
+        #     Thread(target=self.update_check).start()
 
         # dia = config_menus.TestDia(self)
         # dia.Show()
@@ -253,103 +257,121 @@ class MainFrame(mdc_gui.MainFrame):
         return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
                             relative)
 
-    def update_check(self):
-        """Checks on line for updates"""
-        # print 'in update'
+    def check_migrate(self):
+        """Migrates data folder"""
         try:
-            webpage = requests.get(
-              'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
-              verify=self.cert_path)
-            # Scrape page for latest version
-            soup = BeautifulSoup(webpage.text)
-            # Get the <div> sections in lable-latest
-            # print 'divs'
-            divs = soup.find_all("div", class_="release label-latest")
-            # Get the 'href' of the release
-            url_path = divs[0].find_all('a')[-3].get('href')
-            # Get the 'verison' number
-            online_version = url_path.split('/')[-2][1:]
-            if StrictVersion(online_version) > StrictVersion(self.version[1:]):
-                # Try update
-                # print 'try update'
-                self.do_update(url_path, online_version)
-            else:
-                # All up to date pass
-                # print 'up to date'
-                return
+            # if not os.path.exists(self.path):
+            #         os.makedirs(self.path)
+            old_folder_path = os.path.expanduser('~\\Documents\\' + 'Magic_DXLink_Configurator')
+            if os.path.exists(old_folder_path):
+                os.rename(old_folder_path, self.path)
+                # print 'in check migrate: ', old_folder_path + 'oaut'
+                # print 'test: ', os.path.exists(old_folder_path)
+                # if os.path.exists(old_folder_path + '\\oauth.json'):
+                #     os.rename(old_folder_path + '\\oauth.json', self.path + '\\oauth.json')
+                # if os.path.exists(old_folder_path + '\\settings.txt'):
+                #     os.rename(old_folder_path + '\\settings.txt', self.path + '\\settings.txt')
+                # os.rmdir(old_folder_path)
         except Exception as error:
-            # print 'error'error
-            # we have had a problem, maybe update will work next time.
-            # print 'error ', error
-            pass
+            print 'Error in migration: ', error
 
-    def do_update(self, url_path, online_version):
-        """download and install"""
-        # ask if they want to update
-        dlg = wx.MessageDialog(
-                parent=self,
-                message='A new Magic DXLink Configurator is available v' +
-                        str(StrictVersion(online_version)) + '\r' +
-                        'Do you want to download and update?',
-                        caption='Do you want to update?',
-                        style=wx.OK | wx.CANCEL)
-        if dlg.ShowModal() == wx.ID_OK:
-            response = requests.get('https://github.com' + url_path,
-                                    verify=self.cert_path, stream=True)
-            # print response
-            if not response.ok:
-                return
-            total_length = response.headers.get('content-length')
-            if total_length is None:  # no content length header
-                pass
-            else:
-                total_length = int(total_length)
-                dlg2 = wx.ProgressDialog("Download Progress",
-                                         "Downloading update now",
-                                         maximum=total_length,
-                                         parent=self,
-                                         style=wx.PD_APP_MODAL
-                                         | wx.PD_AUTO_HIDE
-                                         | wx.PD_CAN_ABORT
-                                         # | wx.PD_ESTIMATED_TIME
-                                         # | wx.PD_REMAINING_TIME
-                                         | wx.PD_ELAPSED_TIME
-                                         )
-                temp_folder = os.environ.get('temp')
-                with open(temp_folder +
-                          '\Magic_DXLink_Configurator_Setup_' +
-                          str(StrictVersion(online_version)) +
-                          '.exe', 'wb') as handle:
+    # def update_check(self):
+    #     """Checks on line for updates"""
+    #     # print 'in update'
+    #     try:
+    #         webpage = requests.get(
+    #           'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
+    #           verify=self.cert_path)
+    #         # Scrape page for latest version
+    #         soup = BeautifulSoup(webpage.text, "html.parser")
+    #         # Get the <div> sections in lable-latest
+    #         # print 'divs'
+    #         divs = soup.find_all("div", class_="release label-latest")
+    #         # Get the 'href' of the release
+    #         url_path = divs[0].find_all('a')[-3].get('href')
+    #         # Get the 'verison' number
+    #         online_version = url_path.split('/')[-2][1:]
+    #         if StrictVersion(online_version) > StrictVersion(self.version[1:]):
+    #             # Try update
+    #             # print 'try update'
+    #             self.do_update(url_path, online_version)
+    #         else:
+    #             # All up to date pass
+    #             # print 'up to date'
+    #             return
+    #     except Exception as error:
+    #         # print 'error'error
+    #         # we have had a problem, maybe update will work next time.
+    #         # print 'error ', error
+    #         pass
 
-                    count = 0
-                    for data in response.iter_content(1024):
-                        count += len(data)
-                        handle.write(data)
-                        (cancel, skip) = dlg2.Update(count)
-                        if not cancel:
-                            break
+    # def do_update(self, url_path, online_version):
+    #     """download and install"""
+    #     # ask if they want to update
+    #     dlg = wx.MessageDialog(
+    #             parent=self,
+    #             message='A new Magic DXLink Configurator is available v' +
+    #                     str(StrictVersion(online_version)) + '\r' +
+    #                     'Do you want to download and update?',
+    #                     caption='Do you want to update?',
+    #                     style=wx.OK | wx.CANCEL)
+    #     if dlg.ShowModal() == wx.ID_OK:
+    #         response = requests.get('https://github.com' + url_path,
+    #                                 verify=self.cert_path, stream=True)
+    #         # print response
+    #         if not response.ok:
+    #             return
+    #         total_length = response.headers.get('content-length')
+    #         if total_length is None:  # no content length header
+    #             pass
+    #         else:
+    #             total_length = int(total_length)
+    #             dlg2 = wx.ProgressDialog("Download Progress",
+    #                                      "Downloading update now",
+    #                                      maximum=total_length,
+    #                                      parent=self,
+    #                                      style=wx.PD_APP_MODAL |
+    #                                      | wx.PD_AUTO_HIDE |
+    #                                      | wx.PD_CAN_ABORT |
+    #                                      # | wx.PD_ESTIMATED_TIME
+    #                                      # | wx.PD_REMAINING_TIME
+    #                                      | wx.PD_ELAPSED_TIME
+    #                                      )
+    #             temp_folder = os.environ.get('temp')
+    #             with open(temp_folder +
+    #                       '\Magic_DXLink_Configurator_Setup_' +
+    #                       str(StrictVersion(online_version)) +
+    #                       '.exe', 'wb') as handle:
 
-                # print 'out of for loop'
-            dlg2.Destroy()
-            if not cancel:
-                return
-            self.install_update(online_version, temp_folder)
+    #                 count = 0
+    #                 for data in response.iter_content(1024):
+    #                     count += len(data)
+    #                     handle.write(data)
+    #                     (cancel, skip) = dlg2.Update(count)
+    #                     if not cancel:
+    #                         break
 
-    def install_update(self, online_version, temp_folder):
-        """Installs the downloaded update"""
-        dlg = wx.MessageDialog(
-            parent=self,
-            message='Do you want to update to version ' +
-                    str(StrictVersion(online_version)) + ' now?',
-            caption='Update program',
-            style=wx.OK | wx.CANCEL)
+    #             # print 'out of for loop'
+    #         dlg2.Destroy()
+    #         if not cancel:
+    #             return
+    #         self.install_update(online_version, temp_folder)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            os.startfile(temp_folder +
-                         '\Magic_DXLink_Configurator_Setup_' +
-                         str(StrictVersion(online_version)) +
-                         '.exe')
-            self.on_close(None)
+    # def install_update(self, online_version, temp_folder):
+    #     """Installs the downloaded update"""
+    #     dlg = wx.MessageDialog(
+    #         parent=self,
+    #         message='Do you want to update to version ' +
+    #                 str(StrictVersion(online_version)) + ' now?',
+    #         caption='Update program',
+    #         style=wx.OK | wx.CANCEL)
+
+    #     if dlg.ShowModal() == wx.ID_OK:
+    #         os.startfile(temp_folder +
+    #                      '\Magic_DXLink_Configurator_Setup_' +
+    #                      str(StrictVersion(online_version)) +
+    #                      '.exe')
+    #         self.on_close(None)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -690,6 +712,22 @@ class MainFrame(mdc_gui.MainFrame):
                                        self.telnet_timeout_seconds])
             self.set_status((obj, "Queued"))
 
+    def on_gen_dgx_100(self, event):
+        """Generates a list of IP's for the 100 series"""
+        item_id = event.GetId()
+        menu = event.GetEventObject()
+        menuItem = menu.FindItemById(item_id)
+        num_of_devices = str((int(menuItem.GetLabel().split()[1])/100))
+        # print 'num of ', num_of_devices
+
+        ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
+        # print 'ip_range: ', ip_range
+        for address in list(ip_range):
+            self.create_add_unit(ip_ad=str(address))
+        ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
+        for address in list(ip_range):
+            self.create_add_unit(ip_ad=str(address))
+
     def enable_wd(self, _):
         """Enables the Watchdog"""
         if self.check_for_none_selected():
@@ -803,8 +841,8 @@ class MainFrame(mdc_gui.MainFrame):
                                          defaultDir=self.path,
                                          defaultFile="",
                                          wildcard="CSV files (*.csv)|*.csv",
-                                         style=wx.FD_OPEN
-                                         | wx.FD_FILE_MUST_EXIST)
+                                         style=wx.FD_OPEN |
+                                         wx.FD_FILE_MUST_EXIST)
         if open_file_dialog.ShowModal() == wx.ID_OK:
             open_file_dialog.Destroy()
             dlg = wx.MessageDialog(parent=self, message='To replace ' +
@@ -932,11 +970,11 @@ class MainFrame(mdc_gui.MainFrame):
             ip_ad=sender[2],
             arrival_time=incoming_time)
 
-        print (incoming_time,
-               ' received ',
-               data.hostname,
-               data.mac_address,
-               data.ip_address)
+        # print (incoming_time,
+        #        ' received ',
+        #        data.hostname,
+        #        data.mac_address,
+        #        data.ip_address)
 
         self.status_bar.SetStatusText(
             incoming_time.strftime('%I:%M:%S%p') +
@@ -1092,7 +1130,6 @@ class MainFrame(mdc_gui.MainFrame):
         config.set('Settings', 'subnet filter', '')
         config.set('Settings', 'play sounds', True)
         config.set('Settings', 'check for updates', True)
-        
         config.add_section('Config')
         config.set('Config', 'debug', False)
         config.set('Config', 'columns_config', self.columns_default)

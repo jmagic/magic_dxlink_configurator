@@ -557,7 +557,7 @@ class Telnetjobs(Thread):
                     if self.parent.ping_active:
                         dispatcher.send(signal="Incoming Ping", sender=data)
                 if not self.parent.ping_active: 
-                    break  
+                    break
         ping.kill()
 
     def get_connection(self, obj, session, timeout):
@@ -565,8 +565,8 @@ class Telnetjobs(Thread):
         session.write('get connection \r')
         session.read_until('Mode:', timeout)
         connection_info = session.read_until('>', timeout).split()
-        if connection_info[0] == 'NDP':
-            if connection_info[7] == '(n/a)':
+        if connection_info[0] == 'NDP' or connection_info[0] == 'AUTO':
+            if connection_info[7] == '(n/a)' or connection_info[3] == '(not':
                 obj.master = 'not connected'
                 obj.system = '0'
             else:
