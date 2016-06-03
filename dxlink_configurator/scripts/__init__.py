@@ -1,6 +1,7 @@
 """Init file for the scripts folder"""
 
-__all__ = ['config_menus',
+__all__ = ['auto_update',
+		   'config_menus',
            'dhcp_sniffer',
            'dipswitch',
            'mdc_gui',
