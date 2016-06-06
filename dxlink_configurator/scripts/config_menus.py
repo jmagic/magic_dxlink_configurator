@@ -63,8 +63,8 @@ class PreferencesConfig(mdc_gui.Preferences):
             self.parent.default_connection_type = "AUTO"
         self.parent.play_sounds = self.sounds_chk.GetValue()
         self.parent.check_for_updates = self.check_for_updates_chk.GetValue()
-        if self.parent.check_for_updates:
-            Thread(target=self.parent.update_check).start()
+        # if self.parent.check_for_updates:
+        #     Thread(target=self.parent.update_check).start()
         self.parent.update_status_bar()
         self.parent.write_config_file()
         self.parent.select_columns()
