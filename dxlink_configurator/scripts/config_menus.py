@@ -4,7 +4,6 @@ import wx
 import csv
 from scripts import mdc_gui
 from netaddr import IPRange, IPNetwork
-from threading import Thread
 from pydispatch import dispatcher
 
 
@@ -166,7 +165,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
     def on_dhcp(self, _):
         """Sets DHCP mode on or off and enables the DHCP options"""
 
-        if self.dhcp_chk.GetValue() == True:
+        if self.dhcp_chk.GetValue() is True:
             self.ip_address_txt.Enable(False)
             self.subnet_txt.Enable(False)
             self.gateway_txt.Enable(False)
@@ -183,6 +182,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.parent.configure_list.remove(self.obj)
         self.parent.main_list.SelectObjects(selected_items,
                                             deselectOthers=True)
+        self.parent.cancel = True
         self.Destroy()
 
     def on_abort(self, _):
@@ -193,7 +193,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
 
     def on_set(self, _):
         """Sends the setting to the device"""
-        if self.dhcp_chk.GetValue() == True:
+        if self.dhcp_chk.GetValue() is True:
             setdhcp = True
         else:
             setdhcp = False

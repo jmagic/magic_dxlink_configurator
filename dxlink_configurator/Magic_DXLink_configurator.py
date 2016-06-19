@@ -82,8 +82,10 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.name = "Magic DXLink Configurator"
         self.version = "v3.3.1"
-        self.path = os.path.expanduser(
-                '~\\Documents\\' + self.name + '\\')
+        self.path = os.path.expanduser(os.path.join(
+                '~', 'Documents', self.name))
+        self.settings_path = os.path.join(self.path, 'settings.txt')
+        self.data_path = os.path.join(self.path, 'data.pkl')
         self.SetTitle(self.name + " " + self.version)
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
@@ -151,6 +153,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.ping_objects = []
         self.ping_active = False
         self.ping_window = None
+        self.cancel = False
         self.abort = False
         self.dev_inc_num = 0
 
@@ -198,6 +201,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.select_columns()
         self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
+        self.migrate_pickle()
         self.load_data_pickle()
         self.update_status_bar()
 
@@ -246,11 +250,7 @@ class MainFrame(mdc_gui.MainFrame):
             update_thread.setDaemon(True)
             update_thread.start()
 
-        # if self.check_for_updates:
-        #     Thread(target=self.update_check).start()
-
-        # dia = config_menus.TestDia(self)
-        # dia.Show()
+        
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -260,118 +260,11 @@ class MainFrame(mdc_gui.MainFrame):
     def check_migrate(self):
         """Migrates data folder"""
         try:
-            # if not os.path.exists(self.path):
-            #         os.makedirs(self.path)
-            old_folder_path = os.path.expanduser('~\\Documents\\' + 'Magic_DXLink_Configurator')
+            old_folder_path = os.path.expanduser(os.path.join('~', 'Documents',  'Magic_DXLink_Configurator'))
             if os.path.exists(old_folder_path):
                 os.rename(old_folder_path, self.path)
-                # print 'in check migrate: ', old_folder_path + 'oaut'
-                # print 'test: ', os.path.exists(old_folder_path)
-                # if os.path.exists(old_folder_path + '\\oauth.json'):
-                #     os.rename(old_folder_path + '\\oauth.json', self.path + '\\oauth.json')
-                # if os.path.exists(old_folder_path + '\\settings.txt'):
-                #     os.rename(old_folder_path + '\\settings.txt', self.path + '\\settings.txt')
-                # os.rmdir(old_folder_path)
         except Exception as error:
             print 'Error in migration: ', error
-
-    # def update_check(self):
-    #     """Checks on line for updates"""
-    #     # print 'in update'
-    #     try:
-    #         webpage = requests.get(
-    #           'https://github.com/AMXAUNZ/Magic-DXLink-Configurator/releases',
-    #           verify=self.cert_path)
-    #         # Scrape page for latest version
-    #         soup = BeautifulSoup(webpage.text, "html.parser")
-    #         # Get the <div> sections in lable-latest
-    #         # print 'divs'
-    #         divs = soup.find_all("div", class_="release label-latest")
-    #         # Get the 'href' of the release
-    #         url_path = divs[0].find_all('a')[-3].get('href')
-    #         # Get the 'verison' number
-    #         online_version = url_path.split('/')[-2][1:]
-    #         if StrictVersion(online_version) > StrictVersion(self.version[1:]):
-    #             # Try update
-    #             # print 'try update'
-    #             self.do_update(url_path, online_version)
-    #         else:
-    #             # All up to date pass
-    #             # print 'up to date'
-    #             return
-    #     except Exception as error:
-    #         # print 'error'error
-    #         # we have had a problem, maybe update will work next time.
-    #         # print 'error ', error
-    #         pass
-
-    # def do_update(self, url_path, online_version):
-    #     """download and install"""
-    #     # ask if they want to update
-    #     dlg = wx.MessageDialog(
-    #             parent=self,
-    #             message='A new Magic DXLink Configurator is available v' +
-    #                     str(StrictVersion(online_version)) + '\r' +
-    #                     'Do you want to download and update?',
-    #                     caption='Do you want to update?',
-    #                     style=wx.OK | wx.CANCEL)
-    #     if dlg.ShowModal() == wx.ID_OK:
-    #         response = requests.get('https://github.com' + url_path,
-    #                                 verify=self.cert_path, stream=True)
-    #         # print response
-    #         if not response.ok:
-    #             return
-    #         total_length = response.headers.get('content-length')
-    #         if total_length is None:  # no content length header
-    #             pass
-    #         else:
-    #             total_length = int(total_length)
-    #             dlg2 = wx.ProgressDialog("Download Progress",
-    #                                      "Downloading update now",
-    #                                      maximum=total_length,
-    #                                      parent=self,
-    #                                      style=wx.PD_APP_MODAL |
-    #                                      | wx.PD_AUTO_HIDE |
-    #                                      | wx.PD_CAN_ABORT |
-    #                                      # | wx.PD_ESTIMATED_TIME
-    #                                      # | wx.PD_REMAINING_TIME
-    #                                      | wx.PD_ELAPSED_TIME
-    #                                      )
-    #             temp_folder = os.environ.get('temp')
-    #             with open(temp_folder +
-    #                       '\Magic_DXLink_Configurator_Setup_' +
-    #                       str(StrictVersion(online_version)) +
-    #                       '.exe', 'wb') as handle:
-
-    #                 count = 0
-    #                 for data in response.iter_content(1024):
-    #                     count += len(data)
-    #                     handle.write(data)
-    #                     (cancel, skip) = dlg2.Update(count)
-    #                     if not cancel:
-    #                         break
-
-    #             # print 'out of for loop'
-    #         dlg2.Destroy()
-    #         if not cancel:
-    #             return
-    #         self.install_update(online_version, temp_folder)
-
-    # def install_update(self, online_version, temp_folder):
-    #     """Installs the downloaded update"""
-    #     dlg = wx.MessageDialog(
-    #         parent=self,
-    #         message='Do you want to update to version ' +
-    #                 str(StrictVersion(online_version)) + ' now?',
-    #         caption='Update program',
-    #         style=wx.OK | wx.CANCEL)
-
-    #     if dlg.ShowModal() == wx.ID_OK:
-    #         os.startfile(temp_folder +
-    #                      '\Magic_DXLink_Configurator_Setup_' +
-    #                      str(StrictVersion(online_version)) +
-    #                      '.exe')
-    #         self.on_close(None)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -535,7 +428,7 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.path.exists((self.path + self.telnet_client)):
+        if os.path.exists(os.path.join(self.path, self.telnet_client)):
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'ssh'])
@@ -782,7 +675,7 @@ class MainFrame(mdc_gui.MainFrame):
     def dump_pickle(self):
         """Saves list data to a file"""
         pickle.dump(self.main_list.GetObjects(), open(
-            (self.path + 'data_' + self.version + '.pkl'), 'wb'))
+            (self.data_path), 'wb'))
 
     def export_to_csv(self, _):
         """Store list items in a CSV file"""
@@ -1014,7 +907,7 @@ class MainFrame(mdc_gui.MainFrame):
         """Reads the config file"""
         config = ConfigParser.RawConfigParser()
         try:  # read the settings file
-            config.read((self.path + "settings.txt"))
+            config.read((self.settings_path))
             self.master_address = (config.get(
                 'Settings', 'default master address'))
             self.device_number = (config.get(
@@ -1090,11 +983,11 @@ class MainFrame(mdc_gui.MainFrame):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         try:
-            if os.path.exists(self.path + 'settings.txt'):
-                os.remove(self.path + 'settings.txt')
+            if os.path.exists(self.settings_path):
+                os.remove(self.settings_path)
         except OSError:
             pass
-        with open((self.path + "settings.txt"), 'w') as config_file:
+        with open((self.settings_path), 'w') as config_file:
             config_file.write("")
         config = ConfigParser.RawConfigParser()
         config.add_section('Settings')
@@ -1122,13 +1015,13 @@ class MainFrame(mdc_gui.MainFrame):
             'Config', 'DXLink Fibre TX Models', self.dxftx_models_default)
         config.set(
             'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
-        with open((self.path + "settings.txt"), 'w') as configfile:
+        with open((self.settings_path), 'w') as configfile:
             config.write(configfile)
 
     def write_config_file(self):
         """Update values in config file"""
         config = ConfigParser.RawConfigParser()
-        config.read((self.path + "settings.txt"))
+        config.read((self.settings_path))
         config.set('Settings', 'default master address', self.master_address)
         config.set('Settings', 'default device number', self.device_number)
         config.set('Settings', 'default connection type',
@@ -1152,12 +1045,12 @@ class MainFrame(mdc_gui.MainFrame):
             columns = columns + item + ', '
         columns = columns[:-2]
         config.set('Config', 'columns_config', columns)
-        with open((self.path + "settings.txt"), 'w') as configfile:
+        with open((self.settings_path), 'w') as configfile:
             config.write(configfile)
 
     def check_for_telnet_client(self):
         """Checks if telnet client in the path"""
-        if not os.path.exists(self.path + self.telnet_client):
+        if not os.path.exists(os.path.join(self.path, self.telnet_client)):
             self.telnet_missing = True
 
     def telnet_missing_dia(self):
@@ -1177,7 +1070,7 @@ class MainFrame(mdc_gui.MainFrame):
                 # resp = requests.head(putty_url)
                 # if resp.status_code != 404:
                 Thread(target=urllib.urlretrieve,
-                       args=(putty_url, self.path + 'putty.exe')).start()
+                       args=(putty_url, os.path.join(self.path, 'putty.exe'))).start()
                 dlg.Destroy()
                 return
             except:
@@ -1213,8 +1106,12 @@ class MainFrame(mdc_gui.MainFrame):
             dia.ShowModal()
             dia.Destroy()
             self.dev_inc_num += 1
+            if self.cancel is True:
+                self.cancel = False
+                self.set_status((obj, ""))
             if self.abort is True:
                 self.abort = False
+                self.set_status((obj, ""))
                 return
         if self.configure_list == []:
             return
@@ -1225,11 +1122,22 @@ class MainFrame(mdc_gui.MainFrame):
         dia.ShowModal()
         dia.Destroy()
 
+    def migrate_pickle(self):
+        """Migrates a pickle"""
+        try:
+            old_path = os.path.join(self.path, 'data_v3.3.1.pkl')
+            if os.path.exists(old_path):
+                os.rename(old_path,
+                          os.path.join(self.path, 'data.pkl'))
+        except Exception as error:
+            print "Error migrating pickle: ", error
+
+
     def load_data_pickle(self):
-        """Loads main list from data file"""
-        if os.path.exists(self.path + 'data_' + self.version + '.pkl'):
+        """Loads main list from data file"""        
+        if os.path.exists(self.data_path):
             try:
-                with open((self.path + 'data_' + self.version + '.pkl'),
+                with open((self.data_path),
                           'rb') as data_file:
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
@@ -1240,9 +1148,9 @@ class MainFrame(mdc_gui.MainFrame):
     def new_pickle(self):
         """Creates a new pickle if there is a problem with the old one"""
         try:
-            if os.path.exists((self.path + 'data_' + self.version + '.pkl')):
-                os.rename(self.path + 'data_' + self.version + '.pkl',
-                          self.path + 'data_' + self.version + '.bad')
+            if os.path.exists(self.data_path):
+                os.rename(self.data_path,
+                          os.path.join(self.path, 'data_', self.version, '.bad'))
         except IOError:
             dlg = wx.MessageDialog(parent=self, message='There is a problem ' +
                                    'with the .pkl data file. Please delete ' +
