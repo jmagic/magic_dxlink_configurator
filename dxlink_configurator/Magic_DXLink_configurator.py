@@ -616,25 +616,8 @@ class MainFrame(mdc_gui.MainFrame):
         if self.check_for_none_selected():
             return
         if self.ping_active:
-            dlg = wx.MessageDialog(parent=self, message='You already have a ' +
-                                   'ping window open',
-                                   caption='Are you crazy?',
-                                   style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
+            self.ping_window.add_items(self.main_list.GetSelectedObjects())
             return
-        if len(self.main_list.GetSelectedObjects()) > int(self.thread_number):
-            dlg = wx.MessageDialog(parent=self, message='I can only ping ' +
-                                   self.thread_number +
-                                   ' devices at a time \nPlease select less ' +
-                                   'than ' + self.thread_number +
-                                   ' devices at once',
-                                   caption='How many pings?',
-                                   style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-            return
-
         self.ping_active = True
         self.ping_window = multi_ping.MultiPing(
             self, self.main_list.GetSelectedObjects())
@@ -1303,6 +1286,8 @@ class MainFrame(mdc_gui.MainFrame):
         self.Hide()
         if self.ping_window is not None:
             self.ping_window.Hide()
+            for item in self.ping_window.ping_threads:
+                item.join()
 
         self.mse_active_list = []
         self.telnet_job_queue.join()
