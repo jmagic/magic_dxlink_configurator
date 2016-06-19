@@ -217,6 +217,7 @@ class MainFrame ( wx.Frame ):
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
 		
+		
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
@@ -661,7 +662,7 @@ class Preferences ( wx.Dialog ):
 class MultiPing ( wx.Dialog ):
 	
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 730,300 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 760,300 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 		
 		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
 		
@@ -681,32 +682,36 @@ class MultiPing ( wx.Dialog ):
 		
 		bSizer4.Add( bSizer44, 1, wx.EXPAND, 5 )
 		
-		bSizer45 = wx.BoxSizer( wx.VERTICAL )
+		bSizer45 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		sbSizer8 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Logging" ), wx.HORIZONTAL )
 		
 		bSizer65 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.log_enable_chk = wx.CheckBox( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer65.Add( self.log_enable_chk, 0, wx.ALL, 5 )
+		bSizer67 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.log_file_txt = wx.StaticText( sbSizer8.GetStaticBox(), wx.ID_ANY, u"logfile", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.log_file_txt.Wrap( -1 )
-		bSizer65.Add( self.log_file_txt, 0, wx.ALL, 5 )
+		self.log_enable_chk = wx.CheckBox( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer67.Add( self.log_enable_chk, 0, wx.ALL, 5 )
+		
+		self.log_link_txt = wx.HyperlinkCtrl( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Open Log Folder", u"file:\\", wx.DefaultPosition, wx.DefaultSize, wx.HL_DEFAULT_STYLE )
+		bSizer67.Add( self.log_link_txt, 0, wx.ALL, 5 )
+		
+		
+		bSizer65.Add( bSizer67, 1, wx.EXPAND, 5 )
 		
 		
 		sbSizer8.Add( bSizer65, 1, wx.EXPAND, 5 )
 		
+		
+		bSizer45.Add( sbSizer8, 0, wx.EXPAND|wx.ALL, 5 )
+		
 		bSizer66 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_button10 = wx.Button( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Reset Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer66.Add( self.m_button10, 0, wx.ALL, 5 )
+		self.m_button10 = wx.Button( self, wx.ID_ANY, u"Reset Selected", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer66.Add( self.m_button10, 0, wx.ALL|wx.ALIGN_RIGHT, 5 )
 		
 		
-		sbSizer8.Add( bSizer66, 0, wx.ALIGN_BOTTOM, 5 )
-		
-		
-		bSizer45.Add( sbSizer8, 0, wx.EXPAND, 5 )
+		bSizer45.Add( bSizer66, 1, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 		
 		
 		bSizer4.Add( bSizer45, 0, wx.EXPAND, 5 )
@@ -715,8 +720,11 @@ class MultiPing ( wx.Dialog ):
 		self.SetSizer( bSizer4 )
 		self.Layout()
 		self.rc_menu = wx.Menu()
-		self.m_menuItem37 = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Show Details", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.m_menuItem37 )
+		self.details_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Show Details", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.details_rc_menu )
+		
+		self.delete_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.AppendItem( self.delete_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MultiPingOnContextMenu ) 
 		
@@ -726,7 +734,8 @@ class MultiPing ( wx.Dialog ):
 		# Connect Events
 		self.log_enable_chk.Bind( wx.EVT_CHECKBOX, self.on_log_enable )
 		self.m_button10.Bind( wx.EVT_BUTTON, self.on_reset )
-		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.m_menuItem37.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.details_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete, id = self.delete_rc_menu.GetId() )
 	
 	def __del__( self ):
 		pass
@@ -740,6 +749,9 @@ class MultiPing ( wx.Dialog ):
 		event.Skip()
 	
 	def on_show_details( self, event ):
+		event.Skip()
+	
+	def on_delete( self, event ):
 		event.Skip()
 	
 	def MultiPingOnContextMenu( self, event ):
