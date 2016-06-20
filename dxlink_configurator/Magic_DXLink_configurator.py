@@ -399,7 +399,7 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.Destroy()
             return
 
-        if os.path.exists((self.path + self.telnet_client)):
+        if os.path.exists(os.path.join(self.path, self.telnet_client)):
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'telnet'])

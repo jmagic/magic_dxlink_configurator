@@ -1,6 +1,6 @@
 """Opens a subprocess to launch the telnet client"""
-
-import threading 
+import os
+import threading
 import subprocess
 from pydispatch import dispatcher
 
@@ -21,17 +21,16 @@ class TelnetToThread(threading.Thread):
             self.set_status(obj, "Telnet")
             if self.parent.telnet_client == 'putty.exe':
                 subprocess.call(
-                    [(self.parent.path + 
-                      self.parent.telnet_client),
+                    [os.path.join(self.parent.path,
+                     self.parent.telnet_client),
                      ('-' + task), obj.ip_address])
 
-
-            else:                
+            else:
                 subprocess.call(
-                    (self.parent.path + 
-                     self.parent.telnet_client +
-                     " " + 
-                     obj.ip_address))
+                    [os.path.join(self.parent.path,
+                     self.parent.telnet_client) +
+                     " " +
+                     obj.ip_address])
 
             self.set_status(obj, "Success")
 
