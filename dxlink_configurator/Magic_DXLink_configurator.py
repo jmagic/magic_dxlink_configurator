@@ -81,7 +81,7 @@ class MainFrame(mdc_gui.MainFrame):
         mdc_gui.MainFrame.__init__(self, parent)
 
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.3.2"
+        self.version = "v3.3.3"
         self.path = os.path.expanduser(os.path.join(
                 '~', 'Documents', self.name))
         self.settings_path = os.path.join(self.path, 'settings.txt')
@@ -399,7 +399,7 @@ class MainFrame(mdc_gui.MainFrame):
             dlg.Destroy()
             return
 
-        if os.path.exists((self.path + self.telnet_client)):
+        if os.path.exists(os.path.join(self.path, self.telnet_client)):
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'telnet'])
