@@ -6,7 +6,6 @@ from ObjectListView import ObjectListView, ColumnDefn
 import datetime
 import csv
 import os
-import time
 import mdc_gui
 import ping_class
 
@@ -16,18 +15,32 @@ class PingUnit(object):
     Model of the Ping Unit
 
     Contains the following attributes:
-    'hostname','serial','device','mac',
+    'hostname','serial','device','mac','thread'
     """
     # ----------------------------------------------------------------------
-    def __init__(self, ping_data, hostname, serial, ip_address, mac_address):
-
-        self.ping_data = ping_data
-        self.hostname = hostname
-        self.serial = serial
-        self.ip_address = ip_address
-        self.mac_address = mac_address
+    def __init__(self, parent, obj):
+        self.parent = parent
+        self.obj = obj
+        self.ping_data = []
+        self.hostname = obj.hostname
+        self.serial = obj.serial
+        self.ip_address = obj.ip_address
+        self.mac_address = obj.mac_address
         self.success = 0
         self.failed = 0
+        self.log = ('device_' +
+                    obj.ip_address +
+                    '_time_' +
+                    datetime.datetime.now().strftime('%H_%M_%S') +
+                    '.csv')
+        self.thread = self.start_thread(obj)
+
+    def start_thread(self, obj):
+        """Starts pinging ip_address"""
+        ping_thread = ping_class.PingJob(self.parent, obj)
+        ping_thread.setDaemon(True)
+        ping_thread.start()
+        return ping_thread
 
 
 class Ping_Data_Unit(object):
@@ -142,29 +155,30 @@ class MultiPing(mdc_gui.MultiPing):
 
         self.parent = parent
         self.SetTitle("Multiple Ping Monitor")
-        self.ping_objects = self.set_objects(device_list)
-        self.ping_list.SetObjects(self.ping_objects)
+        self.ping_objects = []
+        # self.ping_objects = self.create_objects(device_list)
+        # self.ping_list.AddObjects(self.ping_objects)
+        self.add_items(device_list)
         self.log_files = {}
         self.log_link_txt.SetURL(os.path.join(self.parent.path, 'ping_logs'))
         self.logging = False
         self.on_log_enable(None)
-        self.ping_threads = []
+        # self.
+        # self.ping_threads = []
 
-        for obj in device_list:
-            ping_thread = ping_class.PingJob(self, obj)
-            ping_thread.setDaemon(True)
-            ping_thread.start()
-            self.ping_threads.append(ping_thread)
-            # self.parent.telnet_job_queue.put(
-            #     ['ping', obj, self.parent.telnet_timeout_seconds])
+        # for obj in device_list:
+        #     ping_thread = ping_class.PingJob(self, obj)
+        #     ping_thread.setDaemon(True)
+        #     ping_thread.start()
+        #     self.ping_threads.append(ping_thread)
 
-        for obj in self.ping_objects:
-            self.log_files[obj] = (
-                'device_' +
-                obj.ip_address +
-                '_time_' +
-                datetime.datetime.now().strftime('%H_%M_%S') +
-                '.csv')
+        # for obj in self.ping_objects:
+        #     self.log_files[obj] = (
+        #         'device_' +
+        #         obj.ip_address +
+        #         '_time_' +
+        #         datetime.datetime.now().strftime('%H_%M_%S') +
+        #         '.csv')
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -180,24 +194,17 @@ class MultiPing(mdc_gui.MultiPing):
         """ Refreshes the display """
         self.ping_list.RefreshObjects(self.ping_list.GetObjects())
 
-    def add_items(self, objs):
-        new_objs = self.set_objects(objs)
-
-        for obj in new_objs:
-            for item in self.ping_objects:
-                if item.ip_address == obj.ip_address:
-                    return
-            self.ping_objects.append(obj)
-            self.parent.telnet_job_queue.put(
-                ['ping', obj, self.parent.telnet_timeout_seconds])
-
-            self.log_files[obj] = (
-                'device_' +
-                obj.ip_address +
-                '_time_' +
-                datetime.datetime.now().strftime('%H_%M_%S') +
-                '.csv')
-        self.ping_list.SetObjects(self.ping_objects)
+    def add_items(self, device_list):
+        """Adds new devices to the list"""
+        current_ip_addresses = []
+        for obj in self.ping_objects:
+            current_ip_addresses.append(obj.ip_address)
+        for obj in device_list:
+            # print 'compare: ', obj.ip_address, current_ip_addresses
+            if obj.ip_address not in current_ip_addresses:
+                new_obj = self.create_objects([obj])
+                self.ping_objects.extend(new_obj)
+                self.ping_list.AddObjects(new_obj)
 
     def on_delete(self, event):
         """Removes an item from pinging"""
@@ -221,18 +228,11 @@ class MultiPing(mdc_gui.MultiPing):
             obj.failed = 0
             self.ping_list.RefreshObject(obj)
 
-    def set_objects(self, device_list):
+    def create_objects(self, device_list):
         """Creates a ping object and adds it to the list"""
         new_objs = []
         for obj in device_list:
-
-            data = PingUnit(
-                [],
-                obj.hostname,
-                obj.serial,
-                obj.ip_address,
-                obj.mac_address)
-            new_objs.append(data)
+            new_objs.append(PingUnit(self, obj))
         return new_objs
 
     def set_ping_data(self, ping_info):
@@ -245,40 +245,21 @@ class MultiPing(mdc_gui.MultiPing):
     def on_log_enable(self, event):
         """Toggles log enable"""
         if self.log_enable_chk.GetValue():
-            # self.log_file_txt.SetLabel(
-            #     'Logging to: ' +
-            #     self.parent.path + 'ping_logs\\'
-            #     'device_***IP of device***_' +
-            #     time.strftime('%d-%b-%Y-%H-%M-%S') +
-            #     '.txt')
             self.logging = True
         else:
-            # self.log_file_txt.SetLabel('')
             self.logging = False
 
     def on_incoming_ping(self, sender):
         """Process an incoming ping"""
-        # switch to true to log pings
-        # print sender
-        # print '.'
         if self.parent.ping_active:
-            # for item in sender:
-            # print 'start incoming'
-            # print sender[0]
-            # print sender[0].ip
             for obj in self.ping_objects:
-
                 if sender[0].ip_address == obj.ip_address:
-
                     obj.ping_data.append(self.set_ping_data(sender[1]))
-
                     if sender[1][2] == 'Yes':
                         obj.success += 1
                     else:
                         obj.failed += 1
-                    # print 'success', str(obj.success)
-                    # print 'finish incoming'
-                    # self.ping_list.RefreshObject(obj)
+
                     if self.logging:
                         self.save_log(obj)
 
@@ -300,7 +281,7 @@ class MultiPing(mdc_gui.MultiPing):
         log_path = os.path.join(self.parent.path, 'ping_logs')
         if not os.path.exists(log_path):
             os.makedirs(log_path)
-        output_file = os.path.join(log_path, self.log_files[obj])
+        output_file = os.path.join(log_path, obj.log)
 
         with open(output_file, 'ab') as log_file:
             writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)

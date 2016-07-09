@@ -508,6 +508,9 @@ class MainFrame(mdc_gui.MainFrame):
         """Ping and track results of many devices"""
         if self.check_for_none_selected():
             return
+        if not self.ping_active and self.ping_window is not None:
+            print 'still shutting down last window'
+            return
         if self.ping_active:
             self.ping_window.add_items(self.main_list.GetSelectedObjects())
             return
@@ -1132,9 +1135,8 @@ class MainFrame(mdc_gui.MainFrame):
         except Exception as error:
             print "Error migrating pickle: ", error
 
-
     def load_data_pickle(self):
-        """Loads main list from data file"""        
+        """Loads main list from data file"""
         if os.path.exists(self.data_path):
             try:
                 with open((self.data_path),
@@ -1194,8 +1196,8 @@ class MainFrame(mdc_gui.MainFrame):
         self.Hide()
         if self.ping_window is not None:
             self.ping_window.Hide()
-            for item in self.ping_window.ping_threads:
-                item.join()
+            for item in self.ping_window.ping_objects:
+                item.thread.join()
 
         self.mse_active_list = []
         self.telnet_job_queue.join()
@@ -1267,7 +1269,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
     # splash = show_splash()
 
     # do processing/initialization here and create main window
