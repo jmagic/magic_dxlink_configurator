@@ -262,7 +262,11 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             old_folder_path = os.path.expanduser(os.path.join('~', 'Documents',  'Magic_DXLink_Configurator'))
             if os.path.exists(old_folder_path):
-                os.rename(old_folder_path, self.path)
+                try:
+                    os.rename(old_folder_path, self.path)
+                except Exception as error:
+                    print 'Migration: Both old and new files exsist, moving to conflicts'
+                    os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
         except Exception as error:
             print 'Error in migration: ', error
 
@@ -919,11 +923,11 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'default connection type'))
             self.default_dhcp = (config.getboolean(
                 'Settings', 'default enable DHCP'))
-            self.thread_number = (config.get(
+            self.thread_number = (config.getint(
                 'Settings', 'number of threads'))
             self.telnet_client = (config.get(
                 'Settings', 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.get(
+            self.telnet_timeout_seconds = (config.getint(
                 'Settings', 'telnet timeout in seconds'))
             self.dhcp_sniffing = (config.getboolean(
                 'Settings', 'DHCP sniffing enabled'))
@@ -1130,8 +1134,12 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             old_path = os.path.join(self.path, 'data_v3.3.1.pkl')
             if os.path.exists(old_path):
-                os.rename(old_path,
-                          os.path.join(self.path, 'data.pkl'))
+                try:
+                    os.rename(old_path,
+                              os.path.join(self.path, 'data.pkl'))
+                except Exception as error:
+                    print 'Unable to migrate pickle: ', error
+                    os.remove(old_path)
         except Exception as error:
             print "Error migrating pickle: ", error
 
@@ -1143,7 +1151,8 @@ class MainFrame(mdc_gui.MainFrame):
                           'rb') as data_file:
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
-            except (IOError, KeyError):
+            except Exception as error:
+                print 'Loading pickle error: ', error
                 self.new_pickle()
         self.main_list.SetSortColumn(0, resortNow=True)
 
@@ -1152,10 +1161,10 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             if os.path.exists(self.data_path):
                 os.rename(self.data_path,
-                          os.path.join(self.path, 'data_', self.version, '.bad'))
-        except IOError:
+                          os.path.join(self.path, 'data_' + self.version + '.bad'))
+        except Exception as error:
             dlg = wx.MessageDialog(parent=self, message='There is a problem ' +
-                                   'with the .pkl data file. Please delete ' +
+                                   'with the .pkl data file.' + str(error) + ' Please delete ' +
                                    'to continue. ' +
                                    ' The program will now exit',
                                    caption='Problem with .pkl file',
