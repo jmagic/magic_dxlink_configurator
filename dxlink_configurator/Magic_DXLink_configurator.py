@@ -228,6 +228,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
+        self.ping_window = None
         self.ping_model = multi_ping_model.MultiPing_Model(self.path)
 
         dispatcher.connect(self.incoming_packet,
