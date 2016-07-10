@@ -81,7 +81,7 @@ class MainFrame(mdc_gui.MainFrame):
         mdc_gui.MainFrame.__init__(self, parent)
 
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.3.3"
+        self.version = "v3.3.4"
         self.path = os.path.expanduser(os.path.join(
                 '~', 'Documents', self.name))
         self.settings_path = os.path.join(self.path, 'settings.txt')
