@@ -265,6 +265,9 @@ class MainFrame(mdc_gui.MainFrame):
                     os.rename(old_folder_path, self.path)
                 except Exception as error:
                     print 'Migration: Both old and new files exsist, moving to conflicts'
+                    if not os.path.exists(os.path.join(self.path, 'conflicts')):
+                        os.makedirs(os.path.join(self.path, 'conflicts'))
+
                     os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
         except Exception as error:
             print 'Error in migration: ', error
