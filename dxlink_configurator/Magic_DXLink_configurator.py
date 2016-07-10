@@ -43,7 +43,7 @@ from threading import Thread
 import sys
 from netaddr import IPNetwork
 from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
-                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     multi_ping, multi_ping_model, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
 
 
@@ -150,9 +150,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.mse_active_list = []
         self.serial_active = []
         self.port_error = False
-        self.ping_objects = []
-        self.ping_active = False
-        self.ping_window = None
         self.cancel = False
         self.abort = False
         self.dev_inc_num = 0
@@ -231,6 +228,8 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
+        self.ping_model = multi_ping_model.MultiPing_Model(self.path)
+
         dispatcher.connect(self.incoming_packet,
                            signal="Incoming Packet",
                            sender=dispatcher.Any)
@@ -250,7 +249,6 @@ class MainFrame(mdc_gui.MainFrame):
             update_thread.setDaemon(True)
             update_thread.start()
 
-        
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -512,16 +510,21 @@ class MainFrame(mdc_gui.MainFrame):
         """Ping and track results of many devices"""
         if self.check_for_none_selected():
             return
-        if not self.ping_active and self.ping_window is not None:
-            print 'still shutting down last window'
-            return
-        if self.ping_active:
-            self.ping_window.add_items(self.main_list.GetSelectedObjects())
-            return
-        self.ping_active = True
-        self.ping_window = multi_ping.MultiPing(
-            self, self.main_list.GetSelectedObjects())
-        self.ping_window.Show()
+        if type(self.ping_window) is not multi_ping.MultiPing:
+            self.ping_window = multi_ping.MultiPing(self)
+            self.ping_window.Show()
+        self.ping_model.add_items(self.main_list.GetSelectedObjects())
+
+    def multi_ping_remove(self, obj):
+        """Removes an item from multiping"""
+        self.ping_model.delete(obj)
+
+    def multi_ping_logging(self):
+        self.ping_model.toggle_logging()
+
+    def multi_ping_shutdown(self):
+        """Shuts down multi-ping"""
+        Thread(target=self.ping_model.shutdown).start()
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
@@ -1200,14 +1203,11 @@ class MainFrame(mdc_gui.MainFrame):
     def on_close(self, _):
         """Close program if user closes window"""
         self.dhcp_listener.shutdown = True
-        self.ping_active = False
         self.dump_pickle()
         self.Hide()
-        if self.ping_window is not None:
+        if type(self.ping_window) is multi_ping.MultiPing:
             self.ping_window.Hide()
-            for item in self.ping_window.ping_objects:
-                item.thread.join()
-
+        self.ping_model.shutdown()
         self.mse_active_list = []
         self.telnet_job_queue.join()
         self.Destroy()
