@@ -43,7 +43,7 @@ from threading import Thread
 import sys
 from netaddr import IPNetwork
 from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
-                     multi_ping, mse_baseline, telnet_class, telnetto_class,
+                     multi_ping, multi_ping_model, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
 
 
@@ -81,7 +81,7 @@ class MainFrame(mdc_gui.MainFrame):
         mdc_gui.MainFrame.__init__(self, parent)
 
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.3.3"
+        self.version = "v3.3.4"
         self.path = os.path.expanduser(os.path.join(
                 '~', 'Documents', self.name))
         self.settings_path = os.path.join(self.path, 'settings.txt')
@@ -150,9 +150,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.mse_active_list = []
         self.serial_active = []
         self.port_error = False
-        self.ping_objects = []
-        self.ping_active = False
-        self.ping_window = None
         self.cancel = False
         self.abort = False
         self.dev_inc_num = 0
@@ -231,6 +228,8 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
+        self.ping_model = multi_ping_model.MultiPing_Model(self.path)
+
         dispatcher.connect(self.incoming_packet,
                            signal="Incoming Packet",
                            sender=dispatcher.Any)
@@ -250,7 +249,6 @@ class MainFrame(mdc_gui.MainFrame):
             update_thread.setDaemon(True)
             update_thread.start()
 
-        
     # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
@@ -262,7 +260,11 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             old_folder_path = os.path.expanduser(os.path.join('~', 'Documents',  'Magic_DXLink_Configurator'))
             if os.path.exists(old_folder_path):
-                os.rename(old_folder_path, self.path)
+                try:
+                    os.rename(old_folder_path, self.path)
+                except Exception as error:
+                    print 'Migration: Both old and new files exsist, moving to conflicts'
+                    os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
         except Exception as error:
             print 'Error in migration: ', error
 
@@ -508,13 +510,21 @@ class MainFrame(mdc_gui.MainFrame):
         """Ping and track results of many devices"""
         if self.check_for_none_selected():
             return
-        if self.ping_active:
-            self.ping_window.add_items(self.main_list.GetSelectedObjects())
-            return
-        self.ping_active = True
-        self.ping_window = multi_ping.MultiPing(
-            self, self.main_list.GetSelectedObjects())
-        self.ping_window.Show()
+        if type(self.ping_window) is not multi_ping.MultiPing:
+            self.ping_window = multi_ping.MultiPing(self)
+            self.ping_window.Show()
+        self.ping_model.add_items(self.main_list.GetSelectedObjects())
+
+    def multi_ping_remove(self, obj):
+        """Removes an item from multiping"""
+        self.ping_model.delete(obj)
+
+    def multi_ping_logging(self):
+        self.ping_model.toggle_logging()
+
+    def multi_ping_shutdown(self):
+        """Shuts down multi-ping"""
+        Thread(target=self.ping_model.shutdown).start()
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
@@ -916,11 +926,11 @@ class MainFrame(mdc_gui.MainFrame):
                 'Settings', 'default connection type'))
             self.default_dhcp = (config.getboolean(
                 'Settings', 'default enable DHCP'))
-            self.thread_number = (config.get(
+            self.thread_number = (config.getint(
                 'Settings', 'number of threads'))
             self.telnet_client = (config.get(
                 'Settings', 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.get(
+            self.telnet_timeout_seconds = (config.getint(
                 'Settings', 'telnet timeout in seconds'))
             self.dhcp_sniffing = (config.getboolean(
                 'Settings', 'DHCP sniffing enabled'))
@@ -1127,21 +1137,25 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             old_path = os.path.join(self.path, 'data_v3.3.1.pkl')
             if os.path.exists(old_path):
-                os.rename(old_path,
-                          os.path.join(self.path, 'data.pkl'))
+                try:
+                    os.rename(old_path,
+                              os.path.join(self.path, 'data.pkl'))
+                except Exception as error:
+                    print 'Unable to migrate pickle: ', error
+                    os.remove(old_path)
         except Exception as error:
             print "Error migrating pickle: ", error
 
-
     def load_data_pickle(self):
-        """Loads main list from data file"""        
+        """Loads main list from data file"""
         if os.path.exists(self.data_path):
             try:
                 with open((self.data_path),
                           'rb') as data_file:
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
-            except (IOError, KeyError):
+            except Exception as error:
+                print 'Loading pickle error: ', error
                 self.new_pickle()
         self.main_list.SetSortColumn(0, resortNow=True)
 
@@ -1150,10 +1164,10 @@ class MainFrame(mdc_gui.MainFrame):
         try:
             if os.path.exists(self.data_path):
                 os.rename(self.data_path,
-                          os.path.join(self.path, 'data_', self.version, '.bad'))
-        except IOError:
+                          os.path.join(self.path, 'data_' + self.version + '.bad'))
+        except Exception as error:
             dlg = wx.MessageDialog(parent=self, message='There is a problem ' +
-                                   'with the .pkl data file. Please delete ' +
+                                   'with the .pkl data file.' + str(error) + ' Please delete ' +
                                    'to continue. ' +
                                    ' The program will now exit',
                                    caption='Problem with .pkl file',
@@ -1189,14 +1203,11 @@ class MainFrame(mdc_gui.MainFrame):
     def on_close(self, _):
         """Close program if user closes window"""
         self.dhcp_listener.shutdown = True
-        self.ping_active = False
         self.dump_pickle()
         self.Hide()
-        if self.ping_window is not None:
+        if type(self.ping_window) is multi_ping.MultiPing:
             self.ping_window.Hide()
-            for item in self.ping_window.ping_threads:
-                item.join()
-
+        self.ping_model.shutdown()
         self.mse_active_list = []
         self.telnet_job_queue.join()
         self.Destroy()
@@ -1267,7 +1278,7 @@ def show_splash():
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
     # splash = show_splash()
 
     # do processing/initialization here and create main window

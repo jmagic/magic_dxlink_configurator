@@ -1,47 +1,10 @@
 """Continuously pings devices for troubleshooting"""
 
 import wx
-from pydispatch import dispatcher
-from ObjectListView import ObjectListView, ColumnDefn
-import datetime
-import csv
 import os
-import time
+from ObjectListView import ObjectListView, ColumnDefn
 import mdc_gui
-import ping_class
-
-
-class PingUnit(object):
-    """
-    Model of the Ping Unit
-
-    Contains the following attributes:
-    'hostname','serial','device','mac',
-    """
-    # ----------------------------------------------------------------------
-    def __init__(self, ping_data, hostname, serial, ip_address, mac_address):
-
-        self.ping_data = ping_data
-        self.hostname = hostname
-        self.serial = serial
-        self.ip_address = ip_address
-        self.mac_address = mac_address
-        self.success = 0
-        self.failed = 0
-
-
-class Ping_Data_Unit(object):
-    """
-    Model of the Ping_Data_Unit
-
-    Contains the following attributes:
-    ping_time, ms delay, successful """
-    # ----------------------------------------------------------------------
-    def __init__(self, ping_time, ms_delay, success):
-
-        self.ping_time = ping_time
-        self.ms_delay = ms_delay
-        self.success = success
+from pydispatch import dispatcher
 
 
 class PingDetail(mdc_gui.PingDetail):
@@ -121,7 +84,7 @@ class DetailsView(wx.Dialog):
 
 
 class MultiPing(mdc_gui.MultiPing):
-    def __init__(self, parent, device_list):
+    def __init__(self, parent):
         mdc_gui.MultiPing.__init__(self, parent)
 
         self.ping_list = ObjectListView(self.olv_panel, wx.ID_ANY,
@@ -141,77 +104,36 @@ class MultiPing(mdc_gui.MultiPing):
         self.olv_sizer.Layout()
 
         self.parent = parent
-        self.SetTitle("Multiple Ping Monitor")
-        self.ping_objects = self.set_objects(device_list)
-        self.ping_list.SetObjects(self.ping_objects)
-        self.log_files = {}
         self.log_link_txt.SetURL(os.path.join(self.parent.path, 'ping_logs'))
-        self.logging = False
-        self.on_log_enable(None)
-        self.ping_threads = []
 
-        for obj in device_list:
-            ping_thread = ping_class.PingJob(self, obj)
-            ping_thread.setDaemon(True)
-            ping_thread.start()
-            self.ping_threads.append(ping_thread)
-            # self.parent.telnet_job_queue.put(
-            #     ['ping', obj, self.parent.telnet_timeout_seconds])
-
-        for obj in self.ping_objects:
-            self.log_files[obj] = (
-                'device_' +
-                obj.ip_address +
-                '_time_' +
-                datetime.datetime.now().strftime('%H_%M_%S') +
-                '.csv')
-
+        self.SetTitle("Multiple Ping Monitor")
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         self.redraw_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.on_refresh, self.redraw_timer)
         self.redraw_timer.Start(1000)
-        dispatcher.connect(
-            self.on_incoming_ping,
-            signal="Incoming Ping",
-            sender=dispatcher.Any)
+
+        dispatcher.connect(self.list_update,
+                           signal='Ping Model Update',
+                           sender=dispatcher.Any)
+
+    def list_update(self, sender):
+        # print 'in list update: ', sender
+        self.ping_list.SetObjects(sender)
 
     def on_refresh(self, event):
         """ Refreshes the display """
         self.ping_list.RefreshObjects(self.ping_list.GetObjects())
 
-    def add_items(self, objs):
-        new_objs = self.set_objects(objs)
-
-        for obj in new_objs:
-            for item in self.ping_objects:
-                if item.ip_address == obj.ip_address:
-                    return
-            self.ping_objects.append(obj)
-            self.parent.telnet_job_queue.put(
-                ['ping', obj, self.parent.telnet_timeout_seconds])
-
-            self.log_files[obj] = (
-                'device_' +
-                obj.ip_address +
-                '_time_' +
-                datetime.datetime.now().strftime('%H_%M_%S') +
-                '.csv')
-        self.ping_list.SetObjects(self.ping_objects)
-
     def on_delete(self, event):
         """Removes an item from pinging"""
         for obj in self.ping_list.GetSelectedObjects():
-            for item in self.ping_threads:
-                if item.obj.ip_address == obj.ip_address:
-                    item.keeprunning = False
-            self.log_files.pop(obj, None)
-            self.ping_objects.remove(obj)
+            self.parent.multi_ping_remove(obj)
         self.ping_list.RemoveObjects(self.ping_list.GetSelectedObjects())
 
     def on_redraw_timer(self, _):
         """Refresh objects when timer expires"""
-        self.ping_list.RefreshObject(self.ping_objects)
+        self.ping_list.RefreshObjects()
 
     def on_reset(self, _):
         """Resets the selected item"""
@@ -221,72 +143,14 @@ class MultiPing(mdc_gui.MultiPing):
             obj.failed = 0
             self.ping_list.RefreshObject(obj)
 
-    def set_objects(self, device_list):
-        """Creates a ping object and adds it to the list"""
-        new_objs = []
-        for obj in device_list:
-
-            data = PingUnit(
-                [],
-                obj.hostname,
-                obj.serial,
-                obj.ip_address,
-                obj.mac_address)
-            new_objs.append(data)
-        return new_objs
-
-    def set_ping_data(self, ping_info):
-        """Makes a ping data unit"""
-        return Ping_Data_Unit(
-            ping_info[0],  # .strftime('%H:%M:%S.%f')
-            ping_info[1],
-            ping_info[2])
-
-    def on_log_enable(self, event):
-        """Toggles log enable"""
-        if self.log_enable_chk.GetValue():
-            # self.log_file_txt.SetLabel(
-            #     'Logging to: ' +
-            #     self.parent.path + 'ping_logs\\'
-            #     'device_***IP of device***_' +
-            #     time.strftime('%d-%b-%Y-%H-%M-%S') +
-            #     '.txt')
-            self.logging = True
-        else:
-            # self.log_file_txt.SetLabel('')
-            self.logging = False
-
-    def on_incoming_ping(self, sender):
-        """Process an incoming ping"""
-        # switch to true to log pings
-        # print sender
-        # print '.'
-        if self.parent.ping_active:
-            # for item in sender:
-            # print 'start incoming'
-            # print sender[0]
-            # print sender[0].ip
-            for obj in self.ping_objects:
-
-                if sender[0].ip_address == obj.ip_address:
-
-                    obj.ping_data.append(self.set_ping_data(sender[1]))
-
-                    if sender[1][2] == 'Yes':
-                        obj.success += 1
-                    else:
-                        obj.failed += 1
-                    # print 'success', str(obj.success)
-                    # print 'finish incoming'
-                    # self.ping_list.RefreshObject(obj)
-                    if self.logging:
-                        self.save_log(obj)
+    def on_log_enable(self, _):
+        """Turns logging on"""
+        self.parent.multi_ping_logging()
 
     def on_close(self, _):
         """Close the window"""
-        self.parent.ping_active = False
         self.Hide()
-        self.parent.ping_window = None
+        self.parent.multi_ping_shutdown()
         self.Destroy()
 
     def on_show_details(self, _):
@@ -294,18 +158,3 @@ class MultiPing(mdc_gui.MultiPing):
         for obj in self.ping_list.GetSelectedObjects():
             dia = PingDetail(self, obj)
             dia.Show()
-
-    def save_log(self, obj):
-        """Save log to a file"""
-        log_path = os.path.join(self.parent.path, 'ping_logs')
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-        output_file = os.path.join(log_path, self.log_files[obj])
-
-        with open(output_file, 'ab') as log_file:
-            writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
-            row = []
-            row.append(str(obj.ping_data[-1].ping_time))
-            row.append(str(obj.ping_data[-1].ms_delay))
-            row.append(str(obj.ping_data[-1].success))
-            writer_csv.writerow(row)
