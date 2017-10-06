@@ -82,7 +82,7 @@ class AutoUpdate(Thread):
                          self.common_name + '_' +
                          str(StrictVersion(online_version)) +
                          '.exe'))
-            with open(temp_file, 'wb') as handle:
+            with open(temp_file, 'w') as handle:
 
                 count = 0
                 for data in response.iter_content(downloadBytes):

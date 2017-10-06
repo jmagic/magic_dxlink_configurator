@@ -389,7 +389,7 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def MainFrameOnContextMenu( self, event ):
-		self.PopupMenu( self.rc_menu, event.GetPosition() )
+		self.PopupMenu( self.rc_menu, event.GetPoint() )
 		
 
 ###########################################################################

@@ -62,7 +62,7 @@ class PingUnit(object):
             os.makedirs(log_path)
         output_file = os.path.join(log_path, self.log)
 
-        with open(output_file, 'ab') as log_file:
+        with open(output_file, 'a') as log_file:
             writer_csv = csv.writer(log_file, quoting=csv.QUOTE_ALL)
             row = []
             row.append(str(self.ping_data[-1].ping_time))

@@ -283,11 +283,11 @@ class IpListGen(mdc_gui.GenerateIP):
                  defaultDir=self.parent.path,
                  defaultFile="generatediplist.csv",
                  wildcard="CSV files (*.csv)|*.csv",
-                 style=wx.SAVE)
+                 style=wx.FD_SAVE)
             if save_file_dialog.ShowModal() == wx.ID_OK:
 
                 path = save_file_dialog.GetPath()
-                with open(path, 'wb') as ip_list_file:
+                with open(path, 'w', newline='') as ip_list_file:
                     writer_csv = csv.writer(ip_list_file)
                     for item in self.data:
                         writer_csv.writerow([item])

@@ -701,10 +701,10 @@ class MainFrame(mdc_gui.MainFrame):
             defaultDir=self.path,
             defaultFile="",
             wildcard="CSV files (*.csv)|*.csv",
-            style=wx.SAVE)
+            style=wx.FD_SAVE)
         if save_file_dialog.ShowModal() == wx.ID_OK:
             path = save_file_dialog.GetPath()
-            with open(path, 'ab') as store_file:
+            with open(path, 'a', newline='') as store_file:
                 write_csv = csv.writer(store_file, quoting=csv.QUOTE_ALL)
                 for obj in self.main_list.GetSelectedObjects():
                     data = [obj.model,
@@ -734,6 +734,7 @@ class MainFrame(mdc_gui.MainFrame):
                                          style=wx.FD_OPEN |
                                          wx.FD_FILE_MUST_EXIST)
         if open_file_dialog.ShowModal() == wx.ID_OK:
+            csv_path = open_file_dialog.GetPath()
             open_file_dialog.Destroy()
             dlg = wx.MessageDialog(parent=self, message='To replace ' +
                                    'all items currently in your list,  ' +
@@ -743,7 +744,7 @@ class MainFrame(mdc_gui.MainFrame):
             if dlg.ShowModal() == wx.ID_OK:
                 self.main_list.DeleteAllItems()
 
-            with open(open_file_dialog.GetPath(), 'rb') as csvfile:
+            with open(csv_path, 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
@@ -779,7 +780,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         if open_file_dialog.ShowModal() == wx.ID_OK:
             self.main_list.DeleteAllItems()
-            with open(open_file_dialog.GetPath(), 'rb') as csvfile:
+            with open(open_file_dialog.GetPath(), 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
                     data = Unit(
