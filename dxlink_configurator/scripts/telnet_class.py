@@ -101,7 +101,7 @@ class Telnetjobs(Thread):
             telnet_session.close()
 
             self.set_status(obj, "Success")
-        except IOError, error:
+        except IOError as error:
             self.error_processing(obj, error)
 
     def set_watchdog(self, job):
@@ -123,7 +123,7 @@ class Telnetjobs(Thread):
             telnet_session.close()
 
             self.set_status(obj, "Success")
-        except IOError, error:
+        except IOError as error:
             self.error_processing(obj, error)
 
     def reboot(self, job):
@@ -316,7 +316,7 @@ class Telnetjobs(Thread):
             telnet_session.read_until('Sending', int(job[2]))
             result_raw = telnet_session.read_until('>', int(job[2]))
             if result_raw.split()[0] != 'command:':
-                raise Exception, ('Command not sent')
+                raise Exception('Command not sent')
             telnet_session.write('reboot \r')
             telnet_session.read_until('Rebooting....', int(job[2]))
             telnet_session.close()

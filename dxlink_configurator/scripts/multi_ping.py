@@ -3,7 +3,7 @@
 import wx
 import os
 from ObjectListView import ObjectListView, ColumnDefn
-import mdc_gui
+from . import mdc_gui
 from pydispatch import dispatcher
 
 

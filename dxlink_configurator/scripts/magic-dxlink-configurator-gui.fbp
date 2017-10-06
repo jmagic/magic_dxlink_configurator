@@ -240,7 +240,7 @@
                     <property name="label">File</property>
                     <property name="name">file_menu</property>
                     <property name="permission">protected</property>
-                    <object class="submenu" expanded="0">
+                    <object class="submenu" expanded="1">
                         <property name="bitmap"></property>
                         <property name="label">Import</property>
                         <property name="name">import_menu</property>
@@ -273,6 +273,21 @@
                             <property name="shortcut"></property>
                             <property name="unchecked_bitmap"></property>
                             <event name="OnMenuSelection">import_ip_list</event>
+                            <event name="OnUpdateUI"></event>
+                        </object>
+                        <object class="wxMenuItem" expanded="1">
+                            <property name="bitmap"></property>
+                            <property name="checked">0</property>
+                            <property name="enabled">1</property>
+                            <property name="help"></property>
+                            <property name="id">wxID_ANY</property>
+                            <property name="kind">wxITEM_NORMAL</property>
+                            <property name="label">Import From Online Tree File</property>
+                            <property name="name">import_online_menu</property>
+                            <property name="permission">none</property>
+                            <property name="shortcut"></property>
+                            <property name="unchecked_bitmap"></property>
+                            <event name="OnMenuSelection">import_online_tree_file</event>
                             <event name="OnUpdateUI"></event>
                         </object>
                     </object>
@@ -803,7 +818,7 @@
                 <property name="permission">protected</property>
                 <property name="pos"></property>
                 <property name="size"></property>
-                <property name="style">wxST_SIZEGRIP</property>
+                <property name="style">wxSTB_SIZEGRIP</property>
                 <property name="subclass"></property>
                 <property name="tooltip"></property>
                 <property name="window_extra_style"></property>
@@ -1456,6 +1471,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer1</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -2247,6 +2263,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer14</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -2545,6 +2562,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer2</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -2735,6 +2753,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer3</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -3756,6 +3775,7 @@
                                 <property name="minimum_size"></property>
                                 <property name="name">sbSizer8</property>
                                 <property name="orient">wxHORIZONTAL</property>
+                                <property name="parent">1</property>
                                 <property name="permission">none</property>
                                 <event name="OnUpdateUI"></event>
                                 <object class="sizeritem" expanded="0">
@@ -4357,6 +4377,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer7</property>
                         <property name="orient">wxHORIZONTAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -4547,6 +4568,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer5</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -5116,6 +5138,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer13</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -5863,6 +5886,7 @@
                         <property name="minimum_size"></property>
                         <property name="name">sbSizer131</property>
                         <property name="orient">wxVERTICAL</property>
+                        <property name="parent">1</property>
                         <property name="permission">none</property>
                         <event name="OnUpdateUI"></event>
                         <object class="sizeritem" expanded="0">
@@ -7395,6 +7419,7 @@
                                             <property name="minimum_size"></property>
                                             <property name="name">sbSizer7</property>
                                             <property name="orient">wxVERTICAL</property>
+                                            <property name="parent">1</property>
                                             <property name="permission">none</property>
                                             <event name="OnUpdateUI"></event>
                                             <object class="sizeritem" expanded="0">
@@ -7647,6 +7672,8 @@
                                                             <property name="window_style"></property>
                                                             <event name="OnChar"></event>
                                                             <event name="OnCombobox">on_command_combo</event>
+                                                            <event name="OnComboboxCloseup"></event>
+                                                            <event name="OnComboboxDropdown"></event>
                                                             <event name="OnEnterWindow"></event>
                                                             <event name="OnEraseBackground"></event>
                                                             <event name="OnKeyDown"></event>
@@ -7738,6 +7765,8 @@
                                                             <property name="window_style"></property>
                                                             <event name="OnChar"></event>
                                                             <event name="OnCombobox">on_action_combo</event>
+                                                            <event name="OnComboboxCloseup"></event>
+                                                            <event name="OnComboboxDropdown"></event>
                                                             <event name="OnEnterWindow"></event>
                                                             <event name="OnEraseBackground"></event>
                                                             <event name="OnKeyDown"></event>
@@ -8959,6 +8988,7 @@
                                             <property name="minimum_size"></property>
                                             <property name="name">sbSizer11</property>
                                             <property name="orient">wxHORIZONTAL</property>
+                                            <property name="parent">1</property>
                                             <property name="permission">none</property>
                                             <event name="OnUpdateUI"></event>
                                             <object class="sizeritem" expanded="0">
@@ -9783,6 +9813,7 @@
                                     <property name="minimum_size"></property>
                                     <property name="name">sbSizer12</property>
                                     <property name="orient">wxVERTICAL</property>
+                                    <property name="parent">1</property>
                                     <property name="permission">none</property>
                                     <event name="OnUpdateUI"></event>
                                     <object class="sizeritem" expanded="0">
@@ -10293,6 +10324,7 @@
                                             <property name="minimum_size"></property>
                                             <property name="name">sbSizer10</property>
                                             <property name="orient">wxVERTICAL</property>
+                                            <property name="parent">1</property>
                                             <property name="permission">none</property>
                                             <event name="OnUpdateUI"></event>
                                             <object class="sizeritem" expanded="0">
@@ -10639,6 +10671,7 @@
                                             <property name="minimum_size"></property>
                                             <property name="name">sbSizer9</property>
                                             <property name="orient">wxVERTICAL</property>
+                                            <property name="parent">1</property>
                                             <property name="permission">none</property>
                                             <event name="OnUpdateUI"></event>
                                             <object class="sizeritem" expanded="0">

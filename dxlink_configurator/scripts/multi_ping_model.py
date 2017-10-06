@@ -4,7 +4,7 @@ from pydispatch import dispatcher
 import datetime
 import os
 import csv
-import ping_class
+from . import ping_class
 
 
 class PingUnit(object):

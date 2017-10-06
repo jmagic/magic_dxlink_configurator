@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Jun 17 2015)
+## Python code generated with wxFormBuilder (version Oct  5 2017)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
@@ -20,7 +20,7 @@ class MainFrame ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 876,603 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer1 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -45,97 +45,100 @@ class MainFrame ( wx.Frame ):
 		self.file_menu = wx.Menu()
 		self.import_menu = wx.Menu()
 		self.import_csv_menu = wx.MenuItem( self.import_menu, wx.ID_ANY, u"Import from a CSV", wx.EmptyString, wx.ITEM_NORMAL )
-		self.import_menu.AppendItem( self.import_csv_menu )
+		self.import_menu.Append( self.import_csv_menu )
 		
 		self.import_ip_menu = wx.MenuItem( self.import_menu, wx.ID_ANY, u"Import IP list", wx.EmptyString, wx.ITEM_NORMAL )
-		self.import_menu.AppendItem( self.import_ip_menu )
+		self.import_menu.Append( self.import_ip_menu )
+		
+		self.import_online_menu = wx.MenuItem( self.import_menu, wx.ID_ANY, u"Import From Online Tree File", wx.EmptyString, wx.ITEM_NORMAL )
+		self.import_menu.Append( self.import_online_menu )
 		
 		self.file_menu.AppendSubMenu( self.import_menu, u"Import" )
 		
 		self.export_menu = wx.Menu()
 		self.export_csv_menu = wx.MenuItem( self.export_menu, wx.ID_ANY, u"Export to a CSV File", wx.EmptyString, wx.ITEM_NORMAL )
-		self.export_menu.AppendItem( self.export_csv_menu )
+		self.export_menu.Append( self.export_csv_menu )
 		
 		self.file_menu.AppendSubMenu( self.export_menu, u"Export" )
 		
 		self.quit_menu = wx.MenuItem( self.file_menu, wx.ID_ANY, u"Quit", wx.EmptyString, wx.ITEM_NORMAL )
-		self.file_menu.AppendItem( self.quit_menu )
+		self.file_menu.Append( self.quit_menu )
 		
 		self.m_menubar1.Append( self.file_menu, u"File" ) 
 		
 		self.edit_menu = wx.Menu()
 		self.select_menu = wx.Menu()
 		self.all_menu = wx.MenuItem( self.select_menu, wx.ID_ANY, u"Select All", wx.EmptyString, wx.ITEM_NORMAL )
-		self.select_menu.AppendItem( self.all_menu )
+		self.select_menu.Append( self.all_menu )
 		
 		self.none_menu = wx.MenuItem( self.select_menu, wx.ID_ANY, u"Select None", wx.EmptyString, wx.ITEM_NORMAL )
-		self.select_menu.AppendItem( self.none_menu )
+		self.select_menu.Append( self.none_menu )
 		
 		self.edit_menu.AppendSubMenu( self.select_menu, u"Select" )
 		
 		self.preferences_menu = wx.MenuItem( self.edit_menu, wx.ID_ANY, u"Preferences", wx.EmptyString, wx.ITEM_NORMAL )
-		self.edit_menu.AppendItem( self.preferences_menu )
+		self.edit_menu.Append( self.preferences_menu )
 		
 		self.m_menubar1.Append( self.edit_menu, u"Edit" ) 
 		
 		self.actions_menu = wx.Menu()
 		self.update_device_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Update Device Information", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.update_device_menu )
+		self.actions_menu.Append( self.update_device_menu )
 		
 		self.configure_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.configure_menu )
+		self.actions_menu.Append( self.configure_menu )
 		
 		self.telnet_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Telnet to Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.telnet_menu )
+		self.actions_menu.Append( self.telnet_menu )
 		
 		self.ssh_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"SSH to Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.ssh_menu )
+		self.actions_menu.Append( self.ssh_menu )
 		
 		self.send_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.send_menu )
+		self.actions_menu.Append( self.send_menu )
 		
 		self.reset_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.reset_menu )
+		self.actions_menu.Append( self.reset_menu )
 		
 		self.reboot_menu = wx.MenuItem( self.actions_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.actions_menu.AppendItem( self.reboot_menu )
+		self.actions_menu.Append( self.reboot_menu )
 		
 		self.m_menubar1.Append( self.actions_menu, u"Actions" ) 
 		
 		self.tools_menu = wx.Menu()
 		self.ping_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Ping Devices", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.ping_menu )
+		self.tools_menu.Append( self.ping_menu )
 		
 		self.dgx_100 = wx.Menu()
 		self.dgx800 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 800", wx.EmptyString, wx.ITEM_NORMAL )
-		self.dgx_100.AppendItem( self.dgx800 )
+		self.dgx_100.Append( self.dgx800 )
 		
 		self.dgx1600_menu = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 1600", wx.EmptyString, wx.ITEM_NORMAL )
-		self.dgx_100.AppendItem( self.dgx1600_menu )
+		self.dgx_100.Append( self.dgx1600_menu )
 		
 		self.dgx3200 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 3200", wx.EmptyString, wx.ITEM_NORMAL )
-		self.dgx_100.AppendItem( self.dgx3200 )
+		self.dgx_100.Append( self.dgx3200 )
 		
 		self.dgx6400 = wx.MenuItem( self.dgx_100, wx.ID_ANY, u"DGX 6400", wx.EmptyString, wx.ITEM_NORMAL )
-		self.dgx_100.AppendItem( self.dgx6400 )
+		self.dgx_100.Append( self.dgx6400 )
 		
 		self.tools_menu.AppendSubMenu( self.dgx_100, u"DGX 100 Auto Populate" )
 		
 		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.mse_menu )
+		self.tools_menu.Append( self.mse_menu )
 		
 		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.add_menu )
+		self.tools_menu.Append( self.add_menu )
 		
 		self.generate_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Generate IP List", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.AppendItem( self.generate_menu )
+		self.tools_menu.Append( self.generate_menu )
 		
 		self.watchdog_menu = wx.Menu()
 		self.wd_enable_menu = wx.MenuItem( self.watchdog_menu, wx.ID_ANY, u"Enable Watchdog", wx.EmptyString, wx.ITEM_NORMAL )
-		self.watchdog_menu.AppendItem( self.wd_enable_menu )
+		self.watchdog_menu.Append( self.wd_enable_menu )
 		
 		self.wd_disable_menu = wx.MenuItem( self.watchdog_menu, wx.ID_ANY, u"Disable Watchdog", wx.EmptyString, wx.ITEM_NORMAL )
-		self.watchdog_menu.AppendItem( self.wd_disable_menu )
+		self.watchdog_menu.Append( self.wd_disable_menu )
 		
 		self.tools_menu.AppendSubMenu( self.watchdog_menu, u"Watchdog" )
 		
@@ -143,77 +146,77 @@ class MainFrame ( wx.Frame ):
 		
 		self.identify_menu = wx.Menu()
 		self.led_on_menu = wx.MenuItem( self.identify_menu, wx.ID_ANY, u"Turn on LED's", wx.EmptyString, wx.ITEM_NORMAL )
-		self.identify_menu.AppendItem( self.led_on_menu )
+		self.identify_menu.Append( self.led_on_menu )
 		
 		self.led_off_menu = wx.MenuItem( self.identify_menu, wx.ID_ANY, u"Turn off LED's", wx.EmptyString, wx.ITEM_NORMAL )
-		self.identify_menu.AppendItem( self.led_off_menu )
+		self.identify_menu.Append( self.led_off_menu )
 		
 		self.m_menubar1.Append( self.identify_menu, u"Identify" ) 
 		
 		self.listen_menu = wx.Menu()
 		self.dhcp_sniffing_chk = wx.MenuItem( self.listen_menu, wx.ID_ANY, u"Listen for DHCP requests", wx.EmptyString, wx.ITEM_CHECK )
-		self.listen_menu.AppendItem( self.dhcp_sniffing_chk )
+		self.listen_menu.Append( self.dhcp_sniffing_chk )
 		self.dhcp_sniffing_chk.Check( True )
 		
 		self.amx_only_filter_chk = wx.MenuItem( self.listen_menu, wx.ID_ANY, u"Only add AMX devices", wx.EmptyString, wx.ITEM_CHECK )
-		self.listen_menu.AppendItem( self.amx_only_filter_chk )
+		self.listen_menu.Append( self.amx_only_filter_chk )
 		
 		self.m_menubar1.Append( self.listen_menu, u"Listen" ) 
 		
 		self.delete_menu = wx.Menu()
 		self.delete_item_menu = wx.MenuItem( self.delete_menu, wx.ID_ANY, u"Delete Item", wx.EmptyString, wx.ITEM_NORMAL )
-		self.delete_menu.AppendItem( self.delete_item_menu )
+		self.delete_menu.Append( self.delete_item_menu )
 		
 		self.delete_all_menu = wx.MenuItem( self.delete_menu, wx.ID_ANY, u"Delete All Items", wx.EmptyString, wx.ITEM_NORMAL )
-		self.delete_menu.AppendItem( self.delete_all_menu )
+		self.delete_menu.Append( self.delete_all_menu )
 		
 		self.m_menubar1.Append( self.delete_menu, u"Delete" ) 
 		
 		self.help_menu = wx.Menu()
 		self.dipswitch_menu = wx.MenuItem( self.help_menu, wx.ID_ANY, u"Dipswitch Information", wx.EmptyString, wx.ITEM_NORMAL )
-		self.help_menu.AppendItem( self.dipswitch_menu )
+		self.help_menu.Append( self.dipswitch_menu )
 		
 		self.about_menu = wx.MenuItem( self.help_menu, wx.ID_ANY, u"About", wx.EmptyString, wx.ITEM_NORMAL )
-		self.help_menu.AppendItem( self.about_menu )
+		self.help_menu.Append( self.about_menu )
 		
 		self.m_menubar1.Append( self.help_menu, u"Help" ) 
 		
 		self.SetMenuBar( self.m_menubar1 )
 		
-		self.status_bar = self.CreateStatusBar( 2, wx.ST_SIZEGRIP, wx.ID_ANY )
+		self.status_bar = self.CreateStatusBar( 2, wx.STB_SIZEGRIP, wx.ID_ANY )
 		self.rc_menu = wx.Menu()
 		self.update_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Update device information", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.update_rc_menu )
+		self.rc_menu.Append( self.update_rc_menu )
 		
 		self.configure__rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Configure Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.configure__rc_menu )
+		self.rc_menu.Append( self.configure__rc_menu )
 		
 		self.ping_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Ping Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.ping_rc_menu )
+		self.rc_menu.Append( self.ping_rc_menu )
 		
 		self.send_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Send Commands", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.send_rc_menu )
+		self.rc_menu.Append( self.send_rc_menu )
 		
 		self.reset_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reset Factory", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.reset_rc_menu )
+		self.rc_menu.Append( self.reset_rc_menu )
 		
 		self.delete_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.delete_rc_menu )
+		self.rc_menu.Append( self.delete_rc_menu )
 		
 		self.telnet_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Telnet to Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.telnet_rc_menu )
+		self.rc_menu.Append( self.telnet_rc_menu )
 		
 		self.factory_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"FactoryAV", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.factory_rc_menu )
+		self.rc_menu.Append( self.factory_rc_menu )
 		
 		self.reboot_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.reboot_rc_menu )
+		self.rc_menu.Append( self.reboot_rc_menu )
 		
 		self.mse_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.mse_rc_menu )
+		self.rc_menu.Append( self.mse_rc_menu )
 		
 		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in Web Browser", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.browser_rc_menu )
+		self.rc_menu.Append( self.browser_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MainFrameOnContextMenu ) 
 		
@@ -224,6 +227,7 @@ class MainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.on_close )
 		self.Bind( wx.EVT_MENU, self.import_csv_file, id = self.import_csv_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.import_ip_list, id = self.import_ip_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.import_online_tree_file, id = self.import_online_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.export_to_csv, id = self.export_csv_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_quit, id = self.quit_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_select_all, id = self.all_menu.GetId() )
@@ -278,6 +282,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def import_ip_list( self, event ):
+		event.Skip()
+	
+	def import_online_tree_file( self, event ):
 		event.Skip()
 	
 	def export_to_csv( self, event ):
@@ -394,7 +401,7 @@ class PingDetail ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Details view", pos = wx.DefaultPosition, size = wx.Size( 390,550 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer21 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -464,7 +471,7 @@ class Preferences ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Preferences", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer10 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -551,7 +558,7 @@ class Preferences ( wx.Dialog ):
 		bSizer64.Add( self.m_staticText31, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.subnet_filter_txt = wx.TextCtrl( sbSizer14.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.subnet_filter_txt.SetToolTipString( u"Please enter the subnet you would like to monitor, using CIDR notation. For example: 192.168.71.0/255.255.255.0 or 192.168.71.0/24" )
+		self.subnet_filter_txt.SetToolTip( u"Please enter the subnet you would like to monitor, using CIDR notation. For example: 192.168.71.0/255.255.255.0 or 192.168.71.0/24" )
 		
 		bSizer64.Add( self.subnet_filter_txt, 1, wx.ALL, 5 )
 		
@@ -664,7 +671,7 @@ class MultiPing ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 760,300 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer4 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -721,10 +728,10 @@ class MultiPing ( wx.Dialog ):
 		self.Layout()
 		self.rc_menu = wx.Menu()
 		self.details_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Show Details", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.details_rc_menu )
+		self.rc_menu.Append( self.details_rc_menu )
 		
 		self.delete_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.AppendItem( self.delete_rc_menu )
+		self.rc_menu.Append( self.delete_rc_menu )
 		
 		self.Bind( wx.EVT_RIGHT_DOWN, self.MultiPingOnContextMenu ) 
 		
@@ -767,7 +774,7 @@ class DeviceConfiguration ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Device Settings", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -966,7 +973,7 @@ class GenerateIP ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Generate IP list", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer27 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -1055,7 +1062,7 @@ class MultiSend ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Multiple Send Command", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer32 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -1222,7 +1229,7 @@ class Dipswitch ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Dipswitch", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer46 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -1363,7 +1370,7 @@ class MSE_Baseline ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"MSE Baseline", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer50 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -1376,25 +1383,25 @@ class MSE_Baseline ( wx.Dialog ):
 		
 		self.cha_txt = wx.StaticText( sbSizer10.GetStaticBox(), wx.ID_ANY, u"ChA = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.cha_txt.Wrap( -1 )
-		self.cha_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		self.cha_txt.SetFont( wx.Font( 18, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Arial" ) )
 		
 		sbSizer10.Add( self.cha_txt, 0, wx.ALL, 5 )
 		
 		self.chb_txt = wx.StaticText( sbSizer10.GetStaticBox(), wx.ID_ANY, u"ChB = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chb_txt.Wrap( -1 )
-		self.chb_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		self.chb_txt.SetFont( wx.Font( 18, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Arial" ) )
 		
 		sbSizer10.Add( self.chb_txt, 0, wx.ALL, 5 )
 		
 		self.chc_txt = wx.StaticText( sbSizer10.GetStaticBox(), wx.ID_ANY, u"ChC = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chc_txt.Wrap( -1 )
-		self.chc_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		self.chc_txt.SetFont( wx.Font( 18, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Arial" ) )
 		
 		sbSizer10.Add( self.chc_txt, 0, wx.ALL, 5 )
 		
 		self.chd_txt = wx.StaticText( sbSizer10.GetStaticBox(), wx.ID_ANY, u"ChD = N/A", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chd_txt.Wrap( -1 )
-		self.chd_txt.SetFont( wx.Font( 18, 74, 90, 90, False, "Arial" ) )
+		self.chd_txt.SetFont( wx.Font( 18, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "Arial" ) )
 		
 		sbSizer10.Add( self.chd_txt, 0, wx.ALL, 5 )
 		
@@ -1489,7 +1496,7 @@ class TestDialog ( wx.Dialog ):
 	def __init__( self, parent ):
 		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
 		
-		self.SetSizeHintsSz( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		
 		bSizer59 = wx.BoxSizer( wx.VERTICAL )
 		

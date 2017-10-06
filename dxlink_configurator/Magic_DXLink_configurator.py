@@ -88,7 +88,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.data_path = os.path.join(self.path, 'data.pkl')
         self.SetTitle(self.name + " " + self.version)
         icon_bundle = wx.IconBundle()
-        icon_bundle.AddIconFromFile(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        icon_bundle.AddIcon(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.check_migrate()
 
@@ -208,7 +208,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.cert_path = self.resource_path('cacert.pem')
 
         # Create DHCP listening thread
-        self.dhcp_listener = dhcp_sniffer.DHCPListener(self)
+        self.dhcp_listener = dhcp_sniffer.DHCPListener()
         self.dhcp_listener.setDaemon(True)
         self.dhcp_listener.start()
 
@@ -787,6 +787,30 @@ class MainFrame(mdc_gui.MainFrame):
                         arrival_time=datetime.datetime.now())
 
                     self.main_list.AddObject(data)
+            self.dump_pickle()
+            open_file_dialog.Destroy()
+        else:
+            open_file_dialog.Destroy()
+
+    def import_online_tree_file(self, _):
+        """Imports from an online tree report"""
+        open_file_dialog = wx.FileDialog(
+            self, message="Open Online Tree Report",
+            defaultDir=self.path,
+            defaultFile="",
+            wildcard="TXT files (*.txt)|*.txt",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+
+        if open_file_dialog.ShowModal() == wx.ID_OK:
+            # self.olv_queue.put(['delete_all_items'])
+            with open(open_file_dialog.GetPath(), 'r') as f:
+                online_tree = f.read()
+            online_tree_list = online_tree.split('+ IPv4 Address.......:')[1:]
+            # print online_tree_list[0]
+            for item in online_tree_list:
+                data = Unit(ip_ad=item.split()[0],
+                            arrival_time=datetime.datetime.now())
+                self.main_list.AddObject(data)
             self.dump_pickle()
             open_file_dialog.Destroy()
         else:
