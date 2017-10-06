@@ -24,14 +24,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
 
-import ConfigParser
+import configparser
 import wx
 import pickle
 import datetime
 import os
 import csv
 from ObjectListView import ObjectListView, ColumnDefn
-import Queue
+import queue
 import webbrowser
 # import requests
 import urllib
@@ -213,7 +213,7 @@ class MainFrame(mdc_gui.MainFrame):
         self.dhcp_listener.start()
 
         # create a telenetto thread pool and assign them to a queue
-        self.telnet_to_queue = Queue.Queue()
+        self.telnet_to_queue = queue.Queue()
         for _ in range(10):
             self.telnet_to_thread = telnetto_class.TelnetToThread(
                 self, self.telnet_to_queue)
@@ -221,7 +221,7 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_to_thread.start()
 
         # create a telnetjob thread pool and assign them to a queue
-        self.telnet_job_queue = Queue.Queue()
+        self.telnet_job_queue = queue.Queue()
         for _ in range(int(self.thread_number)):
             self.telnet_job_thread = telnet_class.Telnetjobs(
                 self, self.telnet_job_queue)
@@ -264,13 +264,13 @@ class MainFrame(mdc_gui.MainFrame):
                 try:
                     os.rename(old_folder_path, self.path)
                 except Exception as error:
-                    print 'Migration: Both old and new files exsist, moving to conflicts'
+                    print('Migration: Both old and new files exsist, moving to conflicts')
                     if not os.path.exists(os.path.join(self.path, 'conflicts')):
                         os.makedirs(os.path.join(self.path, 'conflicts'))
 
                     os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
         except Exception as error:
-            print 'Error in migration: ', error
+            print('Error in migration: ', error)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -919,7 +919,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def read_config_file(self):
         """Reads the config file"""
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         try:  # read the settings file
             config.read((self.settings_path))
             self.master_address = (config.get(
@@ -980,14 +980,14 @@ class MainFrame(mdc_gui.MainFrame):
                     if item.strip() not in self.dxfrx_models:
                         self.dxfrx_models.append(item.strip())
 
-        except Exception as error:  # (ConfigParser.Error, IOError):
+        except Exception as error:  # (configparser.Error, IOError):
             # Make a new settings file, because we couldn't read the old one
-            print error
+            print(error)
             try:
                 self.create_config_file()
                 self.read_config_file()
             except Exception as error:
-                print error
+                print(error)
                 pass
         return
 
@@ -1003,7 +1003,7 @@ class MainFrame(mdc_gui.MainFrame):
             pass
         with open((self.settings_path), 'w') as config_file:
             config_file.write("")
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.add_section('Settings')
         config.set('Settings', 'default master address', '192.168.1.1')
         config.set('Settings', 'default device number', '0')
@@ -1034,7 +1034,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def write_config_file(self):
         """Update values in config file"""
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.read((self.settings_path))
         config.set('Settings', 'default master address', self.master_address)
         config.set('Settings', 'default device number', self.device_number)
@@ -1145,10 +1145,10 @@ class MainFrame(mdc_gui.MainFrame):
                     os.rename(old_path,
                               os.path.join(self.path, 'data.pkl'))
                 except Exception as error:
-                    print 'Unable to migrate pickle: ', error
+                    print('Unable to migrate pickle: ', error)
                     os.remove(old_path)
         except Exception as error:
-            print "Error migrating pickle: ", error
+            print("Error migrating pickle: ", error)
 
     def load_data_pickle(self):
         """Loads main list from data file"""
@@ -1159,7 +1159,7 @@ class MainFrame(mdc_gui.MainFrame):
                     objects = pickle.load(data_file)
                     self.main_list.SetObjects(objects)
             except Exception as error:
-                print 'Loading pickle error: ', error
+                print('Loading pickle error: ', error)
                 self.new_pickle()
         self.main_list.SetSortColumn(0, resortNow=True)
 

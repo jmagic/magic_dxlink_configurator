@@ -259,7 +259,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
         if  sender[0]:
             self.result_string = sender[1] 
         else:
-            print "error ", sender[1] 
+            print("error ", sender[1])
         
     def on_exit(self, _):
         """When user exits"""       

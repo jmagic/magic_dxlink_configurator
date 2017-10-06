@@ -41,7 +41,7 @@ class AutoUpdate(Thread):
             else:
                 return
         except Exception as error:
-            print "Error in update_check: ", error
+            print("Error in update_check: ", error)
 
     def do_update(self, url_path, online_version):
         """download and install"""
@@ -63,7 +63,7 @@ class AutoUpdate(Thread):
                          self.common_name + '_' +
                          str(StrictVersion(online_version)) + '.exe', stream=True)
         if not response.ok:
-            print response
+            print(response)
             return
         total_length = response.headers.get('content-length')
         if total_length is None:  # no content length header

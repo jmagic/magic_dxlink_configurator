@@ -42,3 +42,6 @@ nosetests.xml
 .pydevproject
 *.TMP
 dxlink_configurator/log.txt
+virt_env/
+sublime.sublime-project
+sublime.sublime-workspace
