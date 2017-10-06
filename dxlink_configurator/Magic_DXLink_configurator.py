@@ -56,7 +56,8 @@ class Unit(object):
     subnet, master, system
     """
     # ----------------------------------------------------------------------
-    def __init__(self,  model='', hostname='', serial='', firmware='',
+
+    def __init__(self, model='', hostname='', serial='', firmware='',
                  device='', mac='', ip_ad='', arrival_time='', ip_type='',
                  gateway='', subnet='', master='', system='', status=''):
 
@@ -82,8 +83,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         self.name = "Magic DXLink Configurator"
         self.version = "v3.3.4"
-        self.path = os.path.expanduser(os.path.join(
-                '~', 'Documents', self.name))
+        self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.settings_path = os.path.join(self.path, 'settings.txt')
         self.data_path = os.path.join(self.path, 'data.pkl')
         self.SetTitle(self.name + " " + self.version)
@@ -259,7 +259,7 @@ class MainFrame(mdc_gui.MainFrame):
     def check_migrate(self):
         """Migrates data folder"""
         try:
-            old_folder_path = os.path.expanduser(os.path.join('~', 'Documents',  'Magic_DXLink_Configurator'))
+            old_folder_path = os.path.expanduser(os.path.join('~', 'Documents', 'Magic_DXLink_Configurator'))
             if os.path.exists(old_folder_path):
                 try:
                     os.rename(old_folder_path, self.path)
