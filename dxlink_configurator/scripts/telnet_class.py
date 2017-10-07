@@ -156,9 +156,9 @@ class Telnetjobs(Thread):
         master = job[11]
         device = job[12]
         self.set_status(obj, "Connecting")
+        try:
+            if setdhcp:
 
-        if setdhcp:
-            try:
                 telnet_session = self.establish_telnet(obj.ip_address)
                 telnet_session.read_until(b'>', delay)
                 telnet_session.write(b'set ip \r')
@@ -169,13 +169,10 @@ class Telnetjobs(Thread):
                 telnet_session.read_until(b'Enter', delay)
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'>', delay)
-            except Exception as error:
-                self.error_processing(obj, error)
 
-        else:
-            try:
+            else:
+
                 telnet_session = self.establish_telnet(obj.ip_address)
-
                 telnet_session.read_until(b'>', delay)
                 telnet_session.write(b'set ip \r')
                 telnet_session.read_until(b'Name:', delay)
@@ -192,11 +189,9 @@ class Telnetjobs(Thread):
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'settings.', delay)
                 telnet_session.read_until(b'>', delay)
-            except Exception as error:
-                self.error_processing(obj, error)
 
-        if conn_type == "TCP" or conn_type == "UDP":
-            try:
+            if conn_type == "TCP" or conn_type == "UDP":
+
                 telnet_session.write(b'set connection\r')
                 telnet_session.read_until(b'Enter:', delay)
                 if conn_type == "TCP":
@@ -217,7 +212,7 @@ class Telnetjobs(Thread):
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
                 telnet_session.read_until(b'>', delay)
-                telnet_session.write(b'set device ' + str(device) + '\r')
+                telnet_session.write('set device {}'.format(device).encode('ascii') + b'\r')
                 telnet_session.read_until(b'device', delay)
                 telnet_session.read_until(b'>', delay)
 
@@ -227,11 +222,8 @@ class Telnetjobs(Thread):
 
                 self.set_status(obj, "Success")
 
-            except Exception as error:
-                self.error_processing(obj, error)
+            if conn_type == "AUTO":
 
-        if conn_type == "AUTO":
-            try:
                 telnet_session.write(b'set connection\r')
                 telnet_session.read_until(b'Enter:', delay)
                 telnet_session.write(b'a\r')
@@ -249,7 +241,7 @@ class Telnetjobs(Thread):
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
                 telnet_session.read_until(b'>', delay)
-                telnet_session.write(b'set device ' + str(device) + '\r')
+                telnet_session.write('set device {}'.format(device).encode('ascii') + b'\r')
                 telnet_session.read_until(b'device', delay)
                 telnet_session.read_until(b'>', delay)
                 telnet_session.write(b'reboot\r')
@@ -258,11 +250,7 @@ class Telnetjobs(Thread):
 
                 self.set_status(obj, "Success")
 
-            except Exception as error:
-                self.error_processing(obj, error)
-
-        if conn_type == "NDP":
-            try:
+            if conn_type == "NDP":
                 telnet_session.write(b'set connection\r')
                 telnet_session.read_until(b'Enter:', delay)
                 telnet_session.write(b'n\r')
@@ -278,7 +266,7 @@ class Telnetjobs(Thread):
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
                 telnet_session.read_until(b'>', delay)
-                telnet_session.write(b'set device ' + str(device) + '\r')
+                telnet_session.write('set device {}'.format(device) + b'\r')
                 telnet_session.read_until(b'device', delay)
                 telnet_session.read_until(b'>', delay)
                 telnet_session.write(b'reboot\r')
@@ -287,8 +275,8 @@ class Telnetjobs(Thread):
 
                 self.set_status(obj, "Success")
 
-            except Exception as error:
-                self.error_processing(obj, error)
+        except Exception as error:
+            self.error_processing(obj, error)
 
     def factory_av(self, job):
         """Sets unit audio visual to factory defaults"""
@@ -312,7 +300,7 @@ class Telnetjobs(Thread):
             telnet_session.write(command.encode('ascii'))
             telnet_session.read_until(b'Sending', int(job[2]))
             result_raw = telnet_session.read_until(b'>', int(job[2]))
-            if result_raw.split()[0] != 'command:':
+            if result_raw.split()[0] != b'command:':
                 raise Exception('Command not sent')
             telnet_session.write(b'reboot \r')
             telnet_session.read_until(b'Rebooting....', int(job[2]))
@@ -323,29 +311,29 @@ class Telnetjobs(Thread):
         except Exception as error:
             self.error_processing(obj, error)
 
-    def get_dipswitch(self, job):
-        """Gets the dipswitch values"""
-        obj = job[1]
-        self.set_status(obj, "Connecting")
-        try:
-            telnet_session = self.establish_telnet(obj.ip_address)
+    # def get_dipswitch(self, job):
+    #     """Gets the dipswitch values"""
+    #     obj = job[1]
+    #     self.set_status(obj, "Connecting")
+    #     try:
+    #         telnet_session = self.establish_telnet(obj.ip_address)
 
-            telnet_session.read_until(b'>', int(job[2]))
-            telnet_session.write(b'dipswitch\r')
-            telnet_session.read_until(b'=', int(job[2]))
-            result = telnet_session.read_until(b'>', int(job[2]))
-            for idx, item in enumerate(result.split()):
-                if item == 'ON':
-                    obj.dipswitch[idx] = 1
-                elif item == 'OFF':
-                    obj.dipswitch[idx] = 0
-                else:
-                    obj.dipswitch[idx] = 2  # error
+    #         telnet_session.read_until(b'>', int(job[2]))
+    #         telnet_session.write(b'dipswitch\r')
+    #         telnet_session.read_until(b'=', int(job[2]))
+    #         result = telnet_session.read_until(b'>', int(job[2]))
+    #         for idx, item in enumerate(result.split()):
+    #             if item == 'ON':
+    #                 obj.dipswitch[idx] = 1
+    #             elif item == 'OFF':
+    #                 obj.dipswitch[idx] = 0
+    #             else:
+    #                 obj.dipswitch[idx] = 2  # error
 
-            self.set_status(obj, "Success")
+    #         self.set_status(obj, "Success")
 
-        except Exception as error:
-            self.error_processing(obj, error)
+    #     except Exception as error:
+    #         self.error_processing(obj, error)
 
     def multiple_send_command(self, job):
         """Sends multiple commands in a single session"""
@@ -359,7 +347,7 @@ class Telnetjobs(Thread):
             system = 0
         else:
             system = obj.system
-        
+
         self.set_status(obj, "Connecting")
         self.notify_send_command_window(obj)
         try:
@@ -380,12 +368,12 @@ class Telnetjobs(Thread):
                           "\"\'" +
                           str(command[0]) +
                           "\'\"")
-                telnet_session.write(str(output + " \r"))
-                result_raw = telnet_session.read_until('>', int(job[2]))
-                if result_raw.split()[0] != 'command:':
+                telnet_session.write(output.encode('ascii') + b"\r")
+                result_raw = telnet_session.read_until(b'>', int(job[2]))
+                if result_raw.split()[0] != b'command:':
                     dispatcher.send(
                         signal="send_command result",
-                        sender=((True, 'Sending ' + str(result_raw)[:-1])))
+                        sender=((True, 'Sending ' + result_raw.decode()[:-1])))
                     self.set_status(
                         obj, ('Sent ' + str(count) + ' of ' + str(total)))
                     self.notify_send_command_window(obj)
