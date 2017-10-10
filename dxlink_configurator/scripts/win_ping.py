@@ -74,7 +74,7 @@ def main():
         unit = TempUnit()
         fakeunits.append(unit)
 
-    # threads = []
+    threads = []
     for unit in fakeunits:
         test = WinPing(obj=unit)
         test.setDaemon(True)

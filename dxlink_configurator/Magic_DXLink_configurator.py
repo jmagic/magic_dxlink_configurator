@@ -82,7 +82,7 @@ class MainFrame(mdc_gui.MainFrame):
         mdc_gui.MainFrame.__init__(self, parent)
 
         self.name = "Magic DXLink Configurator"
-        self.version = "v3.3.4"
+        self.version = "v4.0.0"
         self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.settings_path = os.path.join(self.path, 'settings.txt')
         self.data_path = os.path.join(self.path, 'data.pkl')
@@ -227,7 +227,8 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
 
-        self.ping_window = None
+        self.ping_window = multi_ping.MultiPing(self)
+        self.ping_window.Hide()
         self.ping_model = multi_ping_model.MultiPing_Model(self.path)
 
         dispatcher.connect(self.incoming_packet,
@@ -509,14 +510,22 @@ class MainFrame(mdc_gui.MainFrame):
         dia = dipswitch.ShowDipSwitch(self)
         dia.Show()
 
-    def multi_ping(self, _):
-        """Ping and track results of many devices"""
+    def multi_ping(self, event):
+        """Ping and track results of many devices --
+        Hide and show window if neccesarry"""
         if self.check_for_none_selected():
             return
-        if type(self.ping_window) is not multi_ping.MultiPing:
-            self.ping_window = multi_ping.MultiPing(self)
         self.ping_window.Show()
-        self.ping_model.add_items(self.main_list.GetSelectedObjects())
+        self.ping_model.add(self.main_list.GetSelectedObjects())
+
+    # def multi_ping(self, _):
+    #     """Ping and track results of many devices"""
+    #     if self.check_for_none_selected():
+    #         return
+    #     if type(self.ping_window) is not multi_ping.MultiPing:
+    #         self.ping_window = multi_ping.MultiPing(self)
+    #     self.ping_window.Show()
+    #     self.ping_model.add_items(self.main_list.GetSelectedObjects())
 
     def multi_ping_remove(self, obj):
         """Removes an item from multiping"""
@@ -527,6 +536,7 @@ class MainFrame(mdc_gui.MainFrame):
 
     def multi_ping_shutdown(self):
         """Shuts down multi-ping"""
+        # pass
         Thread(target=self.ping_model.shutdown).start()
         # self.ping_model.shutdown()
         # pass

@@ -700,6 +700,10 @@ class MultiPing ( wx.Dialog ):
         self.log_enable_chk = wx.CheckBox( sbSizer8.GetStaticBox(), wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
         bSizer67.Add(self.log_enable_chk, 0, wx.ALL, 5)
         
+        self.log_path_txt = wx.StaticText( sbSizer8.GetStaticBox(), wx.ID_ANY, u"MagicDXLinkConfigruator", wx.DefaultPosition, wx.DefaultSize, 0 )
+        self.log_path_txt.Wrap( -1 )
+        bSizer67.Add(self.log_path_txt, 0, wx.ALL, 5)
+        
         
         bSizer65.Add(bSizer67, 1, wx.EXPAND, 5)
         

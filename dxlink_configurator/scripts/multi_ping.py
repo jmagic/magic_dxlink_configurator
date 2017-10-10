@@ -1,7 +1,7 @@
 """Continuously pings devices for troubleshooting"""
 
 import wx
-# import os
+import os
 from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn
 from . import mdc_gui
 from pydispatch import dispatcher
@@ -104,7 +104,8 @@ class MultiPing(mdc_gui.MultiPing):
         self.olv_sizer.Layout()
 
         self.parent = parent
-        # self.log_link_txt.SetURL(os.path.join(self.parent.path, 'ping_logs'))
+        self.log_path = os.path.join(self.parent.path, 'ping_logs')
+        self.log_path_txt.SetLabel(self.log_path)
 
         self.SetTitle("Multiple Ping Monitor")
         self.Bind(wx.EVT_CLOSE, self.on_close)

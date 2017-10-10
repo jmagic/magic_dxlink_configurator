@@ -1,6 +1,7 @@
 """Continuously pings devices for troubleshooting"""
 
 from pydispatch import dispatcher
+from threading import Thread
 import datetime
 import os
 import csv
@@ -76,13 +77,8 @@ class PingUnit:
         self.thread.join()
 
 
-class Ping_Data_Unit(object):
-    """
-    Model of the Ping_Data_Unit
+class Ping_Data_Unit:
 
-    Contains the following attributes:
-    ping_time, ms delay, successful """
-    # ----------------------------------------------------------------------
     def __init__(self, ping_time, ms_delay, success):
 
         self.ping_time = ping_time
@@ -90,7 +86,7 @@ class Ping_Data_Unit(object):
         self.success = success
 
 
-class MultiPing_Model(object):
+class MultiPing_Model:
     def __init__(self, path='.'):
         self.path = path
         self.ping_objects = []
@@ -109,31 +105,32 @@ class MultiPing_Model(object):
         dispatcher.send(signal='Ping Model Update',
                         sender=self.ping_objects)
 
-    def add_items(self, device_list):
-        """Adds new devices to the list"""
-        self.clean_up()
-        current_ip_addresses = []
-        for obj in self.ping_objects:
-            current_ip_addresses.append(obj.ip_address)
-        for obj in device_list:
-            # print 'compare: ', obj.ip_address, current_ip_addresses
-            if obj.ip_address not in current_ip_addresses:
-                new_obj = PingUnit(obj, self.path, self.logging)
-                self.ping_objects.append(new_obj)
-        dispatcher.send(signal='Ping Model Update',
-                        sender=self.ping_objects)
+    # def add_items(self, device_list):
+    #     """Adds new devices to the list"""
+    #     self.clean_up()
+    #     current_ip_addresses = []
+    #     for obj in self.ping_objects:
+    #         current_ip_addresses.append(obj.ip_address)
+    #     for obj in device_list:
+    #         # print 'compare: ', obj.ip_address, current_ip_addresses
+    #         if obj.ip_address not in current_ip_addresses:
+    #             new_obj = PingUnit(obj, self.path, self.logging)
+    #             self.ping_objects.append(new_obj)
+    #     dispatcher.send(signal='Ping Model Update',
+    #                     sender=self.ping_objects)
 
-    def clean_up(self):
-        for obj in self.ping_objects:
-            if not obj.thread.isAlive():
-                try:
-                    self.ping_objects.remove(obj)
-                except:
-                    pass
+    # def clean_up(self):
+    #     for obj in self.ping_objects:
+    #         if not obj.thread.isAlive():
+    #             try:
+    #                 self.ping_objects.remove(obj)
+    #             except:
+    #                 pass
 
     def delete(self, item):
         """Removes an item from pinging"""
-        item.stop_thread()
+        self.ping_objects.remove(item)
+        Thread(target=item.stop_thread).start()
 
     def reset(self, item):
         """Resets the item"""
@@ -152,7 +149,9 @@ class MultiPing_Model(object):
         self.logging = not self.logging
 
     def shutdown(self):
-        for item in self.ping_objects:
+        to_shutdown = self.ping_objects
+        self.ping_objects = []
+        for item in to_shutdown:
             item.stop_thread()
 
 
