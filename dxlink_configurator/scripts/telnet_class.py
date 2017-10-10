@@ -289,15 +289,8 @@ class Telnetjobs(Thread):
             telnet_session.read_until(b'>', int(job[2]))
             self.get_connection(obj, telnet_session, int(job[2]))
 
-            command = ("send_command " +
-                       str(obj.device) +
-                       ":" +
-                       "1" +
-                       ":" +
-                       str(obj.system) +
-                       " , " +
-                       "\"\'FACTORYAV\'\" \r")
-            telnet_session.write(command.encode('ascii'))
+            command = f"send_command {obj.device}:1:{obj.system},\"\'FACTORYAV\'\""
+            telnet_session.write(command.encode('ascii') + b'\r')
             telnet_session.read_until(b'Sending', int(job[2]))
             result_raw = telnet_session.read_until(b'>', int(job[2]))
             if result_raw.split()[0] != b'command:':
@@ -350,48 +343,39 @@ class Telnetjobs(Thread):
 
         self.set_status(obj, "Connecting")
         self.notify_send_command_window(obj)
-        try:
-            telnet_session = self.establish_telnet(obj.ip_address)
-            telnet_session.read_until('>', int(job[2]))
-            total = len(command_list)
-            count = 0
-            error = 0
-            for command in command_list:
-                count += 1
-                output = ("send_command " +
-                          str(device) +
-                          ":" +
-                          str(command[1]) +
-                          ":" +
-                          str(system) +
-                          ", " +
-                          "\"\'" +
-                          str(command[0]) +
-                          "\'\"")
-                telnet_session.write(output.encode('ascii') + b"\r")
-                result_raw = telnet_session.read_until(b'>', int(job[2]))
-                if result_raw.split()[0] != b'command:':
-                    dispatcher.send(
-                        signal="send_command result",
-                        sender=((True, 'Sending ' + result_raw.decode()[:-1])))
-                    self.set_status(
-                        obj, ('Sent ' + str(count) + ' of ' + str(total)))
-                    self.notify_send_command_window(obj)
-                else:
-                    error += 1
-                    dispatcher.send(signal="send_command result",
-                                    sender=((False, 'Failed to send command')))
-
-            telnet_session.close()
-            if not error:
-                self.set_status(obj, 'Success')
+        # try:
+        telnet_session = self.establish_telnet(obj.ip_address)
+        telnet_session.read_until(b'>', int(job[2]))
+        total = len(command_list)
+        count = 0
+        error = 0
+        for command in command_list:
+            count += 1
+            output = f"send_command {device}:{command[1]}:{system},\"\'{command[0]}\'\""
+            telnet_session.write(output.encode('ascii') + b"\r")
+            result_raw = telnet_session.read_until(b'>', int(job[2]))
+            if result_raw.split()[0] != b'command:':
+                dispatcher.send(
+                    signal="send_command result",
+                    sender=((True, 'Sending ' + result_raw.decode()[:-1])))
+                self.set_status(
+                    obj, ('Sent ' + str(count) + ' of ' + str(total)))
                 self.notify_send_command_window(obj)
             else:
-                self.set_status(obj, 'Failed')
-                self.notify_send_command_window(obj)
-        except Exception as error:
-            self.error_processing(obj, error)
+                error += 1
+                dispatcher.send(signal="send_command result",
+                                sender=((False, 'Failed to send command')))
+
+        telnet_session.close()
+        if not error:
+            self.set_status(obj, 'Success')
             self.notify_send_command_window(obj)
+        else:
+            self.set_status(obj, 'Failed')
+            self.notify_send_command_window(obj)
+        # except Exception as error:
+        #     self.error_processing(obj, error)
+        #     self.notify_send_command_window(obj)
 
     def send_command(self, job):
 
@@ -399,31 +383,31 @@ class Telnetjobs(Thread):
         command_sent = job[3]
         self.set_status(obj, "Connecting")
 
-        try:
-            telnet_session = self.establish_telnet(obj.ip_address)
+        # try:
+        telnet_session = self.establish_telnet(obj.ip_address)
 
-            telnet_session.read_until(b'>', int(job[2]))
-            # self.get_connection(obj, telnet_session, int(job[2]))
+        telnet_session.read_until(b'>', int(job[2]))
+        # self.get_connection(obj, telnet_session, int(job[2]))
 
-            command = command_sent.encode('ascii') + b"\r"
-            # print command
-            telnet_session.write(command)
-            telnet_session.read_until(b'Sending', int(job[2]))
-            result_raw = telnet_session.read_until(b'>', int(job[2]))
-            # print result_raw.split()
-            if result_raw.split()[0] != 'command:':
-                raise Exception('Command not sent')
-            else:
-                dispatcher.send(signal="send_command result",
-                                sender=(('Sending ' + str(result_raw)[:-1])))
+        command = command_sent.encode('ascii') + b"\r"
+        # print command
+        telnet_session.write(command)
+        telnet_session.read_until(b'Sending', int(job[2]))
+        result_raw = telnet_session.read_until(b'>', int(job[2]))
+        # print result_raw.split()
+        if result_raw.split()[0] != b'command:':
+            raise Exception('Command not sent')
+        else:
+            dispatcher.send(signal="send_command result",
+                            sender=(('Sending ' + str(result_raw)[:-1])))
 
-            telnet_session.close()
+        telnet_session.close()
 
-            self.set_status(obj, "Success")
-            self.notify_send_command_window(obj)
+        self.set_status(obj, "Success")
+        self.notify_send_command_window(obj)
 
-        except Exception as error:
-            self.error_processing(obj, error)
+        # except Exception as error:
+        #     self.error_processing(obj, error)
 
     def turn_on_leds(self, job):
         """Turns on LEDs"""

@@ -4,11 +4,11 @@ import datetime
 from pydispatch import dispatcher
 
 
-class PingJob(Thread):
+class WinPing(Thread):
 
     def __init__(self, obj):
         self.obj = obj
-        self.keeprunning = True
+        self.shutdown = False
         Thread.__init__(self)
 
     def run(self):
@@ -17,25 +17,26 @@ class PingJob(Thread):
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         ping = subprocess.Popen(['ping', self.obj.ip_address, '-t'], shell=False,
                                 stdout=subprocess.PIPE, startupinfo=startupinfo)
-        while self.keeprunning:
+        while not self.shutdown:
             for line in iter(ping.stdout.readline, ''):
                 result = line.rstrip()
+                # print(result)
                 if len(result) < 10:
                     continue
-                if result == '':
+                if result == b'':
                     continue
-                elif result == '\n':
+                elif result == b'\n':
                     continue
-                elif result[:7] == 'Pinging':
+                elif result[:7] == b'Pinging':
                     continue
 
-                elif result.split()[-1] == 'unreachable.' or result == 'Request timed out.':
+                elif result.split()[-1] == b'unreachable.' or result == b'Request timed out.':
                     success = 'No'
                     ms_delay = "N/A"
                     data = (self.obj, [datetime.datetime.now(), ms_delay, success])
 
-                elif result.split()[-1][:3] == 'TTL':
-                    temp = result.split()[-2]
+                elif result.split()[-1][:3] == b'TTL':
+                    temp = result.split()[-2].decode()
                     ms_delay = ''.join([str(s) for s in temp if s.isdigit()])
                     success = 'Yes'
                     data = (self.obj, [datetime.datetime.now(), ms_delay, success])
@@ -44,17 +45,47 @@ class PingJob(Thread):
                     success = 'No'
                     ms_delay = "N/A"
                     data = (self.obj, [datetime.datetime.now(), ms_delay, success])
-                if self.keeprunning:
-                    dispatcher.send(signal="Incoming Ping", sender=data)
+                if not self.shutdown:
+                    dispatcher.send(signal="Incoming Ping", sender=self, data=data)
                 else:
                     break
             # print 'keeprunnning: ', self.keeprunning
-        # print 'attempting kill'
+        # print('attempting kill')
         ping.kill()
 
 
+class TempUnit:
+    count = 0
+
+    def __init__(self):
+        self.__class__.count += 1
+        self.count = self.__class__.count
+        self.ip_address = f'192.168.7.{self.count}'
+
+
+def incoming(sender, data):
+    print(sender, data)
+
+
 def main():
-    test = PingJob(None)
+    dispatcher.connect(incoming, signal="Incoming Ping", sender=dispatcher.Any)
+    fakeunits = []
+    for i in range(100):
+        unit = TempUnit()
+        fakeunits.append(unit)
+
+    # threads = []
+    for unit in fakeunits:
+        test = WinPing(obj=unit)
+        test.setDaemon(True)
+        test.start()
+        threads.append(test)
+    import time
+    time.sleep(5)
+    for item in threads:
+        item.shutdown = True
+    for item in threads:
+        item.join()
 
 
 if __name__ == "__main__":

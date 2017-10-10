@@ -4,17 +4,11 @@ from pydispatch import dispatcher
 import datetime
 import os
 import csv
-from . import ping_class
+from . import win_ping
 
 
-class PingUnit(object):
-    """
-    Model of the Ping Unit
+class PingUnit:
 
-    Contains the following attributes:
-    'hostname','serial','device','mac','thread'
-    """
-    # ----------------------------------------------------------------------
     def __init__(self, obj, path, logging=False):
 
         self.obj = obj
@@ -38,10 +32,10 @@ class PingUnit(object):
             sender=dispatcher.Any)
         self.thread = self.start_thread(obj)
 
-    def on_incoming_ping(self, sender):
-        if sender[0] == self.obj:
-            self.ping_data.append(self.set_ping_data(sender[1]))
-            if sender[1][2] == 'Yes':
+    def on_incoming_ping(self, sender, data):
+        if data[0] == self.obj:
+            self.ping_data.append(self.set_ping_data(data[1]))
+            if data[1][2] == 'Yes':
                 self.success += 1
             else:
                 self.failed += 1
@@ -72,10 +66,14 @@ class PingUnit(object):
 
     def start_thread(self, obj):
         """Starts pinging ip_address"""
-        ping_thread = ping_class.PingJob(obj)
+        ping_thread = win_ping.WinPing(obj)
         ping_thread.setDaemon(True)
         ping_thread.start()
         return ping_thread
+
+    def stop_thread(self):
+        self.thread.shutdown = True
+        self.thread.join()
 
 
 class Ping_Data_Unit(object):
@@ -97,6 +95,19 @@ class MultiPing_Model(object):
         self.path = path
         self.ping_objects = []
         self.logging = False
+
+    def add(self, device_list):
+        """Adds an obj to be pinged"""
+        current_ip_addresses = []
+        for obj in self.ping_objects:
+            current_ip_addresses.append(obj.ip_address)
+        for obj in device_list:
+            # print 'compare: ', obj.ip_address, current_ip_addresses
+            if obj.ip_address not in current_ip_addresses:
+                new_obj = PingUnit(obj, self.path, self.logging)
+                self.ping_objects.append(new_obj)
+        dispatcher.send(signal='Ping Model Update',
+                        sender=self.ping_objects)
 
     def add_items(self, device_list):
         """Adds new devices to the list"""
@@ -122,7 +133,7 @@ class MultiPing_Model(object):
 
     def delete(self, item):
         """Removes an item from pinging"""
-        item.thread.keeprunning = False
+        item.stop_thread()
 
     def reset(self, item):
         """Resets the item"""
@@ -142,14 +153,13 @@ class MultiPing_Model(object):
 
     def shutdown(self):
         for item in self.ping_objects:
-            item.thread.keeprunning = False
-        while self.ping_objects:
-            self.clean_up()
+            item.stop_thread()
 
 
 def main():
     """Run stand alone"""
     pass
+
 
 if __name__ == '__main__':
     main()

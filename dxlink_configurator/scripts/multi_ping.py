@@ -1,8 +1,8 @@
 """Continuously pings devices for troubleshooting"""
 
 import wx
-import os
-from ObjectListView import ObjectListView, ColumnDefn
+# import os
+from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn
 from . import mdc_gui
 from pydispatch import dispatcher
 
@@ -104,7 +104,7 @@ class MultiPing(mdc_gui.MultiPing):
         self.olv_sizer.Layout()
 
         self.parent = parent
-        self.log_link_txt.SetURL(os.path.join(self.parent.path, 'ping_logs'))
+        # self.log_link_txt.SetURL(os.path.join(self.parent.path, 'ping_logs'))
 
         self.SetTitle("Multiple Ping Monitor")
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -133,6 +133,9 @@ class MultiPing(mdc_gui.MultiPing):
 
     def on_redraw_timer(self, _):
         """Refresh objects when timer expires"""
+        if len(self.parent.ping_model.ping_objects) != len(self.ping_list.GetObjects()):
+            print('list has changed')
+            self.list_update(self.parent.ping_model.ping_objects)
         self.ping_list.RefreshObjects()
 
     def on_reset(self, _):
@@ -147,11 +150,12 @@ class MultiPing(mdc_gui.MultiPing):
         """Turns logging on"""
         self.parent.multi_ping_logging()
 
-    def on_close(self, _):
+    def on_close(self, event):
         """Close the window"""
         self.Hide()
         self.parent.multi_ping_shutdown()
-        self.Destroy()
+        # self.Destroy()
+        event.Skip()
 
     def on_show_details(self, _):
         """Show the details of the pings to this device"""

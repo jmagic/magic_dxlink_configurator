@@ -5,7 +5,6 @@ import os
 from pydispatch import dispatcher
 import json
 from ObjectListView import ObjectListView, ColumnDefn
-# import time
 from scripts import mdc_gui
 
 
@@ -15,28 +14,28 @@ class SendCommandConfig(mdc_gui.MultiSend):
 
         self.parent = parent
         self.SetTitle("Multiple Send Command")  # to %s" %obj.ip)
-        # try:
-        # create json file with:
-        # json.dump(jsonData, outfile, sort_keys = True, indent = 4,
-        # ensure_ascii=False)
-        with open(os.path.join("send_commands", "rx_tx_commands.txt"), 'rb') as command_file:
-            self.rx_tx_commands = json.load(command_file)
-        # except IOError:
-        #     dlg = wx.MessageDialog(parent=self, message='Cannot find  ' +
-        #                            'rx_tx_commands.txt \nYou will now only be' + 
-        #                            ' able to send commands manually. \nTo ' + 
-        #                            'have the system commands auto load, ' +
-        #                            're-install the \nprogram or replace: ' +
-        #                            os.getcwd() + '\\send_commands\\' +
-        #                            'rx_tx_commands.txt',
-        #                            caption='Please re-install program.',
-        #                            style=wx.OK)
-        #     dlg.ShowModal()
-        #     dlg.Destroy()
-        #     self.rx_tx_commands = {'dxrx':{},
-        #                            'dxtx':{},
-        #                            'dxftx':{},
-        #                            'dxfrx':{}}
+        try:
+            # create json file with:
+            # json.dump(jsonData, outfile, sort_keys = True, indent = 4,
+            # ensure_ascii=False)
+            with open(os.path.join("send_commands", "rx_tx_commands.txt"), 'rb') as command_file:
+                self.rx_tx_commands = json.load(command_file)
+        except IOError:
+            dlg = wx.MessageDialog(parent=self, message='Cannot find  ' +
+                                   'rx_tx_commands.txt \nYou will now only be' +
+                                   ' able to send commands manually. \nTo ' +
+                                   'have the system commands auto load, ' +
+                                   're-install the \nprogram or replace: ' +
+                                   os.getcwd() + '\\send_commands\\' +
+                                   'rx_tx_commands.txt',
+                                   caption='Please re-install program.',
+                                   style=wx.OK)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.rx_tx_commands = {'dxrx': {},
+                                   'dxtx': {},
+                                   'dxftx': {},
+                                   'dxfrx': {}}
 
         self.device_list = ObjectListView(self.olv_panel, wx.ID_ANY,
                                           size=wx.Size(-1, 200),
@@ -192,16 +191,10 @@ class SendCommandConfig(mdc_gui.MultiSend):
             else:
                 system = obj.system
 
-            output = ("send_command " +
-                      str(device) +
-                      ":" +
-                      str(self.string_port_txt.GetValue()) +
-                      ":" +
-                      str(system) +
-                      ", " +
-                      "\"\'" +
-                      str(self.string_command_txt.GetValue()) +
-                      "\'\"")
+            port = self.string_port_txt.GetValue()
+            command_txt = self.string_command_txt.GetValue()
+            output = f"send_command {device}:{port}:{system},\"\'{command_txt}\'\""
+            # print('Output: ', output)
             self.parent.telnet_job_queue.put(
                 ['send_command', obj,
                  self.parent.telnet_timeout_seconds,
@@ -240,30 +233,28 @@ class SendCommandConfig(mdc_gui.MultiSend):
             dlg.Destroy()
             return True
 
-    
     def on_time_out(self, _):
         """Timer has expired"""
         self.waiting_result = False
         self.result_string = "*** Timed out waiting for response ***"
 
     def on_result(self, sender):
-        """Sets the result label""" 
-        #self.waiting_result = False
-        if  sender[0]:
-            self.result_string = sender[1] 
+        """Sets the result label"""
+        # self.waiting_result = False
+        if sender[0]:
+            self.result_string = sender[1]
         else:
             print("error ", sender[1])
-        
+
     def on_exit(self, _):
-        """When user exits"""       
+        """When user exits"""
         self.Destroy()
 
     def on_abort(self, _):
-        """When user clicks abort"""        
+        """When user clicks abort"""
         self.parent.abort = True
         self.Destroy()
 
-        
 
 
 

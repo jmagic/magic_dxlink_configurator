@@ -30,7 +30,7 @@ import pickle
 import datetime
 import os
 import csv
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn
 import queue
 import webbrowser
 # import requests
@@ -90,7 +90,7 @@ class MainFrame(mdc_gui.MainFrame):
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIcon(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
-        self.check_migrate()
+        # self.check_migrate()
 
         self.dxtx_models_default = (
             'DXLINK-HDMI-MFTX, ' +
@@ -164,24 +164,23 @@ class MainFrame(mdc_gui.MainFrame):
         self.columns = []
         self.min_panel_width = 450
         self.panel_width_offset = 60
-        self.col_width = {
-                            'Time': 110,
-                            'Model': 160,
-                            'MAC': 125,
-                            'IP': 120,
-                            'Hostname': 150,
-                            'Serial': 150,
-                            'Firmware': 80,
-                            'Device': 80,
-                            'Static': 50,
-                            'Master': 120,
-                            'System': 60,
-                            'Status': 120}
+        self.col_width = {'Time': 110,
+                          'Model': 160,
+                          'MAC': 125,
+                          'IP': 120,
+                          'Hostname': 150,
+                          'Serial': 150,
+                          'Firmware': 80,
+                          'Device': 80,
+                          'Static': 50,
+                          'Master': 120,
+                          'System': 60,
+                          'Status': 120}
 
         self.columns_setup = [
             ColumnDefn("Time", "center", self.col_width['Time'],
                        "arrival_time", stringConverter="%I:%M:%S%p"),
-            ColumnDefn("Model", "left", self.col_width['Model'], "model"),
+            ColumnDefn("Model", "None", self.col_width['Model'], "model"),
             ColumnDefn("MAC", "left", self.col_width['MAC'], "mac_address"),
             ColumnDefn("IP", "left", self.col_width['IP'], "ip_address"),
             ColumnDefn("Hostname", "left", self.col_width['Hostname'],
@@ -256,21 +255,21 @@ class MainFrame(mdc_gui.MainFrame):
         return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
                             relative)
 
-    def check_migrate(self):
-        """Migrates data folder"""
-        try:
-            old_folder_path = os.path.expanduser(os.path.join('~', 'Documents', 'Magic_DXLink_Configurator'))
-            if os.path.exists(old_folder_path):
-                try:
-                    os.rename(old_folder_path, self.path)
-                except Exception as error:
-                    print('Migration: Both old and new files exsist, moving to conflicts')
-                    if not os.path.exists(os.path.join(self.path, 'conflicts')):
-                        os.makedirs(os.path.join(self.path, 'conflicts'))
+    # def check_migrate(self):
+    #     """Migrates data folder"""
+    #     try:
+    #         old_folder_path = os.path.expanduser(os.path.join('~', 'Documents', 'Magic_DXLink_Configurator'))
+    #         if os.path.exists(old_folder_path):
+    #             try:
+    #                 os.rename(old_folder_path, self.path)
+    #             except Exception as error:
+    #                 print('Migration: Both old and new files exsist, moving to conflicts')
+    #                 if not os.path.exists(os.path.join(self.path, 'conflicts')):
+    #                     os.makedirs(os.path.join(self.path, 'conflicts'))
 
-                    os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
-        except Exception as error:
-            print('Error in migration: ', error)
+    #                 os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+    #     except Exception as error:
+    #         print('Error in migration: ', error)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
@@ -516,7 +515,7 @@ class MainFrame(mdc_gui.MainFrame):
             return
         if type(self.ping_window) is not multi_ping.MultiPing:
             self.ping_window = multi_ping.MultiPing(self)
-            self.ping_window.Show()
+        self.ping_window.Show()
         self.ping_model.add_items(self.main_list.GetSelectedObjects())
 
     def multi_ping_remove(self, obj):
@@ -529,6 +528,8 @@ class MainFrame(mdc_gui.MainFrame):
     def multi_ping_shutdown(self):
         """Shuts down multi-ping"""
         Thread(target=self.ping_model.shutdown).start()
+        # self.ping_model.shutdown()
+        # pass
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
