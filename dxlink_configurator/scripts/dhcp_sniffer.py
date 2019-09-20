@@ -11,7 +11,14 @@ class DHCPListener(Thread):
     def __init__(self):
         """Init Worker Thread Class."""
         self.shutdown = False
+        dispatcher.connect(self.shutdown_signal,
+                           signal="Shutdown",
+                           sender=dispatcher.Any)
         Thread.__init__(self)
+
+    def shutdown_signal(self, sender):
+        """Shutsdown the thread"""
+        self.shutdown = True
 
     def run(self):
         """Run Worker Thread."""
@@ -100,12 +107,12 @@ class DHCPListener(Thread):
                         # dhcp_options = dhcp_options[length:]
 
                     if ip_address == '':
-                        print('no ip skipping')
+                        # print('no ip skipping')
                         continue
 
                     # check if we have been told to stop listening
                     if not self.shutdown:
-                        dispatcher.send(signal="Incoming Packet", sender=(hostname, mac_address, ip_address))
+                        dispatcher.send(signal="Incoming DHCP", sender=(hostname, mac_address, ip_address))
             except Exception as error:
                 print('Error parsing DHCP packet: ', error)
 
@@ -130,6 +137,6 @@ def main():
     test.shutdown = True
     test.join()
 
+
 if __name__ == '__main__':
     main()
-

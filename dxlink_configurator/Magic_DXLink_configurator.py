@@ -245,10 +245,16 @@ class MainFrame(mdc_gui.MainFrame):
                            sender=dispatcher.Any)
         self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
 
+        self.check_for_updates = True
+        dispatcher.connect(self.update_required,
+                           signal="Software Update",
+                           sender=dispatcher.Any)
+
         if self.check_for_updates:
-            update_thread = auto_update.AutoUpdate(self, self.version, self.name)
+            update_thread = auto_update.AutoUpdate(server_url="https://magicsoftware.ornear.com", program_name=self.name, program_version=self.version)
             update_thread.setDaemon(True)
             update_thread.start()
+
 
     # ----------------------------------------------------------------------
 
@@ -256,21 +262,15 @@ class MainFrame(mdc_gui.MainFrame):
         return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
                             relative)
 
-    # def check_migrate(self):
-    #     """Migrates data folder"""
-    #     try:
-    #         old_folder_path = os.path.expanduser(os.path.join('~', 'Documents', 'Magic_DXLink_Configurator'))
-    #         if os.path.exists(old_folder_path):
-    #             try:
-    #                 os.rename(old_folder_path, self.path)
-    #             except Exception as error:
-    #                 print('Migration: Both old and new files exsist, moving to conflicts')
-    #                 if not os.path.exists(os.path.join(self.path, 'conflicts')):
-    #                     os.makedirs(os.path.join(self.path, 'conflicts'))
+    def update_required(self, sender, message, url):
+        """Show the update page"""
+        dlg = wx.MessageDialog(parent=self,
+                               message='An update is available. \rWould you like to go to the download page?',
+                               caption='Update available',
+                               style=wx.OK | wx.CANCEL)
 
-    #                 os.rename(old_folder_path, os.path.join(self.path, 'conflicts', datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
-    #     except Exception as error:
-    #         print('Error in migration: ', error)
+        if dlg.ShowModal() == wx.ID_OK:
+            webbrowser.open(url)
 
     def on_key_down(self, event):
         """Grab Delete key presses"""
