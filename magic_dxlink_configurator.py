@@ -3,7 +3,7 @@ commands to ease configuration and management of AMX DXLink devices.
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Jim Maciejewski
+Copyright (c) 2019 Jim Maciejewski
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,127 +23,156 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-
-import configparser
-import wx
-import pickle
-import datetime
 import os
+import sys
+import datetime
+import pickle
+import wx
 import csv
-from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn
+from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn, EVT_CELL_EDIT_FINISHING
 import queue
 import webbrowser
-# import requests
-import urllib
-from netaddr import IPRange
-# from bs4 import BeautifulSoup
-# from distutils.version import StrictVersion
+from dataclasses import dataclass, field
 from pydispatch import dispatcher
 from threading import Thread
-import sys
-from netaddr import IPNetwork
+from shutil import which
+
 from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, multi_ping_model, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
 
 
-class Unit(object):
-    """
-    Model of the Unit
+@dataclass
+class DXLinkUnit:
 
-    Contains the following attributes:
-    model, hostname, serial ,firmware, device, mac, ip, time, ip_type, gateway,
-    subnet, master, system
-    """
-    # ----------------------------------------------------------------------
+    model: str = ''
+    hostname: str = ''
+    serial: str = ''
+    firmware: str = ''
+    device: str = ''
+    mac_address: str = ''
+    ip_address: str = ''
+    arrival_time: str = ''
+    ip_type: str = ''
+    gateway: str = ''
+    subnet: str = ''
+    master: str = ''
+    system: str = ''
+    status: str = ''
 
-    def __init__(self, model='', hostname='', serial='', firmware='',
-                 device='', mac='', ip_ad='', arrival_time='', ip_type='',
-                 gateway='', subnet='', master='', system='', status=''):
-
-        self.model = model
-        self.hostname = hostname
-        self.serial = serial
-        self.firmware = firmware
-        self.device = device
-        self.mac_address = mac
-        self.ip_address = ip_ad
-        self.arrival_time = arrival_time
-        self.ip_type = ip_type
-        self.gateway = gateway
-        self.subnet = subnet
-        self.master = master
-        self.system = system
-        self.status = status
+    dxtx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-MFTX', 'DXLINK-HDMI-WP', 'DXLINK-HDMI-DWP'])
+    dxrx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
+    dxftx_models_default: list = field(default_factory=lambda: ['DXF-TX-xxD', 'DXLF-MFTX'])
+    dxfrx_models_default: list = field(default_factory=lambda: ['DXF-RX-xxD', 'DXLF-HDMIRX'])
 
 
-class MainFrame(mdc_gui.MainFrame):
+@dataclass
+class Preferences:
+    main_list: list = field(default_factory=list)
+    master_address: str = ''
+    device_number: int = 0
+    connection_type: str = 'tcp'
+    device_dhcp: bool = True
+    number_of_threads: int = 20
+    telnet_client: str = 'putty.exe'
+    telnet_timeout: int = 20
+    dhcp_sniffing: bool = True
+    amx_only_filter: bool = False
+    subnet_filter: bool = False
+    play_sounds: bool = True
+    check_for_updates: bool = True
+    debug: bool = False
+    dev_inc_num: int = 0
+
+    def set_prefs(self):
+        try:
+            which('putty.exe')
+        except Exception as error:
+            print('unable to find putty.exe: ', error)
+            self.telnet_client = None
+
+
+@dataclass
+class GuiPreferences:
+
+    min_panel_width: int = 450
+    panel_width_offset: int = 60
+    cols_selected: list = field(default_factory=list)
+
+    def set_prefs(self):
+        pass
+
+    def select_columns(self):
+        """Sets the columns to be displayed"""
+        # assert isinstance(self.columns_config, basestring)
+        columns = self.cols_selected + ['Time', 'IP', 'Status']
+        self.cols_selected = list(set(columns))
+        return self.cols_selected
+        # todisplay = []
+        # for item in self.columns_setup:
+        #     if item.title in columns:
+        #         todisplay.append(item)
+        # self.main_list.SetColumns(todisplay)
+
+    def resize_frame(self):
+        """Resizes the Frame"""
+        panel_width = self.panel_width_offset
+        columns = ['Time', 'IP', 'Status']
+        if self.columns_config != ['']:
+            columns += self.columns_config
+        for item in columns:
+            panel_width += self.col_width[item]
+        if panel_width < self.min_panel_width:
+            panel_width = self.min_panel_width
+        self.SetSize((panel_width, 600))
+
+
+class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def __init__(self, parent):
-        mdc_gui.MainFrame.__init__(self, parent)
+        mdc_gui.DXLink_Configurator_Frame.__init__(self, parent)
 
-        self.name = "Magic DXLink Configurator"
-        self.version = "v4.0.0"
-        self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
-        self.settings_path = os.path.join(self.path, 'settings.txt')
-        self.data_path = os.path.join(self.path, 'data.pkl')
-        self.SetTitle(self.name + " " + self.version)
         icon_bundle = wx.IconBundle()
         icon_bundle.AddIcon(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
-        # self.check_migrate()
+        self.name = "Magic DXLink Configurator"
+        self.version = "v4.0.0"
+        self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
+        self.storage_file = "_".join(self.name.split()) + ".pkl"
+        self.SetTitle(self.name + " " + self.version)
+        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY,
+                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+        self.main_list.Bind(EVT_CELL_EDIT_FINISHING, self.save_main_list)
+        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
+                            self.olv_panelOnContextMenu)
+        self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
-        self.dxtx_models_default = (
-            'DXLINK-HDMI-MFTX, ' +
-            'DXLINK-HDMI-WP, ' +
-            'DXLINK-HDMI-DWP')
+        self.columns = [
+            ColumnDefn("Time", "left", 110, "arrival_time", stringConverter="%I:%M:%S%p"),
+            ColumnDefn("Model", "left", 160, "model"),
+            ColumnDefn("MAC", "left", 125, "mac_address"),
+            ColumnDefn("IP", "left", 120, "ip_address"),
+            ColumnDefn("Hostname", "left", 150, "hostname"),
+            ColumnDefn("Serial", "left", 150, "serial"),
+            ColumnDefn("Firmware", "left", 80, "firmware"),
+            ColumnDefn("Device", "center", 80, "device"),
+            ColumnDefn("Static", "center", 80, "ip_type"),
+            ColumnDefn("Master", "left", 120, "master"),
+            ColumnDefn("System", "left", 60, "system"),
+            ColumnDefn("Status", "center", 120, "status")]
 
-        self.dxrx_models_default = (
-            'DXLINK-HDMI-RX, ' +
-            'DXLINK-HDMI-RX.c, ' +
-            'DXLINK-HDMI-RX.e')
-        self.dxftx_models_default = (
-            'DXF-TX-xxD, ' +
-            'DXLF-MFTX')
-        self.dxfrx_models_default = (
-            'DXF-RX-xxD, ' +
-            'DXLF-HDMIRX')
-        self.columns_default = (
-            'Model, ' +
-            'Hostname, ' +
-            'Firmware, ' +
-            'Static, ' +
-            'MAC, ' +
-            'Serial, ' +
-            'Device, ' +
-            'Master, ' +
-            'System')
+        self.main_list.SetColumns(self.columns)
+        self.main_list.SetEmptyListMsg("Select File-->Add Item to add an individual item")
+        self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
+        self.olv_sizer.Layout()
 
-        self.master_address = None
-        self.device_number = None
-        self.default_connection_type = None
-        self.default_dhcp = None
-        self.thread_number = None
-        self.telnet_client = None
-        self.telnet_timeout_seconds = None
-        self.dhcp_sniffing = None
-        self.amx_only_filter = None
-        self.subnet_filter_enable = None
-        self.subnet_filter = None
-        self.play_sounds = None
-        self.check_for_updates = None
-        self.debug = False
-        self.columns_config = []
-        self.dxtx_models = []
-        self.dxrx_models = []
-        self.dxftx_models = []
-        self.dxfrx_models = []
-        self.config_fail = False
-        self.telnet_missing = False
-        self.read_config_file()
-        self.check_for_telnet_client()
+        pick = self.load_config()
+        self.main_list.AddObjects(pick['main_list'])
+        self.preferences = pick['preferences']
+        self.gui_preferences = pick['gui_preferences']
 
-        self.set_title_bar()
 
+        # Should these be here?
         self.errorlist = []
         self.completionlist = []
         self.configure_list = []
@@ -152,58 +181,12 @@ class MainFrame(mdc_gui.MainFrame):
         self.port_error = False
         self.cancel = False
         self.abort = False
-        self.dev_inc_num = 0
 
-        self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY,
-                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER)
-        self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.main_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
-                            self.MainFrameOnContextMenu)
-        self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
-
-        self.columns = []
-        self.min_panel_width = 450
-        self.panel_width_offset = 60
-        self.col_width = {'Time': 110,
-                          'Model': 160,
-                          'MAC': 125,
-                          'IP': 120,
-                          'Hostname': 150,
-                          'Serial': 150,
-                          'Firmware': 80,
-                          'Device': 80,
-                          'Static': 50,
-                          'Master': 120,
-                          'System': 60,
-                          'Status': 120}
-
-        self.columns_setup = [
-            ColumnDefn("Time", "center", self.col_width['Time'],
-                       "arrival_time", stringConverter="%I:%M:%S%p"),
-            ColumnDefn("Model", "None", self.col_width['Model'], "model"),
-            ColumnDefn("MAC", "left", self.col_width['MAC'], "mac_address"),
-            ColumnDefn("IP", "left", self.col_width['IP'], "ip_address"),
-            ColumnDefn("Hostname", "left", self.col_width['Hostname'],
-                       "hostname"),
-            ColumnDefn("Serial", "left", self.col_width['Serial'], "serial"),
-            ColumnDefn("Firmware", "left", self.col_width['Firmware'],
-                       "firmware"),
-            ColumnDefn("Device", "left", self.col_width['Device'], "device"),
-            ColumnDefn("Static", "left", self.col_width['Static'], "ip_type"),
-            ColumnDefn("Master", "left", self.col_width['Master'], "master"),
-            ColumnDefn("System", "left", self.col_width['System'], "system"),
-            ColumnDefn("Status", "left", self.col_width['Status'], "status")]
-
-        self.select_columns()
-        self.amx_only_filter_chk.Check(self.amx_only_filter)
-        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
-        self.migrate_pickle()
-        self.load_data_pickle()
+        self.amx_only_filter_chk.Check(self.preferences.amx_only_filter)
+        self.dhcp_sniffing_chk.Check(self.preferences.dhcp_sniffing)
         self.update_status_bar()
 
-        self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
-        self.olv_sizer.Layout()
-        self.resize_frame()
+        # What is this used for??
         self.cert_path = self.resource_path('cacert.pem')
 
         # Create DHCP listening thread
@@ -221,7 +204,7 @@ class MainFrame(mdc_gui.MainFrame):
 
         # create a telnetjob thread pool and assign them to a queue
         self.telnet_job_queue = queue.Queue()
-        for _ in range(int(self.thread_number)):
+        for _ in range(int(self.preferences.number_of_threads)):
             self.telnet_job_thread = telnet_class.Telnetjobs(
                 self, self.telnet_job_queue)
             self.telnet_job_thread.setDaemon(True)
@@ -243,7 +226,7 @@ class MainFrame(mdc_gui.MainFrame):
         dispatcher.connect(self.collect_errors,
                            signal="Collect Errors",
                            sender=dispatcher.Any)
-        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
+        self.dhcp_listener.dhcp_sniffing_enabled = self.preferences.dhcp_sniffing
 
         self.check_for_updates = True
         dispatcher.connect(self.update_required,
@@ -254,9 +237,6 @@ class MainFrame(mdc_gui.MainFrame):
             update_thread = auto_update.AutoUpdate(server_url="https://magicsoftware.ornear.com", program_name=self.name, program_version=self.version)
             update_thread.setDaemon(True)
             update_thread.start()
-
-
-    # ----------------------------------------------------------------------
 
     def resource_path(self, relative):
         return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
@@ -285,7 +265,7 @@ class MainFrame(mdc_gui.MainFrame):
 
             if dlg.ShowModal() == wx.ID_OK:
                 self.delete_item(None)
-                self.dump_pickle()
+                self.save_main_list()
             else:
                 return
         event.Skip()
@@ -345,16 +325,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.amx_only_filter = not self.amx_only_filter
         self.amx_only_filter_chk.Check(self.amx_only_filter)
         self.write_config_file()
-
-    def select_columns(self):
-        """Sets the columns to be displayed"""
-        # assert isinstance(self.columns_config, basestring)
-        columns = self.columns_config + ['Time', 'IP', 'Status']
-        todisplay = []
-        for item in self.columns_setup:
-            if item.title in columns:
-                todisplay.append(item)
-        self.main_list.SetColumns(todisplay)
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -618,7 +588,7 @@ class MainFrame(mdc_gui.MainFrame):
         item_id = event.GetId()
         menu = event.GetEventObject()
         menuItem = menu.FindItemById(item_id)
-        num_of_devices = str((int(menuItem.GetLabel().split()[1])/100))
+        num_of_devices = str((int(menuItem.GetLabel().split()[1]) / 100))
         # print 'num of ', num_of_devices
 
         ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
@@ -697,11 +667,6 @@ class MainFrame(mdc_gui.MainFrame):
         self.errorlist = []
         self.completionlist = []
 
-    def dump_pickle(self):
-        """Saves list data to a file"""
-        pickle.dump(self.main_list.GetObjects(), open(
-            (self.data_path), 'wb'))
-
     def export_to_csv(self, _):
         """Store list items in a CSV file"""
         if self.check_for_none_selected():
@@ -734,7 +699,7 @@ class MainFrame(mdc_gui.MainFrame):
 
                     write_csv.writerow(data)
                     self.set_status((obj, 'Exported'))
-            self.dump_pickle()
+            self.save_main_list()
 
     def import_csv_file(self, _):
         """Imports a list of devices to the main list"""
@@ -758,7 +723,7 @@ class MainFrame(mdc_gui.MainFrame):
             with open(csv_path, 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = Unit(
+                    data = DXLinkUnit(
                         model=item[0],
                         hostname=item[1],
                         serial=item[2],
@@ -775,7 +740,7 @@ class MainFrame(mdc_gui.MainFrame):
                         system=item[12])
 
                     self.main_list.AddObject(data)
-            self.dump_pickle()
+            self.save_main_list()
 
         else:
             open_file_dialog.Destroy()
@@ -794,12 +759,12 @@ class MainFrame(mdc_gui.MainFrame):
             with open(open_file_dialog.GetPath(), 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = Unit(
+                    data = DXLinkUnit(
                         ip_ad=item[0],
                         arrival_time=datetime.datetime.now())
 
                     self.main_list.AddObject(data)
-            self.dump_pickle()
+            self.save_main_list()
             open_file_dialog.Destroy()
         else:
             open_file_dialog.Destroy()
@@ -820,10 +785,10 @@ class MainFrame(mdc_gui.MainFrame):
             online_tree_list = online_tree.split('+ IPv4 Address.......:')[1:]
             # print online_tree_list[0]
             for item in online_tree_list:
-                data = Unit(ip_ad=item.split()[0],
+                data = DXLinkUnit(ip_ad=item.split()[0],
                             arrival_time=datetime.datetime.now())
                 self.main_list.AddObject(data)
-            self.dump_pickle()
+            self.save_main_list()
             open_file_dialog.Destroy()
         else:
             open_file_dialog.Destroy()
@@ -836,21 +801,21 @@ class MainFrame(mdc_gui.MainFrame):
 
     def add_line(self, _):
         """Adds a line to the main list"""
-        data = Unit(arrival_time=datetime.datetime.now())
+        data = DXLinkUnit(arrival_time=datetime.datetime.now())
         self.main_list.AddObject(data)
-        self.dump_pickle()
+        self.save_main_list()
 
     def delete_item(self, _):
         """Deletes the selected item"""
         if len(self.main_list.GetSelectedObjects()) == \
            len(self.main_list.GetObjects()):
             self.main_list.DeleteAllItems()
-            self.dump_pickle()
+            self.save_main_list()
             return
         if len(self.main_list.GetSelectedObjects()) == 0:
             return
         self.main_list.RemoveObjects(self.main_list.GetSelectedObjects())
-        self.dump_pickle()
+        self.save_main_list()
 
     def delete_all_items(self, _):
         """Deletes all items,selected or not"""
@@ -860,7 +825,7 @@ class MainFrame(mdc_gui.MainFrame):
                                style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
             self.main_list.DeleteAllItems()
-            self.dump_pickle()
+            self.save_main_list()
         else:
             return
 
@@ -868,8 +833,8 @@ class MainFrame(mdc_gui.MainFrame):
                         device='', mac='', ip_ad='', arrival_time='',
                         ip_type='', gateway='', subnet='', master='',
                         system=''):
-        """Creates and adds a unit"""
-        data = Unit(
+        """Creates and adds a DXLinkUnit"""
+        data = DXLinkUnit(
             model=model,
             hostname=hostname,
             serial=serial,
@@ -884,13 +849,13 @@ class MainFrame(mdc_gui.MainFrame):
             master=master,
             system=system)
         self.main_list.AddObject(data)
-        # self.dump_pickle()
+        # self.save_main_list()
         return data
 
     def incoming_packet(self, sender):
         """Receives dhcp requests and adds them to objects to display"""
         incoming_time = datetime.datetime.now()
-        data = Unit(
+        data = DXLinkUnit(
             hostname=sender[0],
             mac=sender[1],
             ip_ad=sender[2],
@@ -950,158 +915,34 @@ class MainFrame(mdc_gui.MainFrame):
             self.telnet_job_queue.put(['get_config_info', data,
                                        self.telnet_timeout_seconds])
         self.main_list.SelectObjects(selected_items, deselectOthers=True)
-        self.dump_pickle()
+        self.save_main_list()
         self.play_sound()
 
-    def read_config_file(self):
-        """Reads the config file"""
-        config = configparser.RawConfigParser()
-        try:  # read the settings file
-            config.read((self.settings_path))
-            self.master_address = (config.get(
-                'Settings', 'default master address'))
-            self.device_number = (config.get(
-                'Settings', 'default device number'))
-            self.default_connection_type = (config.get(
-                'Settings', 'default connection type'))
-            self.default_dhcp = (config.getboolean(
-                'Settings', 'default enable DHCP'))
-            self.thread_number = (config.getint(
-                'Settings', 'number of threads'))
-            self.telnet_client = (config.get(
-                'Settings', 'telnet client executable'))
-            self.telnet_timeout_seconds = (config.getint(
-                'Settings', 'telnet timeout in seconds'))
-            self.dhcp_sniffing = (config.getboolean(
-                'Settings', 'DHCP sniffing enabled'))
-            self.amx_only_filter = (config.getboolean(
-                'Settings', 'filter incoming DHCP for AMX only'))
-            self.subnet_filter_enable = (config.getboolean(
-                'Settings', 'subnet filter enabled'))
-            self.subnet_filter = (config.get(
-                'Settings', 'subnet filter'))
-            self.play_sounds = (config.getboolean(
-                'Settings', 'play sounds'))
-            self.check_for_updates = (config.getboolean(
-                'Settings', 'check for updates'))
-            self.debug = (config.getboolean(
-                'Config', 'debug'))
-            self.columns_config = []
-            for item in config.get(
-                    'Config', 'columns_config').split(','):
-                self.columns_config.append(item.strip())
+    def save_main_list(self):
+        """Saves the preference and main list"""
+        self.save_config(preferences=self.preferences, gui_preferences=self.gui_preferences)
 
-            for item in config.get(
-                    'Config', 'DXLink TX Models').split(','):
-                self.dxtx_models.append(item.strip())
-                for item in self.dxtx_models_default.split(','):
-                    if item.strip() not in self.dxtx_models:
-                        self.dxtx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink RX Models').split(','):
-                self.dxrx_models.append(item.strip())
-                for item in self.dxrx_models_default.split(','):
-                    if item.strip() not in self.dxrx_models:
-                        self.dxrx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink Fibre TX Models').split(','):
-                self.dxftx_models.append(item.strip())
-                for item in self.dxftx_models_default.split(','):
-                    if item.strip() not in self.dxftx_models:
-                        self.dxftx_models.append(item.strip())
-            for item in config.get(
-                    'Config', 'DXLink Fibre RX Models').split(','):
-                self.dxfrx_models.append(item.strip())
-                for item in self.dxfrx_models_default.split(','):
-                    if item.strip() not in self.dxfrx_models:
-                        self.dxfrx_models.append(item.strip())
-
-        except Exception as error:  # (configparser.Error, IOError):
-            # Make a new settings file, because we couldn't read the old one
-            print(error)
-            try:
-                self.create_config_file()
-                self.read_config_file()
-            except Exception as error:
-                print(error)
-                pass
-        return
-
-    def create_config_file(self):
-        """Creates a new config file"""
-        self.config_fail = True
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
+    def load_config(self):
+        """Load Config"""
         try:
-            if os.path.exists(self.settings_path):
-                os.remove(self.settings_path)
-        except OSError:
-            pass
-        with open((self.settings_path), 'w') as config_file:
-            config_file.write("")
-        config = configparser.RawConfigParser()
-        config.add_section('Settings')
-        config.set('Settings', 'default master address', '192.168.1.1')
-        config.set('Settings', 'default device number', '0')
-        config.set('Settings', 'default connection type', 'TCP')
-        config.set('Settings', 'default enable dhcp', True)
-        config.set('Settings', 'number of threads', 20)
-        config.set('Settings', 'telnet client executable', ('putty.exe'))
-        config.set('Settings', 'telnet timeout in seconds', '4')
-        config.set('Settings',
-                   'display notification of successful connections', True)
-        config.set('Settings', 'DHCP sniffing enabled', True)
-        config.set('Settings', 'filter incoming DHCP for AMX only', False)
-        config.set('Settings', 'subnet filter enabled', False)
-        config.set('Settings', 'subnet filter', '')
-        config.set('Settings', 'play sounds', True)
-        config.set('Settings', 'check for updates', True)
-        config.add_section('Config')
-        config.set('Config', 'debug', False)
-        config.set('Config', 'columns_config', self.columns_default)
-        config.set('Config', 'DXLink TX Models', self.dxtx_models_default)
-        config.set('Config', 'DXLink RX Models', self.dxrx_models_default)
-        config.set(
-            'Config', 'DXLink Fibre TX Models', self.dxftx_models_default)
-        config.set(
-            'Config', 'DXLink Fibre RX Models', self.dxfrx_models_default)
-        with open((self.settings_path), 'w') as configfile:
-            config.write(configfile)
+            with open(self.storage_file, 'rb') as f:
+                pick = pickle.load(f)
+            return pick
+        except Exception as error:
+            print('unable to load plk ', error)
+            # self.save_config()
+            pick = {'preferences': Preferences(), 'main_list': [], 'gui_preferences': GuiPreferences()}
+            return pick
 
-    def write_config_file(self):
+    def save_config(self, preferences=None, gui_preferences=None):
         """Update values in config file"""
-        config = configparser.RawConfigParser()
-        config.read((self.settings_path))
-        config.set('Settings', 'default master address', self.master_address)
-        config.set('Settings', 'default device number', self.device_number)
-        config.set('Settings', 'default connection type',
-                   self.default_connection_type)
-        config.set('Settings', 'default enable dhcp', self.default_dhcp)
-        config.set('Settings', 'number of threads', self.thread_number)
-        config.set('Settings', 'telnet client executable', self.telnet_client)
-        config.set('Settings', 'telnet timeout in seconds',
-                   self.telnet_timeout_seconds)
-        config.set('Settings', 'DHCP sniffing enabled', self.dhcp_sniffing)
-        config.set('Settings', 'filter incoming DHCP for AMX only',
-                   self.amx_only_filter)
-        config.set('Settings', 'subnet filter enabled',
-                   self.subnet_filter_enable)
-        config.set('Settings', 'subnet filter', self.subnet_filter)
-        config.set('Settings', 'play sounds', self.play_sounds)
-        config.set('Settings', 'check for updates', self.check_for_updates)
-        config.set('Config', 'debug', self.debug)
-        columns = ''
-        for item in self.columns_config:
-            columns = columns + item + ', '
-        columns = columns[:-2]
-        config.set('Config', 'columns_config', columns)
-        with open((self.settings_path), 'w') as configfile:
-            config.write(configfile)
-
-    def check_for_telnet_client(self):
-        """Checks if telnet client in the path"""
-        if not os.path.exists(os.path.join(self.path, self.telnet_client)):
-            self.telnet_missing = True
+        # print('saving...')
+        if preferences is None:
+            # Create new config file
+            preferences = Preferences()
+        with open(self.storage_file, "wb") as f:
+            pick = {'preferences': preferences, 'main_list': self.main_list.GetObjects(), 'gui_preferences': gui_preferences}
+            pickle.dump(pick, f)
 
     def telnet_missing_dia(self):
         """Show dialog for missing putty"""
@@ -1136,9 +977,6 @@ class MainFrame(mdc_gui.MainFrame):
         dlg.ShowModal()
         dlg.Destroy()
 
-    def set_title_bar(self):
-        """Sets title bar text"""
-        self.SetTitle(self.name + " " + self.version)
 
     def configure_device(self, _):
         """Configures a DXLink devices ip master and device number"""
@@ -1172,89 +1010,44 @@ class MainFrame(mdc_gui.MainFrame):
         dia.ShowModal()
         dia.Destroy()
 
-    def migrate_pickle(self):
-        """Migrates a pickle"""
-        try:
-            old_path = os.path.join(self.path, 'data_v3.3.1.pkl')
-            if os.path.exists(old_path):
-                try:
-                    os.rename(old_path,
-                              os.path.join(self.path, 'data.pkl'))
-                except Exception as error:
-                    print('Unable to migrate pickle: ', error)
-                    os.remove(old_path)
-        except Exception as error:
-            print("Error migrating pickle: ", error)
-
-    def load_data_pickle(self):
-        """Loads main list from data file"""
-        if os.path.exists(self.data_path):
-            try:
-                with open((self.data_path),
-                          'rb') as data_file:
-                    objects = pickle.load(data_file)
-                    self.main_list.SetObjects(objects)
-            except Exception as error:
-                print('Loading pickle error: ', error)
-                self.new_pickle()
-        self.main_list.SetSortColumn(0, resortNow=True)
-
-    def new_pickle(self):
-        """Creates a new pickle if there is a problem with the old one"""
-        try:
-            if os.path.exists(self.data_path):
-                os.rename(self.data_path,
-                          os.path.join(self.path, 'data_' + self.version + '.bad'))
-        except Exception as error:
-            dlg = wx.MessageDialog(parent=self, message='There is a problem ' +
-                                   'with the .pkl data file.' + str(error) + ' Please delete ' +
-                                   'to continue. ' +
-                                   ' The program will now exit',
-                                   caption='Problem with .pkl file',
-                                   style=wx.OK)
-            dlg.ShowModal()
-            self.Destroy()
-
-    def resize_frame(self):
-        """Resizes the Frame"""
-        panel_width = self.panel_width_offset
-        columns = ['Time', 'IP', 'Status']
-        if self.columns_config != ['']:
-            columns += self.columns_config
-        for item in columns:
-            panel_width += self.col_width[item]
-        if panel_width < self.min_panel_width:
-            panel_width = self.min_panel_width
-        self.SetSize((panel_width, 600))
-
     def update_status_bar(self):
         """Updates the status bar."""
         self.status_bar.SetFieldsCount(4)
 
         master_width = wx.ClientDC(self.status_bar).\
-            GetTextExtent(self.master_address)[0] + 0
+            GetTextExtent(self.preferences.master_address)[0] + 0
         device_width = wx.ClientDC(self.status_bar).\
-            GetTextExtent(self.device_number)[0] + 0
+            GetTextExtent(str(self.preferences.device_number))[0] + 0
         self.status_bar.SetStatusWidths([-1, master_width,
                                          device_width, 30])
-        self.status_bar.SetStatusText(self.master_address, 1)
-        self.status_bar.SetStatusText(self.device_number, 2)
+        self.status_bar.SetStatusText(self.preferences.master_address, 1)
+        self.status_bar.SetStatusText(str(self.preferences.device_number), 2)
 
-    def on_close(self, _):
-        """Close program if user closes window"""
-        self.dhcp_listener.shutdown = True
-        self.dump_pickle()
-        self.Hide()
-        if type(self.ping_window) is multi_ping.MultiPing:
-            self.ping_window.Hide()
-        self.ping_model.shutdown()
-        self.mse_active_list = []
-        self.telnet_job_queue.join()
-        self.Destroy()
+    def on_close(self, event):
+        self.save_main_list()
+        dispatcher.send(signal="Shutdown")
+        event.Skip()
 
-    def on_quit(self, _):
-        """Save list and close the program"""
-        self.on_close(None)
+    def on_exit(self, event):
+        self.save_main_list()
+        dispatcher.send(signal="Shutdown")
+        self.Close()
+
+    # def on_close(self, _):
+    #     """Close program if user closes window"""
+    #     self.dhcp_listener.shutdown = True
+    #     self.save_main_list()
+    #     self.Hide()
+    #     if type(self.ping_window) is multi_ping.MultiPing:
+    #         self.ping_window.Hide()
+    #     self.ping_model.shutdown()
+    #     self.mse_active_list = []
+    #     self.telnet_job_queue.join()
+    #     self.Destroy()
+
+    # def on_quit(self, _):
+    #     """Save list and close the program"""
+    #     self.on_close(None)
 
     def on_about_box(self, _):
         """Show the About information"""
@@ -1267,7 +1060,7 @@ serial number extraction, reboots and more.
 
         licence = """The MIT License (MIT)
 
-Copyright (c) 2014 Jim Maciejewski
+Copyright (c) 2019 Jim Maciejewski
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1307,30 +1100,24 @@ SOFTWARE."""
         dlg.Destroy()
 
 
-def show_splash():
-    """create, show and return the splash screen"""
-    bitmap = wx.Bitmap('media/splash.jpg')
-    splash = wx.SplashScreen(
-        bitmap, wx.SPLASH_CENTRE_ON_SCREEN, 1700, None, -1)
-    splash.Show()
-    return splash
+# def show_splash():
+#     """create, show and return the splash screen"""
+#     bitmap = wx.Bitmap('media/splash.jpg')
+#     splash = wx.SplashScreen(
+#         bitmap, wx.SPLASH_CENTRE_ON_SCREEN, 1700, None, -1)
+#     splash.Show()
+#     return splash
 
 
 def main():
     """run the main program"""
     dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
     # splash = show_splash()
-
     # do processing/initialization here and create main window
-    dxlink_frame = MainFrame(None)
+    dxlink_frame = DXLink_Configurator_Frame(None)
     dxlink_frame.Show()
-    # splash.Destroy()
-
-    if dxlink_frame.config_fail is True:
-        dxlink_frame.config_fail_dia()
-    if dxlink_frame.telnet_missing is True:
-        dxlink_frame.telnet_missing_dia()
     dxlink_configurator.MainLoop()
+
 
 if __name__ == '__main__':
     main()
