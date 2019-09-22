@@ -97,34 +97,22 @@ class GuiPreferences:
 
     min_panel_width: int = 450
     panel_width_offset: int = 60
-    cols_selected: list = field(default_factory=list)
+    cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
+                                                         'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
 
     def set_prefs(self):
         pass
 
-    def select_columns(self):
+    def get_select_columns(self, selected_columns):
         """Sets the columns to be displayed"""
-        # assert isinstance(self.columns_config, basestring)
-        columns = self.cols_selected + ['Time', 'IP', 'Status']
+        columns = selected_columns + ['Time', 'IP', 'Status']
         self.cols_selected = list(set(columns))
-        return self.cols_selected
+
         # todisplay = []
         # for item in self.columns_setup:
         #     if item.title in columns:
         #         todisplay.append(item)
         # self.main_list.SetColumns(todisplay)
-
-    def resize_frame(self):
-        """Resizes the Frame"""
-        panel_width = self.panel_width_offset
-        columns = ['Time', 'IP', 'Status']
-        if self.columns_config != ['']:
-            columns += self.columns_config
-        for item in columns:
-            panel_width += self.col_width[item]
-        if panel_width < self.min_panel_width:
-            panel_width = self.min_panel_width
-        self.SetSize((panel_width, 600))
 
 
 class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
@@ -156,7 +144,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             ColumnDefn("Serial", "left", 150, "serial"),
             ColumnDefn("Firmware", "left", 80, "firmware"),
             ColumnDefn("Device", "center", 80, "device"),
-            ColumnDefn("Static", "center", 80, "ip_type"),
+            ColumnDefn("Static", "center", 50, "ip_type"),
             ColumnDefn("Master", "left", 120, "master"),
             ColumnDefn("System", "left", 60, "system"),
             ColumnDefn("Status", "center", 120, "status")]
@@ -165,6 +153,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.main_list.SetEmptyListMsg("Select File-->Add Item to add an individual item")
         self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
         self.olv_sizer.Layout()
+        self.SetSize((self.main_list.GetBestSize()[0] + 20, 600))
 
         pick = self.load_config()
         self.main_list.AddObjects(pick['main_list'])
