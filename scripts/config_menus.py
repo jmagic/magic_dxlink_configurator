@@ -13,61 +13,58 @@ class PreferencesConfig(mdc_gui.Preferences):
         mdc_gui.Preferences.__init__(self, parent)
 
         self.parent = parent
+        self.prefs = self.parent.preferences
         self.set_values()
 
     def set_values(self):
         """Set the field values"""
-        self.master_address_txt.SetValue(self.parent.master_address)
-        self.device_number_txt.SetValue(self.parent.device_number)
-        self.subnet_filter_txt.SetValue(self.parent.subnet_filter)
-        self.subnet_filter_txt.Enable(self.parent.subnet_filter_enable)
-        self.subnet_filter_chk.SetValue(self.parent.subnet_filter_enable)
-        getattr(self, self.parent.default_connection_type.lower() +
+        self.master_address_txt.SetValue(self.prefs.master_address)
+        self.device_number_txt.SetValue(str(self.prefs.device_number))
+        self.subnet_filter_txt.SetValue(self.prefs.subnet_filter)
+        self.subnet_filter_txt.Enable(self.prefs.subnet_filter_enable)
+        self.subnet_filter_chk.SetValue(self.prefs.subnet_filter_enable)
+        getattr(self, self.prefs.connection_type.lower() +
                 '_chk').SetValue(True)
 
-        self.sounds_chk.SetValue(int(self.parent.play_sounds))
-        self.check_for_updates_chk.SetValue(int(self.parent.check_for_updates))
+        self.sounds_chk.SetValue(int(self.prefs.play_sounds))
+        self.check_for_updates_chk.SetValue(int(self.prefs.check_for_updates))
 
-        if self.parent.columns_config != ['']:
-            for item in self.parent.columns_config:
-                # print 'item: ', item.lower()
-                # print self.model_chk.GetValue()
-                # getattr(self, 'model_chk').GetValue()
-                getattr(self, item.lower() + '_chk').SetValue(True)
+        for item in self.prefs.cols_selected:
+            getattr(self, item.lower() + '_chk').SetValue(True)
 
     def on_ok(self, _):
         """When user clicks ok"""
-        self.parent.columns_config = []
-        for item in self.parent.columns_default.split(', '):
+        self.prefs.cols_selected = []
+        columns = ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial', 'Firmware', 'Device', 'Static', 'Master', 'System', 'Status']
+        for item in columns:
             if getattr(self, item.lower() + '_chk').GetValue():
-                self.parent.columns_config.append(item)
-
-        self.parent.master_address = self.master_address_txt.GetValue()
-        self.parent.device_number = self.device_number_txt.GetValue()
-        self.parent.subnet_filter_enable = self.subnet_filter_chk.GetValue()
+                self.prefs.cols_selected.append(item)
+        self.prefs.master_address = self.master_address_txt.GetValue()
+        self.prefs.device_number = self.device_number_txt.GetValue()
+        self.prefs.subnet_filter_enable = self.subnet_filter_chk.GetValue()
         if self.subnet_filter_chk.GetValue():
             try:
                 IPNetwork(self.subnet_filter_txt.GetValue())
             except Exception as error:
                 self.bad_subnet(error)
                 return
-            self.parent.subnet_filter = self.subnet_filter_txt.GetValue()
+            self.prefs.subnet_filter = self.subnet_filter_txt.GetValue()
+
         if self.tcp_chk.GetValue():
-            self.parent.default_connection_type = "TCP"
+            self.prefs.connection_type = "TCP"
         if self.udp_chk.GetValue():
-            self.parent.default_connection_type = "UDP"
+            self.prefs.connection_type = "UDP"
         if self.ndp_chk.GetValue():
-            self.parent.default_connection_type = "NDP"
+            self.prefs.connection_type = "NDP"
         if self.auto_chk.GetValue():
-            self.parent.default_connection_type = "AUTO"
-        self.parent.play_sounds = self.sounds_chk.GetValue()
-        self.parent.check_for_updates = self.check_for_updates_chk.GetValue()
-        # if self.parent.check_for_updates:
-        #     Thread(target=self.parent.update_check).start()
-        self.parent.update_status_bar()
-        self.parent.write_config_file()
-        self.parent.select_columns()
-        self.parent.resize_frame()
+            self.prefs.connection_type = "AUTO"
+
+        self.prefs.play_sounds = self.sounds_chk.GetValue()
+        self.prefs.check_for_updates = self.check_for_updates_chk.GetValue()
+
+        # self.parent.update_status_bar()
+        # self.parent.select_columns()
+        # self.parent.resize_frame()
         self.Destroy()
 
     def bad_subnet(self, error):

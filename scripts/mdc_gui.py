@@ -590,11 +590,23 @@ class Preferences ( wx.Dialog ):
 
 		gSizer1 = wx.GridSizer( 0, 2, 0, 0 )
 
+		self.time_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Time", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.time_chk.SetValue(True)
+		self.time_chk.Enable( False )
+
+		gSizer1.Add( self.time_chk, 0, wx.ALL, 5 )
+
 		self.model_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Model", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer1.Add( self.model_chk, 0, wx.ALL, 5 )
 
 		self.mac_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"MAC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer1.Add( self.mac_chk, 0, wx.ALL, 5 )
+
+		self.ip_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"IP", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.ip_chk.SetValue(True)
+		self.ip_chk.Enable( False )
+
+		gSizer1.Add( self.ip_chk, 0, wx.ALL, 5 )
 
 		self.hostname_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Hostname", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer1.Add( self.hostname_chk, 0, wx.ALL, 5 )
@@ -616,6 +628,12 @@ class Preferences ( wx.Dialog ):
 
 		self.system_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"System", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer1.Add( self.system_chk, 0, wx.ALL, 5 )
+
+		self.status_chk = wx.CheckBox( sbSizer3.GetStaticBox(), wx.ID_ANY, u"Status", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.status_chk.SetValue(True)
+		self.status_chk.Enable( False )
+
+		gSizer1.Add( self.status_chk, 0, wx.ALL, 5 )
 
 
 		sbSizer3.Add( gSizer1, 0, wx.EXPAND, 5 )

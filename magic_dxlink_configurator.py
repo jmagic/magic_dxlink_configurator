@@ -68,21 +68,23 @@ class DXLinkUnit:
 
 @dataclass
 class Preferences:
-    main_list: list = field(default_factory=list)
     master_address: str = ''
     device_number: int = 0
-    connection_type: str = 'tcp'
+    connection_type: str = 'TCP'
     device_dhcp: bool = True
     number_of_threads: int = 20
     telnet_client: str = 'putty.exe'
     telnet_timeout: int = 20
     dhcp_sniffing: bool = True
     amx_only_filter: bool = False
-    subnet_filter: bool = False
+    subnet_filter: str = ''
+    subnet_filter_enable: bool = False
     play_sounds: bool = True
     check_for_updates: bool = True
     debug: bool = False
     dev_inc_num: int = 0
+    cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
+                                                         'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
 
     def set_prefs(self):
         try:
@@ -92,27 +94,27 @@ class Preferences:
             self.telnet_client = None
 
 
-@dataclass
-class GuiPreferences:
+# @dataclass
+# class GuiPreferences:
 
-    min_panel_width: int = 450
-    panel_width_offset: int = 60
-    cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
-                                                         'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
+#     min_panel_width: int = 450
+#     panel_width_offset: int = 60
+#     cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
+#                                                          'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
 
-    def set_prefs(self):
-        pass
+#     def set_prefs(self):
+#         pass
 
-    def get_select_columns(self, selected_columns):
-        """Sets the columns to be displayed"""
-        columns = selected_columns + ['Time', 'IP', 'Status']
-        self.cols_selected = list(set(columns))
+#     def get_select_columns(self, selected_columns):
+#         """Sets the columns to be displayed"""
+#         columns = selected_columns + ['Time', 'IP', 'Status']
+#         self.cols_selected = list(set(columns))
 
-        # todisplay = []
-        # for item in self.columns_setup:
-        #     if item.title in columns:
-        #         todisplay.append(item)
-        # self.main_list.SetColumns(todisplay)
+#         # todisplay = []
+#         # for item in self.columns_setup:
+#         #     if item.title in columns:
+#         #         todisplay.append(item)
+#         # self.main_list.SetColumns(todisplay)
 
 
 class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
@@ -127,6 +129,10 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
+
+        pick = self.load_config()
+        self.preferences = pick['preferences']
+
         self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY,
                                         style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.main_list.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
@@ -149,17 +155,12 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             ColumnDefn("System", "left", 60, "system"),
             ColumnDefn("Status", "center", 120, "status")]
 
-        self.main_list.SetColumns(self.columns)
-        self.main_list.SetEmptyListMsg("Select File-->Add Item to add an individual item")
+        self.set_selected_columns()
+        self.main_list.SetEmptyListMsg("Select Tools-->Add Item to add an individual item")
         self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
         self.olv_sizer.Layout()
-        self.SetSize((self.main_list.GetBestSize()[0] + 20, 600))
 
-        pick = self.load_config()
         self.main_list.AddObjects(pick['main_list'])
-        self.preferences = pick['preferences']
-        self.gui_preferences = pick['gui_preferences']
-
 
         # Should these be here?
         self.errorlist = []
@@ -268,6 +269,16 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 sound.Play(wx.SOUND_ASYNC)
             else:
                 wx.MessageBox("Invalid sound file", "Error")
+
+    def set_selected_columns(self):
+        """Sets the preferred columns"""
+        todisplay = []
+        for item in self.columns:
+            if item.title in self.preferences.cols_selected:
+                todisplay.append(item)
+        self.main_list.SetColumns(todisplay)
+        self.SetSize((self.main_list.GetBestSize()[0] + 20, 600))
+
 
     def set_status(self, sender):
         """sets the status of an object from a tuple of (obj, status)"""
@@ -909,7 +920,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def save_main_list(self):
         """Saves the preference and main list"""
-        self.save_config(preferences=self.preferences, gui_preferences=self.gui_preferences)
+        self.save_config(preferences=self.preferences)
 
     def load_config(self):
         """Load Config"""
@@ -920,7 +931,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         except Exception as error:
             print('unable to load plk ', error)
             # self.save_config()
-            pick = {'preferences': Preferences(), 'main_list': [], 'gui_preferences': GuiPreferences()}
+            pick = {'preferences': Preferences(), 'main_list': []}
             return pick
 
     def save_config(self, preferences=None, gui_preferences=None):
@@ -930,7 +941,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             # Create new config file
             preferences = Preferences()
         with open(self.storage_file, "wb") as f:
-            pick = {'preferences': preferences, 'main_list': self.main_list.GetObjects(), 'gui_preferences': gui_preferences}
+            pick = {'preferences': preferences, 'main_list': self.main_list.GetObjects()}
             pickle.dump(pick, f)
 
     def telnet_missing_dia(self):
@@ -998,6 +1009,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         dia = config_menus.PreferencesConfig(self)
         dia.ShowModal()
         dia.Destroy()
+        self.update_status_bar()
+        self.set_selected_columns()
 
     def update_status_bar(self):
         """Updates the status bar."""
