@@ -13,7 +13,8 @@ class SendCommandConfig(mdc_gui.MultiSend):
         mdc_gui.MultiSend.__init__(self, parent)
 
         self.parent = parent
-        self.SetTitle("Multiple Send Command")  # to %s" %obj.ip)
+        self.prefs = self.parent.preferences
+        self.SetTitle(f"Multiple Send Command {dxlink_model}")  # to %s" %obj.ip)
         try:
             # create json file with:
             # json.dump(jsonData, outfile, sort_keys = True, indent = 4,
@@ -45,6 +46,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
         self.device_list.SetColumns(
             [ColumnDefn("Model", "center", 130, "model"),
              ColumnDefn("IP", "center", 100, "ip_address"),
+             ColumnDefn("MAC", "center", 100, "mac_address"),
              ColumnDefn("Device", "center", 80, "device"),
              ColumnDefn("Status", "left", 120, "status")])
 
@@ -197,7 +199,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
             # print('Output: ', output)
             self.parent.telnet_job_queue.put(
                 ['send_command', obj,
-                 self.parent.telnet_timeout_seconds,
+                 self.prefs.telnet_timeout,
                  output])
             self.parent.set_status((obj, "Queued"))
             self.device_list.RefreshObject(obj)
@@ -214,7 +216,7 @@ class SendCommandConfig(mdc_gui.MultiSend):
                      str(self.rx_tx_commands[self.dxlink_model][item][0])))
             self.parent.telnet_job_queue.put(
                 ['multiple_send_command', obj,
-                 self.parent.telnet_timeout_seconds,
+                 self.prefs.telnet_timeout,
                  command_list])
 
     def update_window(self, sender):

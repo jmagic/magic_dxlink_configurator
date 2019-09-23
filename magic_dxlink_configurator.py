@@ -44,29 +44,27 @@ from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_comm
                      dipswitch)
 
 
-@dataclass
 class DXLinkUnit:
 
-    model: str = ''
-    hostname: str = ''
-    serial: str = ''
-    firmware: str = ''
-    device: str = ''
-    mac_address: str = ''
-    ip_address: str = ''
-    arrival_time: datetime.datetime = datetime.datetime.now()
-    ip_type: str = ''
-    gateway: str = ''
-    subnet: str = ''
-    master: str = ''
-    system: str = ''
-    status: str = ''
-    last_status: datetime.datetime = datetime.datetime.now()
+    def __init__(self, model='', hostname='', serial='', firmware='', device='', mac_address='',
+                 ip_address='', arrival_time=datetime.datetime.now(), ip_type='', gateway='',
+                 subnet='', master='', system='', status='', last_status=datetime.datetime.now()):
 
-    dxtx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-MFTX', 'DXLINK-HDMI-WP', 'DXLINK-HDMI-DWP'])
-    dxrx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
-    dxftx_models_default: list = field(default_factory=lambda: ['DXF-TX-xxD', 'DXLF-MFTX'])
-    dxfrx_models_default: list = field(default_factory=lambda: ['DXF-RX-xxD', 'DXLF-HDMIRX'])
+        self.model = model
+        self.hostname = hostname
+        self.serial = serial
+        self.firmware = firmware
+        self.device = device
+        self.mac_address = mac_address
+        self.ip_address = ip_address
+        self.arrival_time = arrival_time
+        self.ip_type = ip_type
+        self.gateway = gateway
+        self.subnet = subnet
+        self.master = master
+        self.system = system
+        self.status = status
+        self.last_status = last_status
 
 
 @dataclass
@@ -89,6 +87,11 @@ class Preferences:
     cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
                                                          'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
 
+    dxtx_models: list = field(default_factory=lambda: ['DXLINK-HDMI-MFTX', 'DXLINK-HDMI-WP', 'DXLINK-HDMI-DWP'])
+    dxrx_models: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
+    dxftx_models: list = field(default_factory=lambda: ['DXF-TX-xxD', 'DXLF-MFTX'])
+    dxfrx_models: list = field(default_factory=lambda: ['DXF-RX-xxD', 'DXLF-HDMIRX'])
+
     def set_prefs(self, storage_path):
         self.telnet_client = which('putty.exe')
         if self.telnet_client is None:
@@ -105,7 +108,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         icon_bundle.AddIcon(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
-        self.version = "v4.0.0"
+        self.version = "v4.0.1"
         self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
@@ -262,7 +265,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             if item.title in self.preferences.cols_selected:
                 todisplay.append(item)
         self.main_list.SetColumns(todisplay)
-        self.SetSize((self.main_list.GetBestSize()[0] + 20, 600))
+        self.SetSize((self.main_list.GetBestSize()[0] + 40, 600))
 
     def set_status(self, sender):
         """sets the status of an object from a tuple of (obj, status)"""
@@ -306,8 +309,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def on_amx_only_filter(self, _):
         """Turns amx filtering on and off"""
-        self.amx_only_filter = not self.amx_only_filter
-        self.amx_only_filter_chk.Check(self.amx_only_filter)
+        self.preferences.amx_only_filter = not self.preferences.amx_only_filter
+        self.amx_only_filter_chk.Check(self.preferences.amx_only_filter)
         self.save_main_list()
 
     def check_for_none_selected(self):
@@ -571,16 +574,17 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         item_id = event.GetId()
         menu = event.GetEventObject()
         menuItem = menu.FindItemById(item_id)
-        num_of_devices = str((int(menuItem.GetLabel().split()[1]) / 100))
-        # print 'num of ', num_of_devices
+        num_of_devices = str((int(menuItem.GetItemLabelText().split()[1]) // 100))
+        # print('num of ', num_of_devices)
 
         ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
         # print 'ip_range: ', ip_range
         for address in list(ip_range):
-            self.create_add_unit(ip_ad=str(address))
+            self.main_list.AddObject(DXLinkUnit(ip_address=str(address)))
         ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
         for address in list(ip_range):
-            self.create_add_unit(ip_ad=str(address))
+            self.main_list.AddObject(DXLinkUnit(ip_address=str(address)))
+        self.save_main_list()
 
     def enable_wd(self, _):
         """Enables the Watchdog"""
@@ -608,47 +612,53 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         dxrx_devices = []
         dxftx_devices = []
         dxfrx_devices = []
+        unknown_devices = []
         for obj in self.main_list.GetSelectedObjects():
-            if obj.model in self.dxtx_models:
+            if obj.model in self.preferences.dxtx_models:
                 dxtx_devices.append(obj)
-            elif obj.model in self.dxrx_models:
+            elif obj.model in self.preferences.dxrx_models:
                 dxrx_devices.append(obj)
-            elif obj.model in self.dxftx_models:
+            elif obj.model in self.preferences.dxftx_models:
                 dxftx_devices.append(obj)
-            elif obj.model in self.dxfrx_models:
+            elif obj.model in self.preferences.dxfrx_models:
                 dxfrx_devices.append(obj)
             else:
-                pass
+                unknown_devices.append(obj)
+
+        if len(unknown_devices) > 0:
+            dlg = wx.SingleChoiceDialog(parent=self,
+                                        message=('Unable to identify what type of dxlink devices have been selected\nIf you are sure these are DXLink devices\n' +
+                                                 'please select the apporiate family.\n\nChose carefully, as commands' +
+                                                 ' are indetend for specific devices'),
+                                        caption='Unable to identify devices',
+                                        choices=['DX-TX', 'DX-RX', 'Fiber DX-TX', 'Fiber DX-RX'],
+                                        style=wx.OK | wx.CANCEL)
+            if dlg.ShowModal() == wx.ID_OK:
+                selection = dlg.GetStringSelection()
+                if selection == 'DX-TX':
+                    dxtx_devices = dxtx_devices + unknown_devices
+                elif selection == 'DX-RX':
+                    dxrx_devices = dxrx_devices + unknown_devices
+                elif selection == 'Fiber DX-TX':
+                    dxftx_devices = dxftx_devices + unknown_devices
+                elif selection == 'Fiber DX-RX':
+                    dxfrx_devices = dxfrx_devices + unknown_devices
+            dlg.Destroy()
+
         if len(dxtx_devices) != 0:
-            dia_tx = send_command.SendCommandConfig(
-                self, dxtx_devices, 'dxtx')
+            dia_tx = send_command.SendCommandConfig(self, dxtx_devices, 'dxtx')
             dia_tx.Show()
 
         if len(dxrx_devices) != 0:
-            dia_rx = send_command.SendCommandConfig(
-                self, dxrx_devices, 'dxrx')
+            dia_rx = send_command.SendCommandConfig(self, dxrx_devices, 'dxrx')
             dia_rx.Show()
         if len(dxftx_devices) != 0:
-            dia_ftx = send_command.SendCommandConfig(
-                self, dxftx_devices, 'dxftx')
+            dia_ftx = send_command.SendCommandConfig(self, dxftx_devices, 'dxftx')
             dia_ftx.Show()
 
         if len(dxfrx_devices) != 0:
-            dia_frx = send_command.SendCommandConfig(
-                self, dxfrx_devices, 'dxfrx')
+            dia_frx = send_command.SendCommandConfig(self, dxfrx_devices, 'dxfrx')
             dia_frx.Show()
-
-        if (len(dxtx_devices) + len(dxrx_devices) +
-                len(dxftx_devices) + len(dxfrx_devices)) == 0:
-            dlg = wx.MessageDialog(parent=self, message='No DXLink Devices ' +
-                                   'Selected',
-                                   caption='Cannot send commands',
-                                   style=wx.OK)
-            dlg.ShowModal()
-            dlg.Destroy()
-
-        self.errorlist = []
-        self.completionlist = []
 
     def export_to_csv(self, _):
         """Store list items in a CSV file"""
@@ -828,10 +838,14 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if bool(self.preferences.amx_only_filter):
             if mac_address[0:8] != '00:60:9f':
                 # print('not amx mac')
+                obj = DXLinkUnit(hostname=hostname, mac_address=mac_address, ip_address=ip_address)
+                self.dhcp_on_status_bar(obj, incoming_time)
                 return
         if self.preferences.subnet_filter_enable:
             if ip_address not in IPNetwork(self.preferences.subnet_filter):
                 # print('no subnet')
+                obj = DXLinkUnit(hostname=hostname, mac_address=mac_address, ip_address=ip_address)
+                self.dhcp_on_status_bar(obj, incoming_time)
                 return
 
         # Check if duplicate in list
@@ -883,7 +897,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def load_config(self):
         """Load Config"""
         try:
-            with open(self.storage_file, 'rb') as f:
+            with open(os.path.join(self.storage_path, self.storage_file), 'rb') as f:
                 pick = pickle.load(f)
             return pick
         except Exception as error:
@@ -898,7 +912,9 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if preferences is None:
             # Create new config file
             preferences = Preferences()
-        with open(self.storage_file, "wb") as f:
+        if not os.path.exists(self.storage_path):
+            os.mkdir(self.storage_path)
+        with open(os.path.join(self.storage_path, self.storage_file), "wb") as f:
             pick = {'preferences': preferences, 'main_list': self.main_list.GetObjects()}
             pickle.dump(pick, f)
 
