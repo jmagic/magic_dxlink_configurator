@@ -36,6 +36,7 @@ from dataclasses import dataclass, field
 from pydispatch import dispatcher
 from threading import Thread
 from shutil import which
+from netaddr import IPRange, IPNetwork
 
 from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
                      multi_ping, multi_ping_model, mse_baseline, telnet_class, telnetto_class,
@@ -59,6 +60,7 @@ class DXLinkUnit:
     master: str = ''
     system: str = ''
     status: str = ''
+    last_status: datetime.datetime = datetime.datetime.now()
 
     dxtx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-MFTX', 'DXLINK-HDMI-WP', 'DXLINK-HDMI-DWP'])
     dxrx_models_default: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
@@ -75,7 +77,7 @@ class Preferences:
     number_of_threads: int = 20
     telnet_client: str = 'putty.exe'
     telnet_timeout: int = 20
-    dhcp_sniffing: bool = True
+    dhcp_listen: bool = True
     amx_only_filter: bool = False
     subnet_filter: str = ''
     subnet_filter_enable: bool = False
@@ -173,7 +175,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.abort = False
 
         self.amx_only_filter_chk.Check(self.preferences.amx_only_filter)
-        self.dhcp_sniffing_chk.Check(self.preferences.dhcp_sniffing)
+        self.dhcp_sniffing_chk.Check(self.preferences.dhcp_listen)
         self.update_status_bar()
 
         # What is this used for??
@@ -204,8 +206,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.ping_window.Hide()
         self.ping_model = multi_ping_model.MultiPing_Model(self.path)
 
-        dispatcher.connect(self.incoming_packet,
-                           signal="Incoming Packet",
+        dispatcher.connect(self.incoming_dhcp,
+                           signal="Incoming DHCP",
                            sender=dispatcher.Any)
         dispatcher.connect(self.set_status,
                            signal="Status Update",
@@ -216,7 +218,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         dispatcher.connect(self.collect_errors,
                            signal="Collect Errors",
                            sender=dispatcher.Any)
-        self.dhcp_listener.dhcp_sniffing_enabled = self.preferences.dhcp_sniffing
+        self.dhcp_listener.dhcp_sniffing_enabled = self.preferences.dhcp_listen
 
         self.check_for_updates = True
         dispatcher.connect(self.update_required,
@@ -262,11 +264,11 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def play_sound(self):
         """Plays a barking sound"""
-        if self.play_sounds:
+        if self.preferences.play_sounds:
             filename = "sounds\\woof.wav"
-            sound = wx.Sound(filename)
+            sound = wx.adv.Sound(filename)
             if sound.IsOk():
-                sound.Play(wx.SOUND_ASYNC)
+                sound.Play(wx.adv.SOUND_ASYNC)
             else:
                 wx.MessageBox("Invalid sound file", "Error")
 
@@ -278,7 +280,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 todisplay.append(item)
         self.main_list.SetColumns(todisplay)
         self.SetSize((self.main_list.GetBestSize()[0] + 20, 600))
-
 
     def set_status(self, sender):
         """sets the status of an object from a tuple of (obj, status)"""
@@ -315,16 +316,16 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def on_dhcp_sniffing(self, _):
         """Turns sniffing on and off"""
-        self.dhcp_sniffing = not self.dhcp_sniffing
-        self.dhcp_sniffing_chk.Check(self.dhcp_sniffing)
-        self.dhcp_listener.dhcp_sniffing_enabled = self.dhcp_sniffing
-        self.write_config_file()
+        self.preferences.dhcp_listen = not self.preferences.dhcp_listen
+        self.dhcp_sniffing_chk.Check(self.preferences.dhcp_listen)
+        # self.dhcp_listener.dhcp_sniffing_enabled = self.preferences.dhcp_listen
+        self.save_main_list()
 
     def on_amx_only_filter(self, _):
         """Turns amx filtering on and off"""
         self.amx_only_filter = not self.amx_only_filter
         self.amx_only_filter_chk.Check(self.amx_only_filter)
-        self.write_config_file()
+        self.save_main_list()
 
     def check_for_none_selected(self):
         """Checks if nothing is selected"""
@@ -445,7 +446,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def mse_enable_thread(self, obj):
         """Adds mse thread for plotting / baseline"""
         self.telnet_job_queue.put(['get_dxlink_mse', obj,
-                                   self.telnet_timeout_seconds])
+                                   self.preferences.telnet_timeout])
         self.set_status((obj, "Queued"))
 
     def mse_in_active(self, obj):
@@ -518,7 +519,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['factory_av', obj,
-                                       self.telnet_timeout_seconds])
+                                       self.preferences.telnet_timeout])
             self.set_status((obj, "Queued"))
 
     def reset_factory(self, _):
@@ -533,7 +534,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             if dlg.ShowModal() == wx.ID_OK:
                 dlg.Destroy()
                 self.telnet_job_queue.put(['reset_factory', obj,
-                                           self.telnet_timeout_seconds])
+                                           self.preferences.telnet_timeout])
                 self.set_status((obj, "Queued"))
 
             else:
@@ -545,7 +546,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['reboot', obj,
-                                       self.telnet_timeout_seconds])
+                                       self.preferences.telnet_timeout])
             self.set_status((obj, "Queued"))
 
     def open_url(self, _):
@@ -562,7 +563,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['get_config_info', obj,
-                                       self.telnet_timeout_seconds])
+                                       self.preferences.telnet_timeout])
             self.set_status((obj, "Queued"))
 
     def turn_on_leds(self, _):
@@ -571,7 +572,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_on_leds', obj,
-                                       self.telnet_timeout_seconds])
+                                       self.preferences.telnet_timeout])
             self.set_status((obj, "Queued"))
 
     def turn_off_leds(self, _):
@@ -580,7 +581,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['turn_off_leds', obj,
-                                       self.telnet_timeout_seconds])
+                                       self.preferences.telnet_timeout])
             self.set_status((obj, "Queued"))
 
     def on_gen_dgx_100(self, event):
@@ -605,7 +606,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['set_watchdog', obj,
-                                       self.telnet_timeout_seconds, True])
+                                       self.preferences.telnet_timeout, True])
             self.set_status((obj, "Queued"))
 
     def disable_wd(self, _):
@@ -614,7 +615,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         for obj in self.main_list.GetSelectedObjects():
             self.telnet_job_queue.put(['set_watchdog', obj,
-                                       self.telnet_timeout_seconds, False])
+                                       self.preferences.telnet_timeout, False])
             self.set_status((obj, "Queued"))
 
     def send_commands(self, _):
@@ -852,69 +853,71 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         # self.save_main_list()
         return data
 
-    def incoming_packet(self, sender):
-        """Receives dhcp requests and adds them to objects to display"""
-        incoming_time = datetime.datetime.now()
-        data = DXLinkUnit(
-            hostname=sender[0],
-            mac=sender[1],
-            ip_ad=sender[2],
-            arrival_time=incoming_time)
-
-        # print (incoming_time,
-        #        ' received ',
-        #        data.hostname,
-        #        data.mac_address,
-        #        data.ip_address)
-
+    def dhcp_on_status_bar(self, obj, incoming_time):
         self.status_bar.SetStatusText(
             incoming_time.strftime('%I:%M:%S%p') +
-            ' -- ' + data.hostname +
-            ' ' + data.ip_address +
-            ' ' + data.mac_address)
+            ' -- ' + obj.hostname +
+            ' ' + obj.ip_address +
+            ' ' + obj.mac_address)
 
-        if bool(self.amx_only_filter):
-            if data.mac_address[0:8] != '00:60:9f':
-                self.main_list.SetFocus()
+    def incoming_dhcp(self, sender):
+        """Receives dhcp requests and adds them to objects to display"""
+        incoming_time = datetime.datetime.now()
+        hostname, mac_address, ip_address = sender
+        # print('got dhcp: ', mac_address)
+
+        # Check if it is filtered
+        if not self.preferences.dhcp_listen:
+            # print('no listen')
+            return
+        if bool(self.preferences.amx_only_filter):
+            if mac_address[0:8] != '00:60:9f':
+                # print('not amx mac')
                 return
-        if self.subnet_filter_enable:
-            if data.ip_address not in IPNetwork(self.subnet_filter):
+        if self.preferences.subnet_filter_enable:
+            if ip_address not in IPNetwork(self.preferences.subnet_filter):
+                # print('no subnet')
                 return
-        selected_items = self.main_list.GetSelectedObjects()
-        dx_update = True
-        if self.main_list.GetObjects() == []:
-            self.main_list.AddObject(data)
-            self.set_status((data, "DHCP"))
+
+        # Check if duplicate in list
+        duplicate_list = []
+        for obj in self.main_list.GetObjects():
+            if obj.mac_address == mac_address:
+                # print('duplicate')
+                duplicate_list.append(obj)
+
+        # Add or update list
+        if duplicate_list != []:
+            # remove duplicates
+            if len(duplicate_list) > 1:
+                for item in duplicate_list[1:]:
+                    self.main_list.RemoveObject(item)
+            # update duplicate with new info
+            obj = duplicate_list[0]
+            obj.ip_address = ip_address
+            obj.hostname = hostname
+            obj.arrival_time = incoming_time
+
         else:
+            # new item
+            obj = DXLinkUnit(hostname=sender[0], mac_address=sender[1], ip_address=sender[2], arrival_time=incoming_time)
+            self.main_list.AddObject(obj)
+            self.set_status((obj, "DHCP"))
 
-            for obj in self.main_list.GetObjects():
-                if obj.mac_address == data.mac_address:
-                    # Get a time 10 seconds ago
-                    time_between_packets = (incoming_time -
-                                            datetime.timedelta(seconds=10))
-                    # If the existing item was added less than 10 seconds ago,
-                    # don't do a DX update
-                    if obj.arrival_time > time_between_packets:
-                        dx_update = False
-                    data.model = obj.model
-                    data.serial = obj.serial
-                    data.firmware = obj.firmware
-                    data.device = obj.device
-                    data.ip_type = obj.ip_type
-                    data.gateway = obj.gateway
-                    data.subnet = obj.subnet
-                    data.master = obj.master
-                    data.system = obj.system
-                    if obj in selected_items:
-                        selected_items.append(data)
-                    self.main_list.RemoveObject(obj)
-            self.main_list.AddObject(data)
-
-            self.set_status((data, "DHCP"))
-        if data.hostname[:2] == 'DX' and dx_update:
-            self.telnet_job_queue.put(['get_config_info', data,
-                                       self.telnet_timeout_seconds])
-        self.main_list.SelectObjects(selected_items, deselectOthers=True)
+        if obj.hostname[:2] == 'DX':
+            # Need to check if we have updated DXLink device recently
+            # print(incoming_time - obj.last_status)
+            # print(incoming_time - obj.last_status < datetime.timedelta(seconds=2))
+            if (incoming_time - obj.last_status) < datetime.timedelta(seconds=2):
+                # print('no check')
+                pass
+            else:
+                # print('checking')
+                obj.last_status = incoming_time
+                self.telnet_job_queue.put(['get_config_info', obj,
+                                           self.preferences.telnet_timeout])
+        self.dhcp_on_status_bar(obj, incoming_time)
+        self.main_list.Refresh()
         self.save_main_list()
         self.play_sound()
 
