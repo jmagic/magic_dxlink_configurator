@@ -43,3 +43,6 @@ nosetests.xml
 *.TMP
 dxlink_configurator/log.txt
 virt_env/
+sublime.sublime-project
+sublime.sublime-workspace
+old_files/
