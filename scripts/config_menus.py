@@ -28,6 +28,7 @@ class PreferencesConfig(mdc_gui.Preferences):
                 '_chk').SetValue(True)
 
         self.sounds_chk.SetValue(int(self.prefs.play_sounds))
+        self.funny_sounds_chk.SetValue(int(self.prefs.randomize_sounds))
         self.check_for_updates_chk.SetValue(int(self.prefs.check_for_updates))
 
         for item in self.prefs.cols_selected:
@@ -61,6 +62,7 @@ class PreferencesConfig(mdc_gui.Preferences):
             self.prefs.connection_type = "AUTO"
 
         self.prefs.play_sounds = self.sounds_chk.GetValue()
+        self.prefs.randomize_sounds = self.funny_sounds_chk.GetValue()
         self.prefs.check_for_updates = self.check_for_updates_chk.GetValue()
 
         # self.parent.update_status_bar()

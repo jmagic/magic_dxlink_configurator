@@ -33,6 +33,7 @@ from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn, EVT
 import queue
 import webbrowser
 import requests
+import random
 from dataclasses import dataclass, field
 from pydispatch import dispatcher
 from threading import Thread
@@ -81,6 +82,7 @@ class Preferences:
     subnet_filter: str = ''
     subnet_filter_enable: bool = False
     play_sounds: bool = True
+    randomize_sounds: bool = False
     check_for_updates: bool = True
     debug: bool = False
     dev_inc_num: int = 0
@@ -250,9 +252,16 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def play_sound(self):
         """Plays a barking sound"""
+        sounds_list = []
         if self.preferences.play_sounds:
-            filename = "sounds\\woof.wav"
-            sound = wx.adv.Sound(filename)
+            if self.preferences.randomize_sounds:
+                for file in os.listdir('sounds'):
+                    if file.endswith('.wav'):
+                        sounds_list.append(file)
+                filename = random.choice(sounds_list)
+            else:
+                filename = 'woof.wav'
+            sound = wx.adv.Sound(os.path.join('sounds', filename))
             if sound.IsOk():
                 sound.Play(wx.adv.SOUND_ASYNC)
             else:
