@@ -107,7 +107,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         mdc_gui.DXLink_Configurator_Frame.__init__(self, parent)
 
         icon_bundle = wx.IconBundle()
-        icon_bundle.AddIcon(r"icon\\MDC_icon.ico", wx.BITMAP_TYPE_ANY)
+        icon_bundle.AddIcon(os.path.join("icon", "MDC_icon.ico"), wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
         self.version = "v4.0.1"
