@@ -32,6 +32,7 @@ import csv
 from ObjectListView import FastObjectListView as ObjectListView, ColumnDefn, EVT_CELL_EDIT_FINISHING
 import queue
 import webbrowser
+import requests
 from dataclasses import dataclass, field
 from pydispatch import dispatcher
 from threading import Thread
@@ -53,7 +54,7 @@ class DXLinkUnit:
     device: str = ''
     mac_address: str = ''
     ip_address: str = ''
-    arrival_time: str = ''
+    arrival_time: datetime.datetime = datetime.datetime.now()
     ip_type: str = ''
     gateway: str = ''
     subnet: str = ''
@@ -70,12 +71,12 @@ class DXLinkUnit:
 
 @dataclass
 class Preferences:
-    master_address: str = ''
+    master_address: str = '127.0.0.1'
     device_number: int = 0
     connection_type: str = 'TCP'
     device_dhcp: bool = True
     number_of_threads: int = 20
-    telnet_client: str = 'putty.exe'
+    telnet_client: str = None
     telnet_timeout: int = 20
     dhcp_listen: bool = True
     amx_only_filter: bool = False
@@ -88,35 +89,12 @@ class Preferences:
     cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
                                                          'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
 
-    def set_prefs(self):
-        try:
-            which('putty.exe')
-        except Exception as error:
-            print('unable to find putty.exe: ', error)
-            self.telnet_client = None
-
-
-# @dataclass
-# class GuiPreferences:
-
-#     min_panel_width: int = 450
-#     panel_width_offset: int = 60
-#     cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
-#                                                          'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
-
-#     def set_prefs(self):
-#         pass
-
-#     def get_select_columns(self, selected_columns):
-#         """Sets the columns to be displayed"""
-#         columns = selected_columns + ['Time', 'IP', 'Status']
-#         self.cols_selected = list(set(columns))
-
-#         # todisplay = []
-#         # for item in self.columns_setup:
-#         #     if item.title in columns:
-#         #         todisplay.append(item)
-#         # self.main_list.SetColumns(todisplay)
+    def set_prefs(self, storage_path):
+        self.telnet_client = which('putty.exe')
+        if self.telnet_client is None:
+            # Check if we have a copy locally
+            if os.path.exists(os.path.join(storage_path, 'putty.exe')):
+                self.telnet_client = os.path.join(storage_path, 'putty.exe')
 
 
 class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
@@ -128,12 +106,15 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
         self.version = "v4.0.0"
-        self.path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
+        self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
 
         pick = self.load_config()
         self.preferences = pick['preferences']
+        self.preferences.set_prefs(self.storage_path)
+        if self.preferences.telnet_client is None:
+            self.telnet_missing_dia()
 
         self.main_list = ObjectListView(self.olv_panel, wx.ID_ANY,
                                         style=wx.LC_REPORT | wx.SUNKEN_BORDER)
@@ -144,17 +125,17 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.main_list.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
 
         self.columns = [
-            ColumnDefn("Time", "left", 110, "arrival_time", stringConverter="%I:%M:%S%p"),
-            ColumnDefn("Model", "left", 160, "model"),
-            ColumnDefn("MAC", "left", 125, "mac_address"),
-            ColumnDefn("IP", "left", 120, "ip_address"),
-            ColumnDefn("Hostname", "left", 150, "hostname"),
-            ColumnDefn("Serial", "left", 150, "serial"),
-            ColumnDefn("Firmware", "left", 80, "firmware"),
-            ColumnDefn("Device", "center", 80, "device"),
-            ColumnDefn("Static", "center", 50, "ip_type"),
-            ColumnDefn("Master", "left", 120, "master"),
-            ColumnDefn("System", "left", 60, "system"),
+            ColumnDefn("Time", "right", 110, "arrival_time", stringConverter="%I:%M:%S%p"),
+            ColumnDefn("Model", "right", 160, "model"),
+            ColumnDefn("MAC", "right", 125, "mac_address"),
+            ColumnDefn("IP", "right", 120, "ip_address"),
+            ColumnDefn("Hostname", "right", 150, "hostname"),
+            ColumnDefn("Serial", "right", 150, "serial"),
+            ColumnDefn("Firmware", "right", 100, "firmware"),
+            ColumnDefn("Device", "right", 80, "device"),
+            ColumnDefn("Static", "center", 30, "ip_type"),
+            ColumnDefn("Master", "right", 120, "master"),
+            ColumnDefn("System", "center", 80, "system"),
             ColumnDefn("Status", "center", 120, "status")]
 
         self.set_selected_columns()
@@ -162,7 +143,9 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.olv_sizer.Add(self.main_list, 1, wx.ALL | wx.EXPAND, 0)
         self.olv_sizer.Layout()
 
-        self.main_list.AddObjects(pick['main_list'])
+        for item in pick['main_list']:
+            item.status = ""
+            self.main_list.AddObject(item)
 
         # Should these be here?
         self.errorlist = []
@@ -204,7 +187,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
         self.ping_window = multi_ping.MultiPing(self)
         self.ping_window.Hide()
-        self.ping_model = multi_ping_model.MultiPing_Model(self.path)
+        self.ping_model = multi_ping_model.MultiPing_Model(self.storage_path)
 
         dispatcher.connect(self.incoming_dhcp,
                            signal="Incoming DHCP",
@@ -376,18 +359,17 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             dlg.Destroy()
             return
 
-        if os.path.exists(os.path.join(self.path, self.telnet_client)):
+        if self.preferences.telnet_client is not None:
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'telnet'])
                 self.set_status((obj, "Queued"))
         else:
-            dlg = wx.MessageDialog(
-                parent=self, message='Could not find ' +
-                'telnet client \nPlease put ' +
-                '%s in \n%s' % (self.telnet_client, self.path),
-                caption='No %s' % self.telnet_client,
-                style=wx.OK)
+            message = f"Putty.exe was not found during startup.\r\rIf you want to telnet to a device you will\r need to download putty.exe to\r {self.storage_path}\r and restart {self.name}"
+            dlg = wx.MessageDialog(parent=self,
+                                   message=message,
+                                   caption='Unable to find putty.exe',
+                                   style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -405,7 +387,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.path.exists(os.path.join(self.path, self.telnet_client)):
+        if os.path.exists(os.path.join(self.storage_path, self.telnet_client)):
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'ssh'])
@@ -414,7 +396,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             dlg = wx.MessageDialog(
                 parent=self,
                 message='Could not find telnet client \nPlease put ' +
-                '%s in \n%s' % (self.telnet_client, self.path),
+                '%s in \n%s' % (self.telnet_client, self.storage_path),
                 caption='No %s' % self.telnet_client,
                 style=wx.OK)
             dlg.ShowModal()
@@ -675,7 +657,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         save_file_dialog = wx.FileDialog(
             self,
             message='Select file to add devices to or create a new file',
-            defaultDir=self.path,
+            defaultDir=self.storage_path,
             defaultFile="",
             wildcard="CSV files (*.csv)|*.csv",
             style=wx.FD_SAVE)
@@ -705,7 +687,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def import_csv_file(self, _):
         """Imports a list of devices to the main list"""
         open_file_dialog = wx.FileDialog(self, message="Import a CSV file",
-                                         defaultDir=self.path,
+                                         defaultDir=self.storage_path,
                                          defaultFile="",
                                          wildcard="CSV files (*.csv)|*.csv",
                                          style=wx.FD_OPEN |
@@ -724,21 +706,19 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             with open(csv_path, 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = DXLinkUnit(
-                        model=item[0],
-                        hostname=item[1],
-                        serial=item[2],
-                        firmware=item[3],
-                        device=item[4],
-                        mac=item[5],
-                        ip_ad=item[6],
-                        arrival_time=datetime.datetime.strptime(
-                            (item[7]), "%Y-%m-%d %H:%M:%S.%f"),
-                        ip_type=item[8],
-                        gateway=item[9],
-                        subnet=item[10],
-                        master=item[11],
-                        system=item[12])
+                    data = DXLinkUnit(model=item[0],
+                                      hostname=item[1],
+                                      serial=item[2],
+                                      firmware=item[3],
+                                      device=item[4],
+                                      mac_address=item[5],
+                                      ip_address=item[6],
+                                      arrival_time=datetime.datetime.strptime((item[7]), "%Y-%m-%d %H:%M:%S.%f"),
+                                      ip_type=item[8],
+                                      gateway=item[9],
+                                      subnet=item[10],
+                                      master=item[11],
+                                      system=item[12])
 
                     self.main_list.AddObject(data)
             self.save_main_list()
@@ -750,7 +730,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         """Imports a list of IP addresses"""
         open_file_dialog = wx.FileDialog(
             self, message="Open IP List",
-            defaultDir=self.path,
+            defaultDir=self.storage_path,
             defaultFile="",
             wildcard="CSV files (*.csv)|*.csv",
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -760,11 +740,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             with open(open_file_dialog.GetPath(), 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = DXLinkUnit(
-                        ip_ad=item[0],
-                        arrival_time=datetime.datetime.now())
-
-                    self.main_list.AddObject(data)
+                    self.main_list.AddObject(DXLinkUnit(ip_address=item[0]))
             self.save_main_list()
             open_file_dialog.Destroy()
         else:
@@ -774,7 +750,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         """Imports from an online tree report"""
         open_file_dialog = wx.FileDialog(
             self, message="Open Online Tree Report",
-            defaultDir=self.path,
+            defaultDir=self.storage_path,
             defaultFile="",
             wildcard="TXT files (*.txt)|*.txt",
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
@@ -786,8 +762,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             online_tree_list = online_tree.split('+ IPv4 Address.......:')[1:]
             # print online_tree_list[0]
             for item in online_tree_list:
-                data = DXLinkUnit(ip_ad=item.split()[0],
-                            arrival_time=datetime.datetime.now())
+                data = DXLinkUnit(ip_address=item.split()[0], arrival_time=datetime.datetime.now())
                 self.main_list.AddObject(data)
             self.save_main_list()
             open_file_dialog.Destroy()
@@ -830,28 +805,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         else:
             return
 
-    def create_add_unit(self, model='', hostname='', serial='', firmware='',
-                        device='', mac='', ip_ad='', arrival_time='',
-                        ip_type='', gateway='', subnet='', master='',
-                        system=''):
-        """Creates and adds a DXLinkUnit"""
-        data = DXLinkUnit(
-            model=model,
-            hostname=hostname,
-            serial=serial,
-            firmware=firmware,
-            device=device,
-            mac=mac,
-            ip_ad=ip_ad,
-            arrival_time=datetime.datetime.now(),
-            ip_type=ip_type,
-            gateway=gateway,
-            subnet=subnet,
-            master=master,
-            system=system)
-        self.main_list.AddObject(data)
-        # self.save_main_list()
-        return data
+    def new_unit(self):
+        return DXLinkUnit()
 
     def dhcp_on_status_bar(self, obj, incoming_time):
         self.status_bar.SetStatusText(
@@ -921,7 +876,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.save_main_list()
         self.play_sound()
 
-    def save_main_list(self):
+    def save_main_list(self, event=None):
         """Saves the preference and main list"""
         self.save_config(preferences=self.preferences)
 
@@ -949,49 +904,74 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def telnet_missing_dia(self):
         """Show dialog for missing putty"""
+        putty_path = os.path.join(self.storage_path, 'putty.exe')
+        message = f'I\'m unable to find putty.exe in your path.\r\rClick OK to automatically download putty.exe telnet client.\r\rSaving here: {putty_path}'
         dlg = wx.MessageDialog(
             parent=self,
-            message='I notice that you don\'t have a copy of putty.exe \n' +
-            'available. Click OK to automatically download this \n' +
-            'telnet client.',
+            message=message,
             caption='Auto download',
             style=wx.OK | wx.CANCEL)
-        if dlg.ShowModal() == wx.ID_OK:
-            # download
-            putty_url = ('http://the.earth.li/' +
-                         '~sgtatham/putty/latest/x86/putty.exe')
-            try:
-                # resp = requests.head(putty_url)
-                # if resp.status_code != 404:
-                Thread(target=urllib.urlretrieve,
-                       args=(putty_url, os.path.join(self.path, 'putty.exe'))).start()
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        dlg.Destroy()
+
+        # download
+        putty_url = ('http://the.earth.li/' +
+                     '~sgtatham/putty/latest/x86/putty.exe')
+        try:
+            with open(os.path.join(self.storage_path, 'putty.exe'), "wb") as f:
+
+                response = requests.get(putty_url, stream=True)
+                total_length = response.headers.get('content-length')
+
+                if total_length is None:  # no content length header
+                    f.write(response.content)
+                else:
+                    dlg = wx.ProgressDialog("Downloading Putty.exe",
+                                            "Progress",
+                                            maximum=int(total_length),
+                                            parent=self,
+                                            style=wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
+                    dl = 0
+                    total_length = int(total_length)
+                    for data in response.iter_content(chunk_size=1024):
+                        dl += len(data)
+                        f.write(data)
+                        dlg.Update(dl)
+
                 dlg.Destroy()
+                self.preferences.set_prefs(self.storage_path)
                 return
-            except:
+        except Exception as error:
+            print('Error downloading: ', error)
+            if os.path.exists(os.path.join(self.storage_path, 'putty.exe')):
+                os.remove(os.path.join(self.storage_path, 'putty.exe'))
+            try:
                 dlg.Destroy()
+            except Exception as error:
+                print('Error: ', error)
         dlg = wx.MessageDialog(
             parent=self,
-            message=('Please manually copy ' +
-                     self.path +
-                     ' \nThis will allow you to telnet to a device.'),
+            message=('Unable to download putty.exe\r\rPlease manually copy putty.exe to ' +
+                     self.storage_path +
+                     '\r\rThis will allow you to telnet to a device.'),
             caption='No telnet client',
             style=wx.OK)
 
         dlg.ShowModal()
         dlg.Destroy()
 
-
     def configure_device(self, _):
         """Configures a DXLink devices ip master and device number"""
         if self.check_for_none_selected():
             return
         self.configure_list = []
-        self.dev_inc_num = int(self.device_number)
+        self.dev_inc_num = int(self.preferences.device_number)
 
         for obj in self.main_list.GetSelectedObjects():
             self.set_status((obj, "Configuring"))
             self.configure_list.append(obj)
-            if self.device_number == "0":
+            if self.preferences.device_number == 0:
                 self.dev_inc_num = 0
             dia = config_menus.DeviceConfig(self, obj, str(self.dev_inc_num))
             dia.ShowModal()
@@ -1038,22 +1018,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         dispatcher.send(signal="Shutdown")
         self.Close()
 
-    # def on_close(self, _):
-    #     """Close program if user closes window"""
-    #     self.dhcp_listener.shutdown = True
-    #     self.save_main_list()
-    #     self.Hide()
-    #     if type(self.ping_window) is multi_ping.MultiPing:
-    #         self.ping_window.Hide()
-    #     self.ping_model.shutdown()
-    #     self.mse_active_list = []
-    #     self.telnet_job_queue.join()
-    #     self.Destroy()
-
-    # def on_quit(self, _):
-    #     """Save list and close the program"""
-    #     self.on_close(None)
-
     def on_about_box(self, _):
         """Show the About information"""
 
@@ -1085,13 +1049,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE."""
 
-        info = wx.AboutDialogInfo()
+        info = wx.adv.AboutDialogInfo()
         info.SetName(self.name)
         info.SetVersion(self.version)
         info.SetDescription(description)
         info.SetLicence(licence)
         info.AddDeveloper('Jim Maciejewski')
-        wx.AboutBox(info)
+        wx.adv.AboutBox(info)
 
     def on_beer_box(self, _):
         """ Buy me a beer! Yea!"""

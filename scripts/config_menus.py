@@ -9,6 +9,7 @@ from pydispatch import dispatcher
 
 class PreferencesConfig(mdc_gui.Preferences):
     """Sets the preferences """
+
     def __init__(self, parent):
         mdc_gui.Preferences.__init__(self, parent)
 
@@ -69,13 +70,12 @@ class PreferencesConfig(mdc_gui.Preferences):
 
     def bad_subnet(self, error):
         """Dialog showing error"""
-        dlg = wx.MessageDialog(
-                parent=self,
-                message='The subnet you have entered is invalid. \n\n' +
-                str(error) + '\n' +
-                'CIDR example 192.168.71.0/24 or 192.168.71.0/255.255.255.0',
-                caption='Error saving subnet',
-                style=wx.OK)
+        dlg = wx.MessageDialog(parent=self,
+                               message='The subnet you have entered is invalid. \n\n' +
+                               str(error) + '\n' +
+                               'CIDR example 192.168.71.0/24 or 192.168.71.0/255.255.255.0',
+                               caption='Error saving subnet',
+                               style=wx.OK)
         dlg.ShowModal()
         self.subnet_filter_chk.SetValue(False)
         self.subnet_filter_txt.Enable(False)
@@ -91,10 +91,12 @@ class PreferencesConfig(mdc_gui.Preferences):
 
 class DeviceConfig(mdc_gui.DeviceConfiguration):
     """Configures a device"""
+
     def __init__(self, parent, obj, device_num):
         mdc_gui.DeviceConfiguration.__init__(self, parent)
 
         self.parent = parent
+        self.prefs = self.parent.preferences
         self.obj = obj
         self.ip_org = obj.ip_address
         self.device_num = device_num
@@ -143,7 +145,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.master_number_txt.SetValue(self.system)
 
         self.on_dhcp(None)  # call to update dhcp / static
-        getattr(self, self.parent.default_connection_type.lower() +
+        getattr(self, self.prefs.connection_type.lower() +
                 '_chk').SetValue(True)
         self.on_connection_type(None)
 
@@ -197,7 +199,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
 
         info = ['set_device_config',
                 self.obj,
-                self.parent.telnet_timeout_seconds,
+                self.parent.prefs.telnet_timeout_seconds,
                 setdhcp,
                 str(self.hostname_txt.GetValue()),
                 str(self.ip_org),
@@ -227,13 +229,15 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
 
 class IpListGen(mdc_gui.GenerateIP):
     """Generates a list of IP's"""
+
     def __init__(self, parent):
         mdc_gui.GenerateIP.__init__(self, parent)
 
         self.parent = parent
+        self.prefs = self.parent.preferences
 
-        self.start_txt.SetLabel(self.parent.master_address)
-        self.finish_txt.SetLabel(self.parent.master_address)
+        self.start_txt.SetLabel(self.prefs.master_address)
+        self.finish_txt.SetLabel(self.prefs.master_address)
 
         self.data = []
 
@@ -256,18 +260,17 @@ class IpListGen(mdc_gui.GenerateIP):
         if not self.gen_list():
             return
         self.parent.main_list.DeleteAllItems()
-        for item in self.data:
-            self.parent.create_add_unit(ip_ad=str(item))
-        self.parent.dump_pickle()
-        self.Destroy()
+        self.on_add()
 
     def on_add(self):
         """Adds to the bottom of the list"""
         if not self.gen_list():
             return
         for item in self.data:
-            self.parent.create_add_unit(ip_ad=str(item))
-        self.parent.dump_pickle()
+            obj = self.parent.new_unit()
+            obj.ip_address = item
+            self.parent.main_list.AddObject(obj)
+        self.parent.save_main_list()
         self.Destroy()
 
     def on_save(self, _):
@@ -275,12 +278,11 @@ class IpListGen(mdc_gui.GenerateIP):
         if not self.gen_list():
             return
         if self.check_size():
-            save_file_dialog = wx.FileDialog(
-                 self, message="Save IP list",
-                 defaultDir=self.parent.path,
-                 defaultFile="generatediplist.csv",
-                 wildcard="CSV files (*.csv)|*.csv",
-                 style=wx.FD_SAVE)
+            save_file_dialog = wx.FileDialog(self, message="Save IP list",
+                                             defaultDir=self.parent.storage_path,
+                                             defaultFile="generatediplist.csv",
+                                             wildcard="CSV files (*.csv)|*.csv",
+                                             style=wx.FD_SAVE)
             if save_file_dialog.ShowModal() == wx.ID_OK:
 
                 path = save_file_dialog.GetPath()
@@ -300,9 +302,10 @@ class IpListGen(mdc_gui.GenerateIP):
         try:
             ip_range = IPRange(self.start_txt.GetValue(),
                                self.finish_txt.GetValue())
-        except ValueError:
+        except Exception as error:
+            print('error: ', error)
             dlg = wx.MessageDialog(parent=self,
-                                   message='The IP address entered is invalid',
+                                   message=f'The IP address entered is invalid\r{error}',
                                    caption='Invalid IP',
                                    style=wx.OK)
             dlg.ShowModal()

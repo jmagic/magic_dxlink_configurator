@@ -81,7 +81,6 @@ class Telnetjobs(Thread):
 
             telnet_session.write(b'exit\r')
             telnet_session.close()
-            self.parent.dump_pickle()
             self.set_status(obj, "Success")
         except (IOError, Exception) as error:
             self.error_processing(obj, error)

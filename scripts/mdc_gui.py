@@ -62,9 +62,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.reboot_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reboot Device", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.Append( self.reboot_rc_menu )
 
-		self.mse_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.rc_menu.Append( self.mse_rc_menu )
-
 		self.browser_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Open device in Web Browser", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.Append( self.browser_rc_menu )
 
@@ -164,9 +161,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 
 		self.tools_menu.AppendSubMenu( self.dgx_100, u"DGX 100 Auto Populate" )
 
-		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
-		self.tools_menu.Append( self.mse_menu )
-
 		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.Append( self.add_menu )
 
@@ -238,7 +232,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.telnet_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.factory_av, id = self.factory_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_rc_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.open_url, id = self.browser_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.import_csv_file, id = self.import_csv_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.import_ip_list, id = self.import_ip_menu.GetId() )
@@ -260,7 +253,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx1600_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx3200.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx6400.GetId() )
-		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.enable_wd, id = self.wd_enable_menu.GetId() )
@@ -309,9 +301,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 	def reboot( self, event ):
 		event.Skip()
 
-	def mse_baseline( self, event ):
-		event.Skip()
-
 	def open_url( self, event ):
 		event.Skip()
 
@@ -351,7 +340,6 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 
 	def on_gen_dgx_100( self, event ):
 		event.Skip()
-
 
 
 
@@ -757,6 +745,9 @@ class MultiPing ( wx.Dialog ):
 		self.details_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Show Details", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.Append( self.details_rc_menu )
 
+		self.reset_rc = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Reset Count", wx.EmptyString, wx.ITEM_NORMAL )
+		self.rc_menu.Append( self.reset_rc )
+
 		self.delete_rc_menu = wx.MenuItem( self.rc_menu, wx.ID_ANY, u"Delete", wx.EmptyString, wx.ITEM_NORMAL )
 		self.rc_menu.Append( self.delete_rc_menu )
 
@@ -769,6 +760,7 @@ class MultiPing ( wx.Dialog ):
 		self.log_enable_chk.Bind( wx.EVT_CHECKBOX, self.on_log_enable )
 		self.m_button10.Bind( wx.EVT_BUTTON, self.on_reset )
 		self.Bind( wx.EVT_MENU, self.on_show_details, id = self.details_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_reset, id = self.reset_rc.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete, id = self.delete_rc_menu.GetId() )
 
 	def __del__( self ):
@@ -784,6 +776,7 @@ class MultiPing ( wx.Dialog ):
 
 	def on_show_details( self, event ):
 		event.Skip()
+
 
 	def on_delete( self, event ):
 		event.Skip()

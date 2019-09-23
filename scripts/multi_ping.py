@@ -104,7 +104,7 @@ class MultiPing(mdc_gui.MultiPing):
         self.olv_sizer.Layout()
 
         self.parent = parent
-        self.log_path = os.path.join(self.parent.path, 'ping_logs')
+        self.log_path = os.path.join(self.parent.storage_path, 'ping_logs')
         self.log_path_txt.SetLabel(self.log_path)
 
         self.SetTitle("Multiple Ping Monitor")
