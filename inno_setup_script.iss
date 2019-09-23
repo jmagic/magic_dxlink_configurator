@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Magic DXLink Configurator"
-#define MyAppVersion "3.3.4"
-#define MyAppPublisher "ItsMagic"
+#define MyAppVersion "4.0.1"
+#define MyAppPublisher "MagicSoftware"
 #define MyAppURL "http://www.ornear.com/give_a_beer"
 #define MyAppExeName "Magic_DXLink_Configurator.exe"
 
@@ -23,11 +23,14 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=output
 OutputBaseFilename=Magic_DXLink_Configurator_{#MyAppVersion}
-SetupIconFile=C:\Users\jim.maciejewski\Documents\Magic-DXLink-Configurator\dxlink_configurator\dist\Magic_DXLink_configurator\icon\MDC_icon.ico
+SetupIconFile=C:\Users\Jim Maciejewski\Documents\magic-dxlink-configurator\dist\Magic_DXLink_Configurator\icon\MDC_icon.ico
 Compression=lzma
 SolidCompression=yes
 VersionInfoVersion={#MyAppVersion}
 UninstallDisplayIcon={app}\icon\MDC_icon.ico
+SignTool=signtool
+SignedUninstaller=yes
+
 
 [InstallDelete]
 Type: files; Name: {app}\kernel32
@@ -41,8 +44,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Users\jim.maciejewski\Documents\Magic-DXLink-Configurator\dxlink_configurator\dist\Magic_DXLink_configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\jim.maciejewski\Documents\Magic-DXLink-Configurator\dxlink_configurator\dist\Magic_DXLink_configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Jim Maciejewski\Documents\magic-dxlink-configurator\dist\Magic_DXLink_Configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Jim Maciejewski\Documents\magic-dxlink-configurator\dist\Magic_DXLink_Configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "
 ;Source: "C:\Users\Kylie\Dropbox\python_projects\eclipse\workspace2\Magic DXLink Configurator\dist\Magic_DXLink_Configurator"; DestDir: "{userdocs}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

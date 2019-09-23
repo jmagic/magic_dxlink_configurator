@@ -1,8 +1,8 @@
 # -*- mode: python -*-
 # import PyInstaller.hooks.hookutils
 
-a = Analysis(['Magic_DXLink_configurator.py'],
-             pathex=['C:\\Users\\jim.maciejewski\\Documents\\configurator\\dxlink_configurator'],
+a = Analysis(['magic_dxlink_configurator.py'],
+             pathex=['C:\\Users\\Jim Maciejewski\\Documents\\magic-dxlink-configurator'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
@@ -33,7 +33,7 @@ pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='Magic_DXLink_configurator.exe',
+          name='Magic_DXLink_Configurator.exe',
           debug=False,
           strip=None,
           upx=True,
@@ -45,4 +45,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=None,
                upx=True,
-               name='Magic_DXLink_configurator')
+               name='Magic_DXLink_Configurator')

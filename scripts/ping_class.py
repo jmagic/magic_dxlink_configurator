@@ -51,3 +51,11 @@ class PingJob(Thread):
             # print 'keeprunnning: ', self.keeprunning
         # print 'attempting kill'
         ping.kill()
+
+
+def main():
+    test = PingJob(None)
+
+
+if __name__ == "__main__":
+    main()

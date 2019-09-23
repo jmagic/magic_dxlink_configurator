@@ -1,6 +1,6 @@
 """For displaying the dipswitches"""
 
-import mdc_gui
+from . import mdc_gui
 
 
 class ShowDipSwitch(mdc_gui.Dipswitch):
