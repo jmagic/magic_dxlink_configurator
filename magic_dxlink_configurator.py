@@ -434,13 +434,12 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 if not self.mse_in_active(obj):
                     self.mse_enable_thread(obj)
                 self.mse_active_list.append(obj.mac_address)
-                dia = mse_baseline.MSE_Baseline(self, obj)
+                dia = mse_baseline.MSEBaseline(self, obj)
                 dia.Show()
 
     def mse_enable_thread(self, obj):
         """Adds mse thread for plotting / baseline"""
-        self.telnet_job_queue.put(['get_dxlink_mse', obj,
-                                   self.preferences.telnet_timeout])
+        self.telnet_job_queue.put(['get_dxlink_mse', obj, self.preferences.telnet_timeout])
         self.set_status((obj, "Queued"))
 
     def mse_in_active(self, obj):
@@ -457,13 +456,13 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def mse_rx_check(self, obj):
         """Checks if device is a RX"""
-        if obj.model not in self.dxrx_models:
+        if obj.model not in self.preferences.dxrx_models:
             dlg = wx.MessageDialog(parent=self, message='This does not ' +
                                    'appear to be a RX device. You can only' +
                                    ' get MSE values from RX devices. Click ' +
                                    'OK to continue anyway.',
                                    caption='MSE only works on RX devices',
-                                   style=wx.O | wx.CANCEL)
+                                   style=wx.OK | wx.CANCEL)
             if dlg.ShowModal() != wx.ID_OK:
                 dlg.Destroy()
                 return False
@@ -482,15 +481,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         self.ping_window.Show()
         self.ping_model.add(self.main_list.GetSelectedObjects())
-
-    # def multi_ping(self, _):
-    #     """Ping and track results of many devices"""
-    #     if self.check_for_none_selected():
-    #         return
-    #     if type(self.ping_window) is not multi_ping.MultiPing:
-    #         self.ping_window = multi_ping.MultiPing(self)
-    #     self.ping_window.Show()
-    #     self.ping_model.add_items(self.main_list.GetSelectedObjects())
 
     def multi_ping_remove(self, obj):
         """Removes an item from multiping"""

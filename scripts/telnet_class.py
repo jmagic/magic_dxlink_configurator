@@ -3,11 +3,19 @@
 import telnetlib
 from pydispatch import dispatcher
 from threading import Thread
-import time
 import datetime
 import subprocess
 # import serial
 # import io
+import time
+from dataclasses import dataclass, field
+
+
+@dataclass
+class MSEValues:
+    report_time: datetime = datetime.datetime.now()
+    mse: list = field(default_factory=list)
+    obj: object = None
 
 
 class Telnetjobs(Thread):
@@ -443,6 +451,7 @@ class Telnetjobs(Thread):
 
     def get_dxlink_mse(self, job):
         """Gathers MSE values"""
+        # print('in get dxlink mse')
         obj = job[1]
         self.set_status(obj, "Connecting")
         try:
@@ -451,33 +460,26 @@ class Telnetjobs(Thread):
             telnet_session.read_until(b'>', 2)
             # telnet_session.read_very_eager()
             self.set_status(obj, "MSE")
-            mse = []
-            data = []
             while obj.mac_address in self.parent.mse_active_list:
-
+                my_values = MSEValues(obj=obj)
                 telnet_session.write(b'show vs100 stats \r')
                 telnet_session.read_until(b'MSE(db)')
                 stats = telnet_session.read_until(b'VS100').split()
                 for i in range(len(stats)):
-                    if stats[i] == "ChA:":
-                        data.append(stats[i + 1][:-1])
-                        data.append(stats[i + 3][:-1])
-                        data.append(stats[i + 5][:-1])
-                        data.append(stats[i + 7])
-                if data != []:
-                    mse_time = [datetime.datetime.now(), data]
-                    mse.append(mse_time)
-                    mse.append(obj.ip_address)
-                    mse.append(obj.mac_address)
-                    dispatcher.send(signal="Incoming MSE", sender=mse)
-                    mse = []
-                    data = []
+                    if stats[i] == b"ChA:":
+                        my_values.mse.append(int(stats[i + 1][:-1].decode()))
+                        my_values.mse.append(int(stats[i + 3][:-1].decode()))
+                        my_values.mse.append(int(stats[i + 5][:-1].decode()))
+                        my_values.mse.append(int(stats[i + 7].decode()))
+                if my_values.mse != []:
+                    dispatcher.send(signal="Incoming MSE", data=my_values)
 
                 telnet_session.read_until(b'>', 2)
             self.set_status(obj, "Success")
 
-        except:
+        except Exception as error:
             time.sleep(2)  # wait for gui to start
+            # print('Telnet MSE error: ', error)
             dispatcher.send(signal="MSE error", sender=obj.mac_address)
             self.set_status(obj, "Failed")
 
