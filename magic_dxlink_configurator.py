@@ -110,7 +110,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         icon_bundle.AddIcon(os.path.join("icon", "MDC_icon.ico"), wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
-        self.version = "v4.0.1"
+        self.version = "v4.0.2"
         self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
@@ -1095,7 +1095,7 @@ SOFTWARE."""
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     # splash = show_splash()
     # do processing/initialization here and create main window
     dxlink_frame = DXLink_Configurator_Frame(None)
