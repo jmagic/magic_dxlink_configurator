@@ -161,6 +161,9 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 
 		self.tools_menu.AppendSubMenu( self.dgx_100, u"DGX 100 Auto Populate" )
 
+		self.mse_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"MSE Baseline", wx.EmptyString, wx.ITEM_NORMAL )
+		self.tools_menu.Append( self.mse_menu )
+
 		self.add_menu = wx.MenuItem( self.tools_menu, wx.ID_ANY, u"Add line item", wx.EmptyString, wx.ITEM_NORMAL )
 		self.tools_menu.Append( self.add_menu )
 
@@ -253,6 +256,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx1600_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx3200.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_gen_dgx_100, id = self.dgx6400.GetId() )
+		self.Bind( wx.EVT_MENU, self.mse_baseline, id = self.mse_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.add_line, id = self.add_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.generate_list, id = self.generate_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.enable_wd, id = self.wd_enable_menu.GetId() )
@@ -343,6 +347,9 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 
 
 
+
+	def mse_baseline( self, event ):
+		event.Skip()
 
 	def add_line( self, event ):
 		event.Skip()
@@ -1412,9 +1419,9 @@ class Dipswitch ( wx.Dialog ):
 class MSE_Baseline ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"MSE Baseline", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"MSE Baseline", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER )
 
-		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 500,300 ), wx.DefaultSize )
 
 		bSizer50 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1456,9 +1463,12 @@ class MSE_Baseline ( wx.Dialog ):
 
 		bSizer53.Add( sbSizer10, 0, wx.EXPAND|wx.ALL, 5 )
 
-		sbSizer9 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel9, wx.ID_ANY, u"MSE Table" ), wx.VERTICAL )
+		self.sbSizer9 = wx.StaticBoxSizer( wx.StaticBox( self.m_panel9, wx.ID_ANY, u"MSE Table" ), wx.VERTICAL )
 
-		self.mse_manual_grid = wx.grid.Grid( sbSizer9.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_panel11 = wx.Panel( self.sbSizer9.GetStaticBox(), wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer68 = wx.BoxSizer( wx.VERTICAL )
+
+		self.mse_manual_grid = wx.grid.Grid( self.m_panel11, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
 		self.mse_manual_grid.CreateGrid( 7, 3 )
@@ -1490,10 +1500,16 @@ class MSE_Baseline ( wx.Dialog ):
 
 		# Cell Defaults
 		self.mse_manual_grid.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
-		sbSizer9.Add( self.mse_manual_grid, 0, wx.ALL, 5 )
+		bSizer68.Add( self.mse_manual_grid, 1, wx.ALL|wx.EXPAND, 5 )
 
 
-		bSizer53.Add( sbSizer9, 1, wx.EXPAND|wx.ALL, 5 )
+		self.m_panel11.SetSizer( bSizer68 )
+		self.m_panel11.Layout()
+		bSizer68.Fit( self.m_panel11 )
+		self.sbSizer9.Add( self.m_panel11, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+		bSizer53.Add( self.sbSizer9, 1, wx.ALL|wx.EXPAND, 5 )
 
 
 		bSizer51.Add( bSizer53, 1, wx.EXPAND, 5 )

@@ -2,7 +2,7 @@
 # import PyInstaller.hooks.hookutils
 
 a = Analysis(['magic_dxlink_configurator.py'],
-             pathex=['C:\\Users\\Jim Maciejewski\\Documents\\magic-dxlink-configurator'],
+             pathex=['C:\\Users\\Jim Maciejewski\\Documents\\magic_dxlink_configurator'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
