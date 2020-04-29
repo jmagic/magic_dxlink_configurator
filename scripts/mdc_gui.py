@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Apr 17 2019)
+## Python code generated with wxFormBuilder (version Oct 26 2018)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -500,20 +500,27 @@ class Preferences ( wx.Dialog ):
 
 		bSizer11.Add( bSizer61, 0, wx.EXPAND, 5 )
 
-		bSizer62 = wx.BoxSizer( wx.VERTICAL )
+		bSizer69 = wx.BoxSizer( wx.VERTICAL )
 
-		bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer70 = wx.BoxSizer( wx.HORIZONTAL )
+
+		bSizer71 = wx.BoxSizer( wx.HORIZONTAL )
 
 		self.m_staticText2 = wx.StaticText( sbSizer1.GetStaticBox(), wx.ID_ANY, u"Default Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 
-		bSizer13.Add( self.m_staticText2, 0, wx.ALL, 5 )
+		self.m_staticText2.SetMinSize( wx.Size( 140,-1 ) )
+
+		bSizer71.Add( self.m_staticText2, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		self.master_address_txt = wx.TextCtrl( sbSizer1.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer13.Add( self.master_address_txt, 0, wx.ALL|wx.EXPAND, 5 )
+		bSizer71.Add( self.master_address_txt, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-		bSizer62.Add( bSizer13, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer70.Add( bSizer71, 1, 0, 5 )
+
+
+		bSizer69.Add( bSizer70, 1, wx.EXPAND, 5 )
 
 		bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -522,19 +529,21 @@ class Preferences ( wx.Dialog ):
 		self.m_staticText3 = wx.StaticText( sbSizer1.GetStaticBox(), wx.ID_ANY, u"Default Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText3.Wrap( -1 )
 
-		bSizer17.Add( self.m_staticText3, 0, wx.ALL, 5 )
+		self.m_staticText3.SetMinSize( wx.Size( 140,-1 ) )
+
+		bSizer17.Add( self.m_staticText3, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		self.device_number_txt = wx.TextCtrl( sbSizer1.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.EXPAND, 5 )
+		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
 		bSizer15.Add( bSizer17, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-		bSizer62.Add( bSizer15, 1, wx.EXPAND, 5 )
+		bSizer69.Add( bSizer15, 1, wx.EXPAND, 5 )
 
 
-		bSizer11.Add( bSizer62, 1, wx.EXPAND, 5 )
+		bSizer11.Add( bSizer69, 1, wx.EXPAND, 5 )
 
 
 		sbSizer1.Add( bSizer11, 1, wx.EXPAND, 5 )
