@@ -201,7 +201,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
 
         info = ['set_device_config',
                 self.obj,
-                self.parent.prefs.telnet_timeout_seconds,
+                self.prefs.telnet_timeout,
                 setdhcp,
                 str(self.hostname_txt.GetValue()),
                 str(self.ip_org),

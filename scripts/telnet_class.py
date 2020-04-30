@@ -135,17 +135,17 @@ class Telnetjobs(Thread):
 
         obj = job[1]
         self.set_status(obj, "Connecting")
-        # try:
-        telnet_session = self.establish_telnet(obj.ip_address)
-        telnet_session.read_until(b'>', int(job[2]))
-        telnet_session.write(b'reboot\r')
-        telnet_session.read_until(b'Rebooting....', int(job[2]))
-        telnet_session.close()
+        try:
+            telnet_session = self.establish_telnet(obj.ip_address)
+            telnet_session.read_until(b'>', int(job[2]))
+            telnet_session.write(b'reboot\r')
+            telnet_session.read_until(b'Rebooting....', int(job[2]))
+            telnet_session.close()
 
-        self.set_status(obj, "Success")
+            self.set_status(obj, "Success")
 
-        # except Exception as error:
-        #     self.error_processing(obj, error)
+        except Exception as error:
+            self.error_processing(obj, error)
 
     def set_device_config(self, job):
 

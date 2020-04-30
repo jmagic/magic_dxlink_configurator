@@ -112,7 +112,7 @@ class DHCPListener(Thread):
 
                     # check if we have been told to stop listening
                     if not self.shutdown:
-                        dispatcher.send(signal="Incoming DHCP", sender=(hostname, mac_address, ip_address))
+                        dispatcher.send(signal="Incoming DHCP", data=(hostname, mac_address, ip_address))
             except Exception as error:
                 print('Error parsing DHCP packet: ', error)
 

@@ -34,72 +34,13 @@ import queue
 import webbrowser
 import requests
 import random
-from dataclasses import dataclass, field
 from pydispatch import dispatcher
 from threading import Thread
-from shutil import which
-from netaddr import IPRange, IPNetwork
+from netaddr import IPRange
 
-from scripts import (auto_update, config_menus, dhcp_sniffer, mdc_gui, send_command,
+from scripts import (auto_update, config_menus, datastore, dhcp_sniffer, dhcpjobs_class, mdc_gui, send_command,
                      multi_ping, multi_ping_model, mse_baseline, telnet_class, telnetto_class,
                      dipswitch)
-
-
-class DXLinkUnit:
-
-    def __init__(self, model='', hostname='', serial='', firmware='', device='', mac_address='',
-                 ip_address='', arrival_time=datetime.datetime.now(), ip_type='', gateway='',
-                 subnet='', master='', system='', status='', last_status=datetime.datetime.now()):
-
-        self.model = model
-        self.hostname = hostname
-        self.serial = serial
-        self.firmware = firmware
-        self.device = device
-        self.mac_address = mac_address
-        self.ip_address = ip_address
-        self.arrival_time = arrival_time
-        self.ip_type = ip_type
-        self.gateway = gateway
-        self.subnet = subnet
-        self.master = master
-        self.system = system
-        self.status = status
-        self.last_status = last_status
-
-
-@dataclass
-class Preferences:
-    master_address: str = '127.0.0.1'
-    device_number: int = 0
-    connection_type: str = 'TCP'
-    device_dhcp: bool = True
-    number_of_threads: int = 20
-    telnet_client: str = None
-    telnet_timeout: int = 20
-    dhcp_listen: bool = True
-    amx_only_filter: bool = False
-    subnet_filter: str = ''
-    subnet_filter_enable: bool = False
-    play_sounds: bool = True
-    randomize_sounds: bool = False
-    check_for_updates: bool = True
-    debug: bool = False
-    dev_inc_num: int = 0
-    cols_selected: list = field(default_factory=lambda: ['Time', 'Model', 'MAC', 'IP', 'Hostname', 'Serial',
-                                                         'Firmware', 'Device', 'Static', 'Master', 'System', 'Status'])
-
-    dxtx_models: list = field(default_factory=lambda: ['DXLINK-HDMI-MFTX', 'DXLINK-HDMI-WP', 'DXLINK-HDMI-DWP'])
-    dxrx_models: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
-    dxftx_models: list = field(default_factory=lambda: ['DXF-TX-xxD', 'DXLF-MFTX'])
-    dxfrx_models: list = field(default_factory=lambda: ['DXF-RX-xxD', 'DXLF-HDMIRX'])
-
-    def set_prefs(self, storage_path):
-        self.telnet_client = which('putty.exe')
-        if self.telnet_client is None:
-            # Check if we have a copy locally
-            if os.path.exists(os.path.join(storage_path, 'putty.exe')):
-                self.telnet_client = os.path.join(storage_path, 'putty.exe')
 
 
 class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
@@ -189,6 +130,11 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 self, self.telnet_job_queue)
             self.telnet_job_thread.setDaemon(True)
             self.telnet_job_thread.start()
+
+        self.dhcp_job_queue = queue.Queue()
+        self.dhcp_job_thread = dhcpjobs_class.DHCPjobs(self, self.dhcp_job_queue)
+        self.dhcp_job_thread.setDaemon(True)
+        self.dhcp_job_thread.start()
 
         self.ping_window = multi_ping.MultiPing(self)
         self.ping_window.Hide()
@@ -579,10 +525,10 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         ip_range = IPRange('198.18.130.1', '198.18.130.' + num_of_devices)
         # print 'ip_range: ', ip_range
         for address in list(ip_range):
-            self.main_list.AddObject(DXLinkUnit(ip_address=str(address)))
+            self.main_list.AddObject(datastore.DXLinkUnit(ip_address=str(address)))
         ip_range = IPRange('198.18.134.1', '198.18.134.' + num_of_devices)
         for address in list(ip_range):
-            self.main_list.AddObject(DXLinkUnit(ip_address=str(address)))
+            self.main_list.AddObject(datastore.DXLinkUnit(ip_address=str(address)))
         self.save_main_list()
 
     def enable_wd(self, _):
@@ -715,19 +661,19 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             with open(csv_path, 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    data = DXLinkUnit(model=item[0],
-                                      hostname=item[1],
-                                      serial=item[2],
-                                      firmware=item[3],
-                                      device=item[4],
-                                      mac_address=item[5],
-                                      ip_address=item[6],
-                                      arrival_time=datetime.datetime.strptime((item[7]), "%Y-%m-%d %H:%M:%S.%f"),
-                                      ip_type=item[8],
-                                      gateway=item[9],
-                                      subnet=item[10],
-                                      master=item[11],
-                                      system=item[12])
+                    data = datastore.DXLinkUnit(model=item[0],
+                                                hostname=item[1],
+                                                serial=item[2],
+                                                firmware=item[3],
+                                                device=item[4],
+                                                mac_address=item[5],
+                                                ip_address=item[6],
+                                                arrival_time=datetime.datetime.strptime((item[7]), "%Y-%m-%d %H:%M:%S.%f"),
+                                                ip_type=item[8],
+                                                gateway=item[9],
+                                                subnet=item[10],
+                                                master=item[11],
+                                                system=item[12])
 
                     self.main_list.AddObject(data)
             self.save_main_list()
@@ -749,7 +695,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             with open(open_file_dialog.GetPath(), 'r', newline='') as csvfile:
                 cvs_data = csv.reader(csvfile)
                 for item in cvs_data:
-                    self.main_list.AddObject(DXLinkUnit(ip_address=item[0]))
+                    self.main_list.AddObject(datastore.DXLinkUnit(ip_address=item[0]))
             self.save_main_list()
             open_file_dialog.Destroy()
         else:
@@ -771,7 +717,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             online_tree_list = online_tree.split('+ IPv4 Address.......:')[1:]
             # print online_tree_list[0]
             for item in online_tree_list:
-                data = DXLinkUnit(ip_address=item.split()[0], arrival_time=datetime.datetime.now())
+                data = datastore.DXLinkUnit(ip_address=item.split()[0], arrival_time=datetime.datetime.now())
                 self.main_list.AddObject(data)
             self.save_main_list()
             open_file_dialog.Destroy()
@@ -786,7 +732,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def add_line(self, _):
         """Adds a line to the main list"""
-        data = DXLinkUnit(arrival_time=datetime.datetime.now())
+        data = datastore.DXLinkUnit(arrival_time=datetime.datetime.now())
         self.main_list.AddObject(data)
         self.save_main_list()
 
@@ -814,8 +760,9 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         else:
             return
 
-    def new_unit(self):
-        return DXLinkUnit()
+    # removed now have seperate module for datastore
+    # def new_unit(self):
+    #     return datastore.DXLinkUnit()
 
     def dhcp_on_status_bar(self, obj, incoming_time):
         self.status_bar.SetStatusText(
@@ -824,70 +771,14 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             ' ' + obj.ip_address +
             ' ' + obj.mac_address)
 
-    def incoming_dhcp(self, sender):
+    def incoming_dhcp(self, data):
         """Receives dhcp requests and adds them to objects to display"""
-        incoming_time = datetime.datetime.now()
-        hostname, mac_address, ip_address = sender
-        # print('got dhcp: ', mac_address)
-
         # Check if it is filtered
         if not self.preferences.dhcp_listen:
             # print('no listen')
             return
-        if bool(self.preferences.amx_only_filter):
-            if mac_address[0:8] != '00:60:9f':
-                # print('not amx mac')
-                obj = DXLinkUnit(hostname=hostname, mac_address=mac_address, ip_address=ip_address)
-                self.dhcp_on_status_bar(obj, incoming_time)
-                return
-        if self.preferences.subnet_filter_enable:
-            if ip_address not in IPNetwork(self.preferences.subnet_filter):
-                # print('no subnet')
-                obj = DXLinkUnit(hostname=hostname, mac_address=mac_address, ip_address=ip_address)
-                self.dhcp_on_status_bar(obj, incoming_time)
-                return
-
-        # Check if duplicate in list
-        duplicate_list = []
-        for obj in self.main_list.GetObjects():
-            if obj.mac_address == mac_address:
-                # print('duplicate')
-                duplicate_list.append(obj)
-
-        # Add or update list
-        if duplicate_list != []:
-            # remove duplicates
-            if len(duplicate_list) > 1:
-                for item in duplicate_list[1:]:
-                    self.main_list.RemoveObject(item)
-            # update duplicate with new info
-            obj = duplicate_list[0]
-            obj.ip_address = ip_address
-            obj.hostname = hostname
-            obj.arrival_time = incoming_time
-
-        else:
-            # new item
-            obj = DXLinkUnit(hostname=sender[0], mac_address=sender[1], ip_address=sender[2], arrival_time=incoming_time)
-            self.main_list.AddObject(obj)
-            self.set_status((obj, "DHCP"))
-
-        if obj.hostname[:2] == 'DX':
-            # Need to check if we have updated DXLink device recently
-            # print(incoming_time - obj.last_status)
-            # print(incoming_time - obj.last_status < datetime.timedelta(seconds=2))
-            if (incoming_time - obj.last_status) < datetime.timedelta(seconds=2):
-                # print('no check')
-                pass
-            else:
-                # print('checking')
-                obj.last_status = incoming_time
-                self.telnet_job_queue.put(['get_config_info', obj,
-                                           self.preferences.telnet_timeout])
-        self.dhcp_on_status_bar(obj, incoming_time)
-        self.main_list.Refresh()
-        self.save_main_list()
-        self.play_sound()
+        # Send to queue
+        self.dhcp_job_queue.put(['incoming_dhcp', data])
 
     def save_main_list(self, event=None):
         """Saves the preference and main list"""
@@ -902,7 +793,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         except Exception as error:
             print('unable to load plk ', error)
             # self.save_config()
-            pick = {'preferences': Preferences(), 'main_list': []}
+            pick = {'preferences': datastore.Preferences(), 'main_list': []}
             return pick
 
     def save_config(self, preferences=None, gui_preferences=None):
@@ -910,7 +801,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         # print('saving...')
         if preferences is None:
             # Create new config file
-            preferences = Preferences()
+            preferences = datastore.Preferences()
         if not os.path.exists(self.storage_path):
             os.mkdir(self.storage_path)
         with open(os.path.join(self.storage_path, self.storage_file), "wb") as f:
@@ -1095,7 +986,7 @@ SOFTWARE."""
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=False, filename="log.txt")
     # splash = show_splash()
     # do processing/initialization here and create main window
     dxlink_frame = DXLink_Configurator_Frame(None)

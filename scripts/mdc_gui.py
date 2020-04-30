@@ -828,7 +828,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer14.Add( self.hostname_txt, 0, wx.ALL, 5 )
 
 
-		bSizer13.Add( bSizer14, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL|wx.EXPAND, 5 )
+		bSizer13.Add( bSizer14, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 		sbSizer7 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, wx.EmptyString ), wx.HORIZONTAL )
 

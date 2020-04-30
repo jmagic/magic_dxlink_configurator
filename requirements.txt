@@ -1,5 +1,5 @@
 ObjectListView
-wxpython
+wxPython==4.0.7.post2
 pydispatcher
 requests
 netaddr
