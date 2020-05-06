@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Magic DXLink Configurator"
-#define MyAppVersion "4.0.2"
+#define MyAppVersion "4.0.3"
 #define MyAppPublisher "MagicSoftware"
 #define MyAppURL "http://www.ornear.com/give_a_beer"
 #define MyAppExeName "Magic_DXLink_Configurator.exe"
@@ -23,12 +23,12 @@ DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=output
 OutputBaseFilename=Magic_DXLink_Configurator_{#MyAppVersion}
-SetupIconFile=C:\Users\Jim Maciejewski\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\icon\MDC_icon.ico
+SetupIconFile=C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\icon\mdc.ico
 Compression=lzma
 SolidCompression=yes
 VersionInfoVersion={#MyAppVersion}
 UninstallDisplayIcon={app}\icon\MDC_icon.ico
-SignTool=signtool
+SignTool=signtool $f
 SignedUninstaller=yes
 
 
@@ -44,8 +44,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Users\Jim Maciejewski\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Jim Maciejewski\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "
 ;Source: "C:\Users\Kylie\Dropbox\python_projects\eclipse\workspace2\Magic DXLink Configurator\dist\Magic_DXLink_Configurator"; DestDir: "{userdocs}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
