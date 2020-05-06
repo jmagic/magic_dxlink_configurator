@@ -35,7 +35,6 @@ import webbrowser
 import requests
 import random
 from pydispatch import dispatcher
-from threading import Thread
 from netaddr import IPRange
 
 from scripts import (auto_update, config_menus, datastore, dhcp_sniffer, dhcpjobs_class, mdc_gui, send_command,
@@ -414,10 +413,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def multi_ping_shutdown(self):
         """Shuts down multi-ping"""
-        # pass
-        Thread(target=self.ping_model.shutdown).start()
-        # self.ping_model.shutdown()
-        # pass
+        self.ping_model.shutdown()
 
     def factory_av(self, _):
         """Reset device AV settings to factory defaults"""
