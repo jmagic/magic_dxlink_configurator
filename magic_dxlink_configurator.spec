@@ -3,8 +3,8 @@
 block_cipher = None
 
 project_name = 'magic_dxlink_configurator'
-project_version = 'v0.0.6'
-project_icon = 'msc.ico'
+project_version = 'v4.0.3'
+project_icon = 'mdc.ico'
 single_file = False
 
 ## Do not modify below this line.
