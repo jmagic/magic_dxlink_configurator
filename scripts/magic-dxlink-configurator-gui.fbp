@@ -267,7 +267,7 @@
                                             <property name="permission">none</property>
                                             <property name="shortcut"></property>
                                             <property name="unchecked_bitmap"></property>
-                                            <event name="OnMenuSelection">delete_item</event>
+                                            <event name="OnMenuSelection">on_delete_item</event>
                                         </object>
                                         <object class="wxMenuItem" expanded="0">
                                             <property name="bitmap"></property>
@@ -597,7 +597,7 @@
                         <event name="OnMenuSelection">reboot</event>
                     </object>
                 </object>
-                <object class="wxMenu" expanded="1">
+                <object class="wxMenu" expanded="0">
                     <property name="label">Tools</property>
                     <property name="name">tools_menu</property>
                     <property name="permission">protected</property>
@@ -677,7 +677,7 @@
                             <event name="OnMenuSelection">on_gen_dgx_100</event>
                         </object>
                     </object>
-                    <object class="wxMenuItem" expanded="1">
+                    <object class="wxMenuItem" expanded="0">
                         <property name="bitmap"></property>
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
@@ -820,7 +820,7 @@
                         <event name="OnMenuSelection">on_amx_only_filter</event>
                     </object>
                 </object>
-                <object class="wxMenu" expanded="0">
+                <object class="wxMenu" expanded="1">
                     <property name="label">Delete</property>
                     <property name="name">delete_menu</property>
                     <property name="permission">protected</property>
@@ -850,7 +850,7 @@
                         <property name="permission">none</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
-                        <event name="OnMenuSelection">delete_all_items</event>
+                        <event name="OnMenuSelection">on_delete_all_items</event>
                     </object>
                 </object>
                 <object class="wxMenu" expanded="0">

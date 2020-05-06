@@ -184,8 +184,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if key == wx.WXK_DELETE:
             dlg = wx.MessageDialog(
                 parent=self,
-                message='Are you sure? \n\nThis will delete all selected' +
-                ' items in the list',
+                message='Are you sure? \n\nThis will delete all selected items in the list',
                 caption='Delete All Selected Items',
                 style=wx.OK | wx.CANCEL)
 
@@ -272,8 +271,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         """Checks if nothing is selected"""
         if len(self.main_list.GetSelectedObjects()) == 0:
             dlg = wx.MessageDialog(
-                parent=self, message='Nothing selected...\nPlease click on ' +
-                'the device you want to select',
+                parent=self, message='Nothing selected...\nPlease click on the device you want to select',
                 caption='Nothing Selected',
                 style=wx.OK)
             dlg.ShowModal()
@@ -290,18 +288,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         """Select none of the items in the list"""
         self.main_list.DeselectAll()
 
-    def config_fail_dia(self):
-        """show config fail"""
-        dlg = wx.MessageDialog(
-            parent=self,
-            message='New setting file created \n\n I\'ve had to create a new' +
-            ' settings file, \nbecause the old one couldn\'t be read \n' +
-            'or was from a old version',
-            caption='Default settings file created',
-            style=wx.OK)
-
-        dlg.ShowModal()
-
     def telnet_to(self, _):
         """Telnet to the selected device(s)"""
         if self.check_for_none_selected():
@@ -309,8 +295,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(
                 parent=self,
-                message='I can only telnet to 10 devices at a time \nPlease ' +
-                'select less than ten devices at once',
+                message='I can only telnet to 10 devices at a time \nPlease select less than ten devices at once',
                 caption='How many telnets?',
                 style=wx.OK)
             dlg.ShowModal()
@@ -337,15 +322,13 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
             return
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(
-                parent=self, message='I can only ssh to' +
-                ' 10 devices at a time \nPlease select less' +
-                ' than ten devices at once',
+                parent=self, message='I can only ssh to 10 devices at a time \nPlease select less than ten devices at once',
                 caption='How many ssh?',
                 style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
             return
-        if os.path.exists(os.path.join(self.storage_path, self.telnet_client)):
+        if os.path.exists(os.path.join(self.storage_path, self.preferences.telnet_client)):
 
             for obj in self.main_list.GetSelectedObjects():
                 self.telnet_to_queue.put([obj, 'ssh'])
@@ -353,9 +336,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         else:
             dlg = wx.MessageDialog(
                 parent=self,
-                message='Could not find telnet client \nPlease put ' +
-                '%s in \n%s' % (self.telnet_client, self.storage_path),
-                caption='No %s' % self.telnet_client,
+                message=f'Could not find telnet client \nPlease put {self.preferences.telnet_client} in \n{self.storage_path}',
+                caption='No %s' % self.preferences.telnet_client,
                 style=wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
@@ -368,8 +350,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if len(self.main_list.GetSelectedObjects()) > 10:
             dlg = wx.MessageDialog(
                 parent=self,
-                message='I can only telnet to 10 devices at a time \nPlease ' +
-                'select less than ten devices at once',
+                message='I can only telnet to 10 devices at a time \nPlease select less than ten devices at once',
                 caption='How many telnets?',
                 style=wx.OK)
             dlg.ShowModal()
@@ -391,8 +372,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def mse_in_active(self, obj):
         """Checks if device is in active list"""
         if obj.mac_address in self.mse_active_list:
-            dlg = wx.MessageDialog(parent=self, message='You are already ' +
-                                   'getting MSE from this MAC address',
+            dlg = wx.MessageDialog(parent=self, message='You are already getting MSE from this MAC address',
                                    caption='Are you sure?',
                                    style=wx.OK)
             dlg.ShowModal()
@@ -403,10 +383,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
     def mse_rx_check(self, obj):
         """Checks if device is a RX"""
         if obj.model not in self.preferences.dxrx_models:
-            dlg = wx.MessageDialog(parent=self, message='This does not ' +
-                                   'appear to be a RX device. You can only' +
-                                   ' get MSE values from RX devices. Click ' +
-                                   'OK to continue anyway.',
+            dlg = wx.MessageDialog(parent=self, message='This does not appear to be a RX device. You can only get MSE values from RX devices. Click OK to continue anyway.',
                                    caption='MSE only works on RX devices',
                                    style=wx.OK | wx.CANCEL)
             if dlg.ShowModal() != wx.ID_OK:
@@ -457,8 +434,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         if self.check_for_none_selected():
             return
         for obj in self.main_list.GetSelectedObjects():
-            dlg = wx.MessageDialog(parent=self, message='Are you sure? \n ' +
-                                   'This will reset %s' % obj.ip_address,
+            dlg = wx.MessageDialog(parent=self, message=f'Are you sure? \nThis will reset {obj.ip_address}',
                                    caption='Factory Reset',
                                    style=wx.OK | wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:
@@ -572,9 +548,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
         if len(unknown_devices) > 0:
             dlg = wx.SingleChoiceDialog(parent=self,
-                                        message=('Unable to identify what type of dxlink devices have been selected\nIf you are sure these are DXLink devices\n' +
-                                                 'please select the apporiate family.\n\nChose carefully, as commands' +
-                                                 ' are indetend for specific devices'),
+                                        message=('Unable to identify what type of dxlink devices have been selected\nIf you are sure these are DXLink devices\nplease select the apporiate family.\n\nChose carefully, as commands are indetend for specific devices'),
                                         caption='Unable to identify devices',
                                         choices=['DX-TX', 'DX-RX', 'Fiber DX-TX', 'Fiber DX-RX'],
                                         style=wx.OK | wx.CANCEL)
@@ -645,14 +619,11 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                                          defaultDir=self.storage_path,
                                          defaultFile="",
                                          wildcard="CSV files (*.csv)|*.csv",
-                                         style=wx.FD_OPEN |
-                                         wx.FD_FILE_MUST_EXIST)
+                                         style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if open_file_dialog.ShowModal() == wx.ID_OK:
             csv_path = open_file_dialog.GetPath()
             open_file_dialog.Destroy()
-            dlg = wx.MessageDialog(parent=self, message='To replace ' +
-                                   'all items currently in your list,  ' +
-                                   'click ok',
+            dlg = wx.MessageDialog(parent=self, message='To replace all items currently in your list, click ok',
                                    caption='Replace items',
                                    style=wx.OK | wx.CANCEL)
             if dlg.ShowModal() == wx.ID_OK:
@@ -736,7 +707,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.main_list.AddObject(data)
         self.save_main_list()
 
-    def delete_item(self, _):
+    def on_delete_item(self, _):
         """Deletes the selected item"""
         if len(self.main_list.GetSelectedObjects()) == \
            len(self.main_list.GetObjects()):
@@ -748,10 +719,9 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.main_list.RemoveObjects(self.main_list.GetSelectedObjects())
         self.save_main_list()
 
-    def delete_all_items(self, _):
+    def on_delete_all_items(self, _):
         """Deletes all items,selected or not"""
-        dlg = wx.MessageDialog(parent=self, message='Are you sure? \n This ' +
-                               'will delete all items in the list',
+        dlg = wx.MessageDialog(parent=self, message='Are you sure? \n This will delete all items in the list',
                                caption='Delete All Items',
                                style=wx.OK | wx.CANCEL)
         if dlg.ShowModal() == wx.ID_OK:
@@ -766,10 +736,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
 
     def dhcp_on_status_bar(self, obj, incoming_time):
         self.status_bar.SetStatusText(
-            incoming_time.strftime('%I:%M:%S%p') +
-            ' -- ' + obj.hostname +
-            ' ' + obj.ip_address +
-            ' ' + obj.mac_address)
+            incoming_time.strftime('%I:%M:%S%p') + f' -- {obj.hostname} {obj.ip_address} {obj.mac_address}')
 
     def incoming_dhcp(self, data):
         """Receives dhcp requests and adds them to objects to display"""
@@ -822,8 +789,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         dlg.Destroy()
 
         # download
-        putty_url = ('http://the.earth.li/' +
-                     '~sgtatham/putty/latest/x86/putty.exe')
+        putty_url = ('http://the.earth.li/~sgtatham/putty/latest/x86/putty.exe')
         try:
             with open(os.path.join(self.storage_path, 'putty.exe'), "wb") as f:
 
@@ -858,9 +824,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 print('Error: ', error)
         dlg = wx.MessageDialog(
             parent=self,
-            message=('Unable to download putty.exe\r\rPlease manually copy putty.exe to ' +
-                     self.storage_path +
-                     '\r\rThis will allow you to telnet to a device.'),
+            message=(f'Unable to download putty.exe\r\rPlease manually copy putty.exe to {self.storage_path}\r\rThis will allow you to telnet to a device.'),
             caption='No telnet client',
             style=wx.OK)
 
@@ -965,8 +929,7 @@ SOFTWARE."""
 
     def on_beer_box(self, _):
         """ Buy me a beer! Yea!"""
-        dlg = wx.MessageDialog(parent=self, message='If you enjoy this ' +
-                               'program \n Learn how you can help out',
+        dlg = wx.MessageDialog(parent=self, message='If you enjoy this program \n Learn how you can help out',
                                caption='Buy me a beer',
                                style=wx.OK)
         if dlg.ShowModal() == wx.ID_OK:

@@ -231,7 +231,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.send_commands, id = self.send_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.reset_rc_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_item, id = self.delete_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.telnet_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.factory_av, id = self.factory_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_rc_menu.GetId() )
@@ -266,7 +266,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_item_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.delete_all_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_all_items, id = self.delete_all_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_dipswitch, id = self.dipswitch_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.about_menu.GetId() )
 
@@ -293,7 +293,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 	def reset_factory( self, event ):
 		event.Skip()
 
-	def delete_item( self, event ):
+	def on_delete_item( self, event ):
 		event.Skip()
 
 	def telnet_to( self, event ):
@@ -375,10 +375,8 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 	def on_amx_only_filter( self, event ):
 		event.Skip()
 
-	def on_delete_item( self, event ):
-		event.Skip()
 
-	def delete_all_items( self, event ):
+	def on_delete_all_items( self, event ):
 		event.Skip()
 
 	def on_dipswitch( self, event ):
