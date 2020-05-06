@@ -40,6 +40,10 @@ def extra_datas(icon):
     return extra_datas
 ############################################
 a.datas += extra_datas('icon')
+a.datas += extra_datas('media')
+a.datas += extra_datas('sounds')
+a.datas += extra_datas('send_commands')
+a.datas += extra_datas('docs')
 a.datas += extra_datas('doc')
 
 

@@ -726,10 +726,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         else:
             return
 
-    # removed now have seperate module for datastore
-    # def new_unit(self):
-    #     return datastore.DXLinkUnit()
-
     def dhcp_on_status_bar(self, obj, incoming_time):
         self.status_bar.SetStatusText(
             incoming_time.strftime('%I:%M:%S%p') + f' -- {obj.hostname} {obj.ip_address} {obj.mac_address}')
@@ -945,7 +941,7 @@ SOFTWARE."""
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=False, filename="log.txt")
+    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
     # splash = show_splash()
     # do processing/initialization here and create main window
     dxlink_frame = DXLink_Configurator_Frame(None)
