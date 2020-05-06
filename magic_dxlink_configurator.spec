@@ -1,11 +1,27 @@
 # -*- mode: python -*-
-# import PyInstaller.hooks.hookutils
 
-a = Analysis(['magic_dxlink_configurator.py'],
-             pathex=['C:\\Users\\Jim Maciejewski\\Documents\\magic_dxlink_configurator'],
+block_cipher = None
+
+project_name = 'magic_dxlink_configurator'
+project_version = 'v0.0.6'
+project_icon = 'msc.ico'
+single_file = False
+
+## Do not modify below this line.
+
+
+a = Analysis([f'{project_name}.py'],
+             pathex=[f'C:\\Users\\jimm\\Documents\\{project_name}'],
+             binaries=[],
+             datas=[],
              hiddenimports=[],
-             hookspath=None,
-             runtime_hooks=None)
+             hookspath=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher)
+
 ##### include mydir in distribution #######
 def extra_datas(icon):
     def rec_glob(p, files):
@@ -22,27 +38,43 @@ def extra_datas(icon):
         extra_datas.append((f, f, 'icon'))
 
     return extra_datas
-###########################################
+############################################
 a.datas += extra_datas('icon')
-a.datas += extra_datas('media')
-a.datas += extra_datas('sounds')
-a.datas += extra_datas('send_commands')
-a.datas += extra_datas('docs')
+a.datas += extra_datas('doc')
 
-pyz = PYZ(a.pure)
+
+pyz = PYZ(a.pure, a.zipped_data,
+             cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          exclude_binaries=True,
-          name='Magic_DXLink_Configurator.exe',
+          a.binaries,
+          a.zipfiles,
+          a.datas,
+          name=f'{project_name}.exe',
           debug=False,
-          strip=None,
+          strip=False,
           upx=True,
           console=False,
-          icon='icon\\MDC_icon.ico')
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=None,
-               upx=True,
-               name='Magic_DXLink_Configurator')
+          icon=f'icon\\{project_icon}' )
+
+if not single_file:
+    coll = COLLECT(exe,
+                   a.binaries,
+                   a.zipfiles,
+                   a.datas,
+                   strip=None,
+                   upx=True,
+                   name=project_name)
+
+#######################################
+# Code-sign the generated executable
+import subprocess
+subprocess.call(["C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64\\signtool.exe",
+                 "sign",
+                 "/f", "C:\\Users\\jimm\\Nextcloud\\WindowsSigningCert\\MyKey.pfx",
+                 "/t", "http://timestamp.comodoca.com/authenticode",
+                 "/p", "9fQo2YmntgPPb8eQ",
+                 f"C:\\Users\\jimm\\Documents\\{project_name}\\dist\\{project_name}.exe",
+])
+#"C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /f "C:\Users\jimm\Nextcloud\WindowsSigningCert\MyKey.pfx" /t http://timestamp.comodoca.com/authenticode /p 9fQo2YmntgPPb8eQ $f
+#######################################

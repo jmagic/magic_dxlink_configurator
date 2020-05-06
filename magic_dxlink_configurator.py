@@ -51,7 +51,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         icon_bundle.AddIcon(os.path.join("icon", "MDC_icon.ico"), wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
-        self.version = "v4.0.2"
+        self.version = "v4.0.3"
         self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
