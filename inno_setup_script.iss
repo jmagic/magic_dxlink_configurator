@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=output
-OutputBaseFilename=Magic_DXLink_Configurator_{#MyAppVersion}
+OutputBaseFilename=Magic_DXLink_Configurator_v{#MyAppVersion}
 SetupIconFile=C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\icon\mdc.ico
 Compression=lzma
 SolidCompression=yes
@@ -30,6 +30,7 @@ VersionInfoVersion={#MyAppVersion}
 UninstallDisplayIcon={app}\icon\MDC_icon.ico
 SignTool=signtool $f
 SignedUninstaller=yes
+CloseApplications=force
 
 
 [InstallDelete]

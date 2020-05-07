@@ -52,6 +52,8 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.name = "Magic DXLink Configurator"
         self.version = "v4.0.3"
         self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
+        if not os.path.exists(self.storage_path):
+            os.mkdir(self.storage_path)
         self.storage_file = "_".join(self.name.split()) + ".pkl"
         self.SetTitle(self.name + " " + self.version)
 
@@ -105,9 +107,6 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         self.amx_only_filter_chk.Check(self.preferences.amx_only_filter)
         self.dhcp_sniffing_chk.Check(self.preferences.dhcp_listen)
         self.update_status_bar()
-
-        # What is this used for??
-        self.cert_path = self.resource_path('cacert.pem')
 
         # Create DHCP listening thread
         self.dhcp_listener = dhcp_sniffer.DHCPListener()
@@ -188,7 +187,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                 style=wx.OK | wx.CANCEL)
 
             if dlg.ShowModal() == wx.ID_OK:
-                self.delete_item(None)
+                self.on_delete_item(None)
                 self.save_main_list()
             else:
                 return
@@ -795,14 +794,15 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
                                             "Progress",
                                             maximum=int(total_length),
                                             parent=self,
-                                            style=wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_ESTIMATED_TIME | wx.PD_REMAINING_TIME)
+                                            style=wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
                     dl = 0
                     total_length = int(total_length)
-                    for data in response.iter_content(chunk_size=1024):
+                    for data in response.iter_content(chunk_size=10240):
                         dl += len(data)
                         f.write(data)
-                        dlg.Update(dl)
-
+                        if not dlg.Update(dl):
+                            # Canceled by user
+                            break
                 dlg.Destroy()
                 self.preferences.set_prefs(self.storage_path)
                 return
