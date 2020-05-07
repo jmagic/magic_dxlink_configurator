@@ -9,6 +9,8 @@ class WinPing(Thread):
     def __init__(self, obj):
         self.obj = obj
         self.shutdown = False
+        dispatcher.connect(self.shutdown_signal, signal="Shutdown", sender=dispatcher.Any)
+        dispatcher.connect(self.shutdown_signal, signal="Ping Shutdown", sender=dispatcher.Any)
         Thread.__init__(self)
 
     def run(self):
@@ -53,6 +55,9 @@ class WinPing(Thread):
         # print('attempting kill')
         ping.kill()
 
+    def shutdown_signal(self, signal):
+        self.shutdown = True
+
 
 class TempUnit:
     count = 0
@@ -60,7 +65,7 @@ class TempUnit:
     def __init__(self):
         self.__class__.count += 1
         self.count = self.__class__.count
-        self.ip_address = f'192.168.7.{self.count}'
+        self.ip_address = f'192.168.57.{self.count}'
 
 
 def incoming(sender, data):
@@ -82,8 +87,9 @@ def main():
         threads.append(test)
     import time
     time.sleep(5)
-    for item in threads:
-        item.shutdown = True
+    # for item in threads:
+    #     item.shutdown = True
+    dispatcher.send(signal="Shutdown")
     for item in threads:
         item.join()
 

@@ -12,8 +12,7 @@ class PingDetail(mdc_gui.PingDetail):
         mdc_gui.PingDetail.__init__(self, parent)
 
         self.detail_list = ObjectListView(self.olv_panel, wx.ID_ANY,
-                                          style=wx.LC_REPORT |
-                                          wx.SUNKEN_BORDER)
+                                          style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         self.detail_list.SetColumns(
             [ColumnDefn("Time", "center", 180, "ping_time",
@@ -59,9 +58,7 @@ class DetailsView(wx.Dialog):
         bsizer121 = wx.BoxSizer(wx.VERTICAL)
 
         self.ping_list = ObjectListView(self, wx.ID_ANY, size=wx.Size(-1, 500),
-                                        style=wx.LC_REPORT |
-                                        wx.SUNKEN_BORDER |
-                                        wx.RESIZE_BORDER)
+                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER | wx.RESIZE_BORDER)
         self.ping_list.SetColumns(
             [ColumnDefn("Time", "center", 180, "ping_time",
                         stringConverter="%d-%m-%Y %H:%M:%S.%f"),
@@ -87,11 +84,8 @@ class MultiPing(mdc_gui.MultiPing):
     def __init__(self, parent):
         mdc_gui.MultiPing.__init__(self, parent)
 
-        self.ping_list = ObjectListView(self.olv_panel, wx.ID_ANY,
-                                        style=wx.LC_REPORT |
-                                        wx.SUNKEN_BORDER)
-        self.ping_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,
-                            self.MultiPingOnContextMenu)
+        self.ping_list = ObjectListView(self.olv_panel, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.ping_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.MultiPingOnContextMenu)
         self.ping_list.SetColumns(
             [ColumnDefn("IP", "center", 100, "ip_address"),
              ColumnDefn("MAC", "center", 130, "mac_address"),
@@ -156,7 +150,7 @@ class MultiPing(mdc_gui.MultiPing):
         self.Hide()
         self.parent.multi_ping_shutdown()
         # self.Destroy()
-        event.Skip()
+        # event.Skip()
 
     def on_show_details(self, _):
         """Show the details of the pings to this device"""

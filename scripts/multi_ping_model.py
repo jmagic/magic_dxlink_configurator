@@ -22,11 +22,7 @@ class PingUnit:
         self.failed = 0
         self.path = path
         self.logging = logging
-        self.log = ('device_' +
-                    obj.ip_address +
-                    '_time_' +
-                    datetime.datetime.now().strftime('%H_%M_%S') +
-                    '.csv')
+        self.log = f'device_{obj.ip_address}_time_{datetime.datetime.now().strftime("%H_%M_%S")}.csv'
         dispatcher.connect(
             self.on_incoming_ping,
             signal="Incoming Ping",
@@ -149,10 +145,11 @@ class MultiPing_Model:
         self.logging = not self.logging
 
     def shutdown(self):
-        to_shutdown = self.ping_objects
+        # to_shutdown = self.ping_objects
         self.ping_objects = []
-        for item in to_shutdown:
-            item.stop_thread()
+        # for item in to_shutdown:
+        # item.stop_thread()
+        dispatcher.send(signal="Ping Shutdown")
 
 
 def main():

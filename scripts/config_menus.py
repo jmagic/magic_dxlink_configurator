@@ -2,7 +2,7 @@
 
 import wx
 import csv
-from scripts import mdc_gui
+from scripts import mdc_gui, datastore
 from netaddr import IPRange, IPNetwork
 from pydispatch import dispatcher
 
@@ -24,8 +24,7 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.subnet_filter_txt.SetValue(self.prefs.subnet_filter)
         self.subnet_filter_txt.Enable(self.prefs.subnet_filter_enable)
         self.subnet_filter_chk.SetValue(self.prefs.subnet_filter_enable)
-        getattr(self, self.prefs.connection_type.lower() +
-                '_chk').SetValue(True)
+        getattr(self, self.prefs.connection_type.lower() + '_chk').SetValue(True)
 
         self.sounds_chk.SetValue(int(self.prefs.play_sounds))
         self.funny_sounds_chk.SetValue(int(self.prefs.randomize_sounds))
@@ -147,8 +146,7 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.master_number_txt.SetValue(self.system)
 
         self.on_dhcp(None)  # call to update dhcp / static
-        getattr(self, self.prefs.connection_type.lower() +
-                '_chk').SetValue(True)
+        getattr(self, self.prefs.connection_type.lower() + '_chk').SetValue(True)
         self.on_connection_type(None)
 
     def on_connection_type(self, _):
@@ -269,7 +267,7 @@ class IpListGen(mdc_gui.GenerateIP):
         if not self.gen_list():
             return
         for item in self.data:
-            obj = self.parent.new_unit()
+            obj = datastore.DXLinkUnit()
             obj.ip_address = item
             self.parent.main_list.AddObject(obj)
         self.parent.save_main_list()
