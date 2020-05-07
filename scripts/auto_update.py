@@ -15,7 +15,7 @@ class AutoUpdate(Thread):
         """Checks on line for updates"""
         try:
             update_url = f'{self.server_url}/updates/{"_".join(self.program_name.lower().split())}/current_version'
-            # print('update url: ', update_url)
+            print('update url: ', update_url)
             webpage = r_get(update_url)
             # webpage.raise_for_status()
             online_version = webpage.text
@@ -37,7 +37,7 @@ class AutoUpdate(Thread):
 
 
 def main():
-    test = AutoUpdate(server_url="http://127.0.0.1:9000", program_name="Magic Amino Configurator", program_version="v0.0.1")
+    test = AutoUpdate(server_url="http://magicsoftware.ornear.com", program_name="Magic DXLink Configurator", program_version="v0.0.1")
     test.start()
     test.join()
 

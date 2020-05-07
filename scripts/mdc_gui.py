@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Apr 17 2019)
+## Python code generated with wxFormBuilder (version Oct 26 2018)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -231,7 +231,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.multi_ping, id = self.ping_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.send_commands, id = self.send_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reset_factory, id = self.reset_rc_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_item, id = self.delete_rc_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.telnet_to, id = self.telnet_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.factory_av, id = self.factory_rc_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.reboot, id = self.reboot_rc_menu.GetId() )
@@ -266,7 +266,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 		self.Bind( wx.EVT_MENU, self.on_dhcp_sniffing, id = self.dhcp_sniffing_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_amx_only_filter, id = self.amx_only_filter_chk.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_delete_item, id = self.delete_item_menu.GetId() )
-		self.Bind( wx.EVT_MENU, self.delete_all_items, id = self.delete_all_menu.GetId() )
+		self.Bind( wx.EVT_MENU, self.on_delete_all_items, id = self.delete_all_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_dipswitch, id = self.dipswitch_menu.GetId() )
 		self.Bind( wx.EVT_MENU, self.on_about_box, id = self.about_menu.GetId() )
 
@@ -293,7 +293,7 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 	def reset_factory( self, event ):
 		event.Skip()
 
-	def delete_item( self, event ):
+	def on_delete_item( self, event ):
 		event.Skip()
 
 	def telnet_to( self, event ):
@@ -375,10 +375,8 @@ class DXLink_Configurator_Frame ( wx.Frame ):
 	def on_amx_only_filter( self, event ):
 		event.Skip()
 
-	def on_delete_item( self, event ):
-		event.Skip()
 
-	def delete_all_items( self, event ):
+	def on_delete_all_items( self, event ):
 		event.Skip()
 
 	def on_dipswitch( self, event ):
@@ -500,20 +498,27 @@ class Preferences ( wx.Dialog ):
 
 		bSizer11.Add( bSizer61, 0, wx.EXPAND, 5 )
 
-		bSizer62 = wx.BoxSizer( wx.VERTICAL )
+		bSizer69 = wx.BoxSizer( wx.VERTICAL )
 
-		bSizer13 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer70 = wx.BoxSizer( wx.HORIZONTAL )
+
+		bSizer71 = wx.BoxSizer( wx.HORIZONTAL )
 
 		self.m_staticText2 = wx.StaticText( sbSizer1.GetStaticBox(), wx.ID_ANY, u"Default Master Address", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText2.Wrap( -1 )
 
-		bSizer13.Add( self.m_staticText2, 0, wx.ALL, 5 )
+		self.m_staticText2.SetMinSize( wx.Size( 140,-1 ) )
+
+		bSizer71.Add( self.m_staticText2, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		self.master_address_txt = wx.TextCtrl( sbSizer1.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer13.Add( self.master_address_txt, 0, wx.ALL|wx.EXPAND, 5 )
+		bSizer71.Add( self.master_address_txt, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-		bSizer62.Add( bSizer13, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer70.Add( bSizer71, 1, 0, 5 )
+
+
+		bSizer69.Add( bSizer70, 1, wx.EXPAND, 5 )
 
 		bSizer15 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -522,19 +527,21 @@ class Preferences ( wx.Dialog ):
 		self.m_staticText3 = wx.StaticText( sbSizer1.GetStaticBox(), wx.ID_ANY, u"Default Device Number", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText3.Wrap( -1 )
 
-		bSizer17.Add( self.m_staticText3, 0, wx.ALL, 5 )
+		self.m_staticText3.SetMinSize( wx.Size( 140,-1 ) )
+
+		bSizer17.Add( self.m_staticText3, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 		self.device_number_txt = wx.TextCtrl( sbSizer1.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.EXPAND, 5 )
+		bSizer17.Add( self.device_number_txt, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
 		bSizer15.Add( bSizer17, 1, wx.ALIGN_CENTER_VERTICAL, 5 )
 
 
-		bSizer62.Add( bSizer15, 1, wx.EXPAND, 5 )
+		bSizer69.Add( bSizer15, 1, wx.EXPAND, 5 )
 
 
-		bSizer11.Add( bSizer62, 1, wx.EXPAND, 5 )
+		bSizer11.Add( bSizer69, 1, wx.EXPAND, 5 )
 
 
 		sbSizer1.Add( bSizer11, 1, wx.EXPAND, 5 )
@@ -819,7 +826,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer14.Add( self.hostname_txt, 0, wx.ALL, 5 )
 
 
-		bSizer13.Add( bSizer14, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ALL|wx.EXPAND, 5 )
+		bSizer13.Add( bSizer14, 0, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 
 		sbSizer7 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, wx.EmptyString ), wx.HORIZONTAL )
 
