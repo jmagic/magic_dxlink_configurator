@@ -129,7 +129,10 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         if self.gateway == ' ':
             self.gateway = '0.0.0.0'
         if self.master == '' or self.master == 'not connected':
-            self.master = str(self.prefs.master_address)
+            if self.prefs.master_address == "127.0.0.1":
+                self.master = ''
+            else:
+                self.master = str(self.prefs.master_address)
 
         if self.device == '' or obj.device == '0':
             self.device = str(device_num)
