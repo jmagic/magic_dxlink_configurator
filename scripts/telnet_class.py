@@ -162,6 +162,8 @@ class Telnetjobs(Thread):
         master_number = job[10]
         master = job[11]
         device = job[12]
+        master_user = job[13]
+        master_password = job[14]
         self.set_status(obj, "Connecting")
         try:
             if setdhcp:
@@ -209,12 +211,22 @@ class Telnetjobs(Thread):
                 telnet_session.write(master.encode('ascii') + b'\r')
                 telnet_session.read_until(b'Port:', delay)
                 telnet_session.write(b'\r')
+
                 telnet_session.read_until(b'User:', delay)
-                telnet_session.write(b'\r')
+                if master_user == '':
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_user.encode('ascii') + b'\r')
                 telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
-                telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
+                if master_password == '':
+                    telnet_session.write(b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+
                 telnet_session.read_until(b'Enter ->', delay)
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
@@ -227,8 +239,6 @@ class Telnetjobs(Thread):
                 telnet_session.read_until(b'Rebooting....', delay)
                 telnet_session.close()
 
-                self.set_status(obj, "Success")
-
             if conn_type == "AUTO":
 
                 telnet_session.write(b'set connection\r')
@@ -238,12 +248,22 @@ class Telnetjobs(Thread):
                 telnet_session.write(master_number.encode('ascii') + b'\r')
                 telnet_session.read_until(b'Port:', delay)
                 telnet_session.write(b'\r')
+
                 telnet_session.read_until(b'User:', delay)
-                telnet_session.write(b'\r')
+                if master_user == '':
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_user.encode('ascii') + b'\r')
                 telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
-                telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
+                if master_password == '':
+                    telnet_session.write(b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+
                 telnet_session.read_until(b'Enter ->', delay)
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
@@ -255,20 +275,28 @@ class Telnetjobs(Thread):
                 telnet_session.read_until(b'Rebooting....', delay)
                 telnet_session.close()
 
-                self.set_status(obj, "Success")
-
             if conn_type == "NDP":
                 telnet_session.write(b'set connection\r')
                 telnet_session.read_until(b'Enter:', delay)
                 telnet_session.write(b'n\r')
                 telnet_session.read_until(b'Port:', delay)
                 telnet_session.write(b'\r')
+
                 telnet_session.read_until(b'User:', delay)
-                telnet_session.write(b'\r')
+                if master_user == '':
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_user.encode('ascii') + b'\r')
                 telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
-                telnet_session.read_until(b'Password:', delay)
-                telnet_session.write(b'\r')
+                if master_password == '':
+                    telnet_session.write(b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(b'\r')
+                else:
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+                    telnet_session.read_until(b'Password:', delay)
+                    telnet_session.write(master_password.encode('ascii') + b'\r')
+
                 telnet_session.read_until(b'Enter ->', delay)
                 telnet_session.write(b'y\r')
                 telnet_session.read_until(b'written.', delay)
@@ -280,7 +308,7 @@ class Telnetjobs(Thread):
                 telnet_session.read_until(b'Rebooting....', delay)
                 telnet_session.close()
 
-                self.set_status(obj, "Success")
+            self.set_status(obj, "Success")
 
         except Exception as error:
             self.error_processing(obj, error)

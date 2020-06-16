@@ -3,6 +3,10 @@ import os
 from dataclasses import dataclass, field
 from shutil import which
 
+from cryptography.fernet import Fernet
+
+ENCRYPTION_KEY = b'GBiZqOnIaCzq__Z0c2MoGxMdUNGS3SYxrzHXWXu2baE='
+cipher_suite = Fernet(ENCRYPTION_KEY)
 
 class DXLinkUnit:
 
@@ -31,6 +35,8 @@ class DXLinkUnit:
 class Preferences:
     master_address: str = '127.0.0.1'
     device_number: int = 0
+    master_user: str = ''
+    master_password: str = b'gAAAAABe6D5TcmRTV3hNfyv7akpib1DRUejxDz9DmFwwozte8Avhy91W23gElpp2nG700BxCl6mc-wVCuWryC_Vb0mBIigwnpw=='  # blank
     connection_type: str = 'TCP'
     device_dhcp: bool = True
     number_of_threads: int = 20
@@ -52,6 +58,15 @@ class Preferences:
     dxrx_models: list = field(default_factory=lambda: ['DXLINK-HDMI-RX', 'DXLINK-HDMI-RX.c', 'DXLINK-HDMI-RX.e'])
     dxftx_models: list = field(default_factory=lambda: ['DXF-TX-xxD', 'DXLF-MFTX'])
     dxfrx_models: list = field(default_factory=lambda: ['DXF-RX-xxD', 'DXLF-HDMIRX'])
+
+    def set_password(self, password):
+        self.master_password = cipher_suite.encrypt(password.encode())
+
+    def get_password(self):
+        try:
+            return cipher_suite.decrypt(self.master_password).decode()
+        except Exception:
+            return ''
 
     def set_prefs(self, storage_path):
         self.telnet_client = which('putty.exe')
