@@ -30,6 +30,9 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.funny_sounds_chk.SetValue(int(self.prefs.randomize_sounds))
         self.check_for_updates_chk.SetValue(int(self.prefs.check_for_updates))
 
+        self.master_user_txt.SetValue(self.prefs.master_user)
+        self.master_password_txt.SetValue(self.prefs.get_password())
+
         for item in self.prefs.cols_selected:
             getattr(self, item.lower() + '_chk').SetValue(True)
 
@@ -64,6 +67,11 @@ class PreferencesConfig(mdc_gui.Preferences):
         self.prefs.randomize_sounds = self.funny_sounds_chk.GetValue()
         self.prefs.check_for_updates = self.check_for_updates_chk.GetValue()
 
+        if self.master_user_txt.GetValue() != "":
+            self.prefs.master_user = self.master_user_txt.GetValue()
+        if self.master_password_txt.GetValue() != "":
+            self.prefs.set_password(self.master_password_txt.GetValue())
+   
         # self.parent.update_status_bar()
         # self.parent.select_columns()
         # self.parent.resize_frame()
@@ -144,10 +152,15 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
         self.master_txt.SetValue(self.master)
         self.device_txt.SetValue(self.device)
         self.master_number_txt.SetValue(self.system)
+        if self.prefs.master_user != "":
+            self.master_user_txt.SetValue(self.prefs.master_user)
+        if self.prefs.get_password() != "":
+            self.master_password_txt.SetValue(self.prefs.get_password())
 
         self.on_dhcp(None)  # call to update dhcp / static
         getattr(self, self.prefs.connection_type.lower() + '_chk').SetValue(True)
         self.on_connection_type(None)
+        self.Fit()
 
     def on_connection_type(self, _):
         """Sets up for connection type"""
@@ -209,7 +222,8 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
                 str(self.get_type()),
                 str(self.master_number_txt.GetValue()),
                 str(self.master_txt.GetValue()),
-                str(self.device_txt.GetValue())]
+                str(self.device_txt.GetValue()),
+                self.prefs]
         if self.device_txt.GetValue() != str(self.device_num):
             self.parent.dev_inc_num = int(self.device_txt.GetValue())
         self.parent.telnet_job_queue.put(info)

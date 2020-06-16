@@ -646,6 +646,37 @@ class Preferences ( wx.Dialog ):
 
 		bSizer10.Add( sbSizer3, 0, wx.EXPAND|wx.ALL, 5 )
 
+		sbSizer15 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Master User/Password" ), wx.VERTICAL )
+
+		bSizer701 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText32 = wx.StaticText( sbSizer15.GetStaticBox(), wx.ID_ANY, u"Master User", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText32.Wrap( -1 )
+
+		bSizer701.Add( self.m_staticText32, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.master_user_txt = wx.TextCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		bSizer701.Add( self.master_user_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		sbSizer15.Add( bSizer701, 1, wx.EXPAND, 5 )
+
+		bSizer711 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText33 = wx.StaticText( sbSizer15.GetStaticBox(), wx.ID_ANY, u"Master Password", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33.Wrap( -1 )
+
+		bSizer711.Add( self.m_staticText33, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.master_password_txt = wx.TextCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), wx.TE_PASSWORD )
+		bSizer711.Add( self.master_password_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		sbSizer15.Add( bSizer711, 0, wx.EXPAND, 5 )
+
+
+		bSizer10.Add( sbSizer15, 0, wx.EXPAND|wx.ALL, 5 )
+
 		m_sdbSizer3 = wx.StdDialogButtonSizer()
 		self.m_sdbSizer3OK = wx.Button( self, wx.ID_OK )
 		m_sdbSizer3.AddButton( self.m_sdbSizer3OK )
@@ -809,7 +840,7 @@ class MultiPing ( wx.Dialog ):
 class DeviceConfiguration ( wx.Dialog ):
 
 	def __init__( self, parent ):
-		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Device Settings", pos = wx.DefaultPosition, size = wx.DefaultSize, style = wx.DEFAULT_DIALOG_STYLE )
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Device Settings", pos = wx.DefaultPosition, size = wx.Size( 362,586 ), style = wx.DEFAULT_DIALOG_STYLE )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -881,7 +912,7 @@ class DeviceConfiguration ( wx.Dialog ):
 		sbSizer5.Add( bSizer19, 1, wx.EXPAND, 5 )
 
 
-		bSizer13.Add( sbSizer5, 1, wx.EXPAND|wx.ALL, 5 )
+		bSizer13.Add( sbSizer5, 0, wx.EXPAND|wx.ALL, 5 )
 
 		sbSizer13 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Connection Type" ), wx.VERTICAL )
 
@@ -931,6 +962,37 @@ class DeviceConfiguration ( wx.Dialog ):
 
 		bSizer13.Add( sbSizer13, 0, wx.EXPAND|wx.ALL, 5 )
 
+		sbSizer15 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, u"Master User/Password" ), wx.VERTICAL )
+
+		bSizer70 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText32 = wx.StaticText( sbSizer15.GetStaticBox(), wx.ID_ANY, u"Master User", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText32.Wrap( -1 )
+
+		bSizer70.Add( self.m_staticText32, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.master_user_txt = wx.TextCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		bSizer70.Add( self.master_user_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		sbSizer15.Add( bSizer70, 1, wx.EXPAND, 5 )
+
+		bSizer71 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText33 = wx.StaticText( sbSizer15.GetStaticBox(), wx.ID_ANY, u"Master Password", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33.Wrap( -1 )
+
+		bSizer71.Add( self.m_staticText33, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.master_password_txt = wx.TextCtrl( sbSizer15.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), wx.TE_PASSWORD )
+		bSizer71.Add( self.master_password_txt, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		sbSizer15.Add( bSizer71, 0, wx.EXPAND, 5 )
+
+
+		bSizer13.Add( sbSizer15, 0, wx.EXPAND|wx.ALL, 5 )
+
 		sbSizer131 = wx.StaticBoxSizer( wx.StaticBox( self, wx.ID_ANY, wx.EmptyString ), wx.VERTICAL )
 
 		bSizer21 = wx.BoxSizer( wx.HORIZONTAL )
@@ -961,12 +1023,11 @@ class DeviceConfiguration ( wx.Dialog ):
 		bSizer16.Add( self.m_button3, 0, wx.ALL, 5 )
 
 
-		bSizer13.Add( bSizer16, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		bSizer13.Add( bSizer16, 1, wx.ALL|wx.ALIGN_RIGHT, 5 )
 
 
 		self.SetSizer( bSizer13 )
 		self.Layout()
-		bSizer13.Fit( self )
 
 		self.Centre( wx.BOTH )
 
