@@ -223,7 +223,8 @@ class DeviceConfig(mdc_gui.DeviceConfiguration):
                 str(self.master_number_txt.GetValue()),
                 str(self.master_txt.GetValue()),
                 str(self.device_txt.GetValue()),
-                self.prefs]
+                str(self.master_user_txt.GetValue()),
+                str(self.master_password_txt.GetValue())]
         if self.device_txt.GetValue() != str(self.device_num):
             self.parent.dev_inc_num = int(self.device_txt.GetValue())
         self.parent.telnet_job_queue.put(info)
