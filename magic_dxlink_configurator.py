@@ -50,7 +50,7 @@ class DXLink_Configurator_Frame(mdc_gui.DXLink_Configurator_Frame):
         icon_bundle.AddIcon(os.path.join("icon", "mdc.ico"), wx.BITMAP_TYPE_ANY)
         self.SetIcons(icon_bundle)
         self.name = "Magic DXLink Configurator"
-        self.version = "v4.0.4"
+        self.version = "v4.0.5"
         self.storage_path = os.path.expanduser(os.path.join('~', 'Documents', self.name))
         if not os.path.exists(self.storage_path):
             os.mkdir(self.storage_path)
@@ -941,7 +941,7 @@ SOFTWARE."""
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
     # splash = show_splash()
     # do processing/initialization here and create main window
     dxlink_frame = DXLink_Configurator_Frame(None)
