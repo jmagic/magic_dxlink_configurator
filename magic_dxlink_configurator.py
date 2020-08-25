@@ -941,7 +941,7 @@ SOFTWARE."""
 
 def main():
     """run the main program"""
-    dxlink_configurator = wx.App(redirect=True, filename="log.txt")
+    dxlink_configurator = wx.App()  # redirect=True, filename="log.txt")
     # splash = show_splash()
     # do processing/initialization here and create main window
     dxlink_frame = DXLink_Configurator_Frame(None)

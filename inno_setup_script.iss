@@ -19,11 +19,11 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={commonpf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=output
 OutputBaseFilename=Magic_DXLink_Configurator_v{#MyAppVersion}
-SetupIconFile=C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\icon\mdc.ico
+SetupIconFile=C:\Users\jim\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\icon\mdc.ico
 Compression=lzma
 SolidCompression=yes
 VersionInfoVersion={#MyAppVersion}
@@ -33,10 +33,6 @@ SignedUninstaller=yes
 CloseApplications=force
 
 
-[InstallDelete]
-Type: files; Name: {app}\kernel32
-Type: files; Name: {app}\cacert.pem
-
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
@@ -45,8 +41,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\jimm\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\jim\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\Magic_DXlink_configurator.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\jim\Documents\magic_dxlink_configurator\dist\Magic_DXLink_Configurator\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "
 ;Source: "C:\Users\Kylie\Dropbox\python_projects\eclipse\workspace2\Magic DXLink Configurator\dist\Magic_DXLink_Configurator"; DestDir: "{userdocs}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
